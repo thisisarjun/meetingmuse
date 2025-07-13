@@ -1,4 +1,4 @@
-from meetingmuse.models.hugging_face import HuggingFaceModel
+from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 
 def test_hugging_face_model():
     model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
