@@ -16,6 +16,7 @@ class ConversationStep(StrEnum):
     COLLECTING_INFO = "collecting_info"
     PROCESSING_REQUEST = "processing"
     CLARIFYING_REQUEST = "clarifying"
+    COMPLETED = "completed"
 
 
 class CalendarBotState(TypedDict):
