@@ -11,6 +11,13 @@ class UserIntent(StrEnum):
     GENERAL_CHAT = "general"
     UNKNOWN = "unknown"
 
+class ConversationStep(StrEnum):
+    GREETING = "greeting"
+    COLLECTING_INFO = "collecting_info"
+    PROCESSING_REQUEST = "processing"
+    CLARIFYING_REQUEST = "clarifying"
+
+
 class CalendarBotState(TypedDict):
     """
     This is the 'memory' of your bot - everything it remembers during a conversation.
@@ -29,7 +36,7 @@ class CalendarBotState(TypedDict):
     user_intent: Optional[UserIntent] 
     
     # Where are we in the conversation? (greeting, collecting info, confirming, etc.)
-    current_step: str
+    current_step: ConversationStep
     
     # Information about the meeting being scheduled
     meeting_details: Dict[str, Any]

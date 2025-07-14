@@ -36,6 +36,7 @@ class TestIntentClassifier:
         ("Good morning", UserIntent.GENERAL_CHAT),
         ("How are you doing?", UserIntent.GENERAL_CHAT),
     ])
+    @pytest.mark.skip(reason="Real model test")
     def test_classify_intent_happy_flow(self, user_message: str, expected_intent: UserIntent):
         """
         Parameterized happy flow test: Tests various user intents.

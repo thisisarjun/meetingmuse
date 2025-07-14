@@ -1,5 +1,7 @@
+import pytest
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 
+@pytest.mark.skip(reason="Real model test")
 def test_hugging_face_model():
     model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
     assert model.chat_model is not None
