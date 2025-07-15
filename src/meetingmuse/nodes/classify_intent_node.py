@@ -16,11 +16,13 @@ class ClassifyIntentNode:
             return ConversationStep.PROCESSING_REQUEST
         elif user_intent == UserIntent.UNKNOWN:
             return ConversationStep.CLARIFYING_REQUEST
+        elif user_intent == UserIntent.GENERAL_CHAT:
+            return ConversationStep.GREETING
         else:
             raise ValueError(f"Unknown user intent: {user_intent}")
         
 
-    def __call__(self, state: CalendarBotState) -> CalendarBotState:
+    def node_action(self, state: CalendarBotState) -> CalendarBotState:
         last_message = state["messages"][-1]
 
         if isinstance(last_message, HumanMessage):
@@ -36,5 +38,4 @@ class ClassifyIntentNode:
 
 
 
-    
     
