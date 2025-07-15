@@ -5,6 +5,7 @@ from langchain_core.messages import HumanMessage
 
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.state import CalendarBotState
+from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.schedule_meeting_node import ScheduleMeetingNode
@@ -15,6 +16,7 @@ intent_classifier = IntentClassifier(model)
 classify_intent_node = ClassifyIntentNode(intent_classifier)
 greeting_node = GreetingNode(model)
 schedule_meeting_node = ScheduleMeetingNode(model)
+clarify_request_node = ClarifyRequestNode(model)
 
 def create_intent_test_graph():
     workflow = StateGraph(CalendarBotState)
@@ -43,10 +45,18 @@ def create_schedule_meeting_test_graph():
     workflow.add_edge("schedule_meeting", END)
     return workflow.compile()
 
+def create_clarify_request_test_graph():
+    workflow = StateGraph(CalendarBotState)
+    workflow.add_node("clarify_request", clarify_request_node.node_action)
+    workflow.add_edge(START, "clarify_request")
+    workflow.add_edge("clarify_request", END)
+    return workflow.compile()
+
 if __name__ == "__main__":
     # graph = create_intent_test_graph()
     # graph = create_greeting_test_graph()
-    graph = create_schedule_meeting_test_graph()
-    output = graph.invoke({"messages": [HumanMessage("I want to schedule a meeting")]})
+    # graph = create_schedule_meeting_test_graph()
+    graph = create_clarify_request_test_graph()
+    output = graph.invoke({"messages": [HumanMessage("bla bla bla")]})
     
     print(output)
