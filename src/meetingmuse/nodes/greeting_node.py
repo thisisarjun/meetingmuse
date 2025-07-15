@@ -8,6 +8,7 @@ from meetingmuse.prompts.greeting_prompt import GREETING_PROMPT
 
 class GreetingNode:
 
+    NODE_NAME = "greeting"
 
     def __init__(self, model: HuggingFaceModel):
         self.model = model
@@ -31,3 +32,7 @@ class GreetingNode:
             state["current_step"] = ConversationStep.COMPLETED
 
         return state
+    
+    @property
+    def node_name(self) -> str:
+        return self.NODE_NAME

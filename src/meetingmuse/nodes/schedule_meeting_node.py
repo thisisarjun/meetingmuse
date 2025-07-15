@@ -8,6 +8,9 @@ from meetingmuse.prompts.schedule_meeting_prompt import SCHEDULE_MEETING_PROMPT
 
 
 class ScheduleMeetingNode:
+
+    NODE_NAME = "schedule_meeting"
+
     def __init__(self, model: HuggingFaceModel):
         self.model = model
         self.prompt = ChatPromptTemplate.from_messages([
@@ -30,3 +33,7 @@ class ScheduleMeetingNode:
             state["messages"].append(AIMessage(content=response))
             state["current_step"] = ConversationStep.COLLECTING_INFO
         return state
+    
+    @property
+    def node_name(self) -> str:
+        return self.NODE_NAME

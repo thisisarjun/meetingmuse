@@ -6,6 +6,10 @@ from meetingmuse.models.state import CalendarBotState, ConversationStep, UserInt
 
 
 class ClassifyIntentNode:
+
+    # TODO: Make node_name an enum
+    NODE_NAME = "classify_intent"
+
     def __init__(self, intent_classifier: IntentClassifier):
         self.intent_classifier = intent_classifier
     
@@ -31,6 +35,10 @@ class ClassifyIntentNode:
             state["current_step"] = self.get_current_step(intent)
 
         return state
+    
+    @property
+    def node_name(self) -> str:
+        return self.NODE_NAME
 
 
 
