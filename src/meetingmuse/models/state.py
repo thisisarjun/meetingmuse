@@ -19,6 +19,7 @@ class ConversationStep(StrEnum):
     COMPLETED = "completed"
 
 
+# TODO: Make this a pydantic model
 class CalendarBotState(TypedDict):
     """
     This is the 'memory' of your bot - everything it remembers during a conversation.

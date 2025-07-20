@@ -2,37 +2,42 @@
 
 import logging
 import sys
-from typing import Optional
 
 
-def get_logger(name: Optional[str] = None) -> logging.Logger:
-    """
-    Get a simple console logger.
+class Logger:
+    """Simple console logger class."""
     
-    Args:
-        name: Logger name. If None, uses the calling module's name.
+    def __init__(self):
+        """Initialize the logger."""
+        self.logger = logging.getLogger("meetingmuse")
         
-    Returns:
-        Configured logger that outputs to console.
-    """
-    if name is None:
-        name = __name__
+        # Avoid adding handlers multiple times
+        if not self.logger.handlers:
+            # Create console handler
+            handler = logging.StreamHandler(sys.stdout)
+            
+            # Create formatter
+            formatter = logging.Formatter(
+                fmt='%(asctime)s - %(levelname)s - %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+            
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+            self.logger.setLevel(logging.INFO)
     
-    logger = logging.getLogger(name)
+    def info(self, message: str) -> None:
+        """Log an info message."""
+        self.logger.info(message)
     
-    # Avoid adding handlers multiple times
-    if not logger.handlers:
-        # Create console handler
-        handler = logging.StreamHandler(sys.stdout)
-        
-        # Create formatter
-        formatter = logging.Formatter(
-            fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        logger.setLevel(logging.INFO)
+    def warning(self, message: str) -> None:
+        """Log a warning message."""
+        self.logger.warning(message)
     
-    return logger 
+    def error(self, message: str) -> None:
+        """Log an error message."""
+        self.logger.error(message)
+    
+    def debug(self, message: str) -> None:
+        """Log a debug message."""
+        self.logger.debug(message)

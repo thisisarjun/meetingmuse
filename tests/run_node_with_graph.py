@@ -53,10 +53,13 @@ def create_clarify_request_test_graph():
     return workflow.compile()
 
 if __name__ == "__main__":
+    from meetingmuse.utils import Logger
+    logger = Logger()
+    
     # graph = create_intent_test_graph()
     # graph = create_greeting_test_graph()
     # graph = create_schedule_meeting_test_graph()
     graph = create_clarify_request_test_graph()
     output = graph.invoke({"messages": [HumanMessage("bla bla bla")]})
     
-    print(output)
+    logger.info(f"Graph output: {output}")
