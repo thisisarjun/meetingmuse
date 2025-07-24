@@ -6,7 +6,6 @@ class ConversationRouter:
     
     def __init__(self, logger: Logger):
         self.logger = logger
-# FIXME: return node_name instead of value
     def route(self, state: MeetingMuseBotState) -> NodeName:
         current_step = state["current_step"]
         next_step = NodeName.GREETING

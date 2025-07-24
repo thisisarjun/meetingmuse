@@ -18,4 +18,4 @@ def main():
     # TODO: Implement CLI interface
 
 if __name__ == "__main__":
-    main() 
+    main()

@@ -2,6 +2,8 @@ from enum import StrEnum
 from typing import Any, Dict, List, Optional, TypedDict, Annotated
 from langgraph.graph.message import add_messages
 
+from meetingmuse.models.meeting import MeetingFindings
+
 
 class UserIntent(StrEnum):
     SCHEDULE_MEETING = "schedule"
@@ -41,4 +43,4 @@ class MeetingMuseBotState(TypedDict):
     current_step: ConversationStep
     
     # Information about the meeting being scheduled
-    meeting_details: Dict[str, Any]
+    meeting_details: MeetingFindings

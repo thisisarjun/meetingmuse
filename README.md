@@ -144,6 +144,24 @@ poetry run pytest -m unit
 poetry run pytest -m integration
 ```
 
+### Testing Nodes in isolation
+
+Each node can be tested in isolation.
+sample script can be found in `tests/run_node_with_graph.py`
+
+```python
+    # this method draws the graph - if you want to visualize the graph,
+    draw_graph()
+    # use this method, change NodeName value to test different node.
+    # NOTE: make sure that the new node is added and helper method is     
+    test_single_node(NodeName.SCHEDULE_MEETING, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
+```
+
+use 
+```bash
+    poetry run python tests/run_node_with_graph.py
+```
+
 ## Contributing
 
 1. Fork the repository
@@ -153,6 +171,7 @@ poetry run pytest -m integration
 5. Commit your changes: `git commit -am 'Add feature'`
 6. Push to the branch: `git push origin feature-name`
 7. Submit a pull request
+
 
 ## Author
 
