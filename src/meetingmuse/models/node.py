@@ -7,6 +7,7 @@ class NodeName(StrEnum):
     COLLECTING_INFO = "collecting_info"
     SCHEDULE_MEETING = "schedule_meeting"
     CLASSIFY_INTENT = "classify_intent"
+    END = "end"
     
 
 

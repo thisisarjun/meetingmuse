@@ -9,7 +9,7 @@ from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
-from meetingmuse.nodes.schedule_meeting_node import CollectingInfoNode
+from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger
@@ -21,7 +21,7 @@ model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
 intent_classifier = IntentClassifier(model)
 classify_intent_node = ClassifyIntentNode(intent_classifier)
 greeting_node = GreetingNode(model)
-schedule_meeting_node = CollectingInfoNode(model, logger)
+collecting_info_node = CollectingInfoNode(model, logger)
 clarify_request_node = ClarifyRequestNode(model)
 conversation_router = ConversationRouter(logger)
 
@@ -53,11 +53,11 @@ def create_greeting_test_graph():
     return workflow.compile()
 
 
-def create_schedule_meeting_test_graph():
+def create_collecting_info_test_graph():
     workflow = StateGraph(MeetingMuseBotState)
-    workflow.add_node("schedule_meeting", schedule_meeting_node.node_action)
-    workflow.add_edge(START, "schedule_meeting")
-    workflow.add_edge("schedule_meeting", END)
+    workflow.add_node("collecting_info", collecting_info_node.node_action)
+    workflow.add_edge(START, "collecting_info")
+    workflow.add_edge("collecting_info", END)
     return workflow.compile()
 
 def create_clarify_request_test_graph():
@@ -74,7 +74,7 @@ def create_graph_with_all_nodes() -> GraphBuilder:
         state=MeetingMuseBotState,
         greeting_node=greeting_node,
         clarify_request_node=clarify_request_node,
-        schedule_meeting_node=schedule_meeting_node,
+        collecting_info_node=collecting_info_node,
         conversation_router=conversation_router,
         classify_intent_node=classify_intent_node,
     )
@@ -89,7 +89,7 @@ def test_single_node(node_name: NodeName, user_message: str):
     elif node_name == NodeName.GREETING:
         graph = create_greeting_test_graph()
     elif node_name == NodeName.COLLECTING_INFO:
-        graph = create_schedule_meeting_test_graph()
+        graph = create_collecting_info_test_graph()
     elif node_name == NodeName.CLARIFY_REQUEST:
         graph = create_clarify_request_test_graph()    
     
