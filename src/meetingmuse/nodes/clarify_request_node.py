@@ -1,12 +1,16 @@
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import CalendarBotState, ConversationStep
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage, AIMessage
 from meetingmuse.prompts.clarify_request_prompt import CLARIFY_REQUEST_PROMPT
+from meetingmuse.nodes.base_node import BaseNode
 
 
-class ClarifyRequestNode:
+class ClarifyRequestNode(BaseNode):
+
+
     def __init__(self, model: HuggingFaceModel):
         self.model = model
         self.prompt = ChatPromptTemplate.from_messages([
@@ -28,3 +32,7 @@ class ClarifyRequestNode:
             state["messages"].append(AIMessage(content=response))
             state["current_step"] = ConversationStep.COMPLETED
         return state
+    
+    @property
+    def node_name(self) -> NodeName:
+        return NodeName.CLARIFY_REQUEST

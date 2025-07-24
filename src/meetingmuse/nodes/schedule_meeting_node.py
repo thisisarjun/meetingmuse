@@ -5,11 +5,10 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 from meetingmuse.prompts.schedule_meeting_prompt import SCHEDULE_MEETING_PROMPT
+from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.models.node import NodeName
 
-
-class ScheduleMeetingNode:
-
-    NODE_NAME = "schedule_meeting"
+class ScheduleMeetingNode(BaseNode):
 
     def __init__(self, model: HuggingFaceModel):
         self.model = model
@@ -33,7 +32,7 @@ class ScheduleMeetingNode:
             state["messages"].append(AIMessage(content=response))
             state["current_step"] = ConversationStep.COLLECTING_INFO
         return state
-    
+
     @property
-    def node_name(self) -> str:
-        return self.NODE_NAME
+    def node_name(self) -> NodeName:
+        return NodeName.SCHEDULE_MEETING

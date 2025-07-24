@@ -1,14 +1,14 @@
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langchain_core.messages import HumanMessage
+from meetingmuse.models.node import NodeName
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.models.state import CalendarBotState, ConversationStep, UserIntent
+from meetingmuse.nodes.base_node import BaseNode
 
 
-class ClassifyIntentNode:
-
-    # TODO: Make node_name an enum
-    NODE_NAME = "classify_intent"
+class ClassifyIntentNode(BaseNode):
+    
 
     def __init__(self, intent_classifier: IntentClassifier):
         self.intent_classifier = intent_classifier
@@ -37,8 +37,8 @@ class ClassifyIntentNode:
         return state
     
     @property
-    def node_name(self) -> str:
-        return self.NODE_NAME
+    def node_name(self) -> NodeName:
+        return NodeName.CLASSIFY_INTENT
 
 
 

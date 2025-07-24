@@ -5,10 +5,10 @@ from langchain_core.prompts import ChatPromptTemplate
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.state import CalendarBotState, ConversationStep, UserIntent
 from meetingmuse.prompts.greeting_prompt import GREETING_PROMPT
+from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.models.node import NodeName
 
-class GreetingNode:
-
-    NODE_NAME = "greeting"
+class GreetingNode(BaseNode):
 
     def __init__(self, model: HuggingFaceModel):
         self.model = model
@@ -34,5 +34,5 @@ class GreetingNode:
         return state
     
     @property
-    def node_name(self) -> str:
-        return self.NODE_NAME
+    def node_name(self) -> NodeName:
+        return NodeName.GREETING
