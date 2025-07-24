@@ -73,6 +73,7 @@ def create_graph_with_all_nodes():
         schedule_meeting_node=schedule_meeting_node,
         process_request_node=process_request_node,
         conversation_router=conversation_router,
+        classify_intent_node=classify_intent_node,
     )
     return graph_builder
 

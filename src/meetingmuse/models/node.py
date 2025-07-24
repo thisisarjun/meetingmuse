@@ -6,6 +6,7 @@ class NodeName(StrEnum):
     GREETING = "greeting"
     SCHEDULE_MEETING = "schedule_meeting"
     PROCESS_REQUEST = "process_request"
+    CLASSIFY_INTENT = "classify_intent"
     
 
 
