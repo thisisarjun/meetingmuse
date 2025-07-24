@@ -113,22 +113,7 @@ MeetingMuse is built using:
 - **Intent Classification**: AI-powered user intent recognition
 - **Conversation Routing**: Smart conversation flow management
 - **Node-based Architecture**: Modular conversation handling
-- **Dependency Injection**: Clean, testable architecture
 
-## Project Structure
-
-```
-meetingmuse/
-├── src/meetingmuse/
-│   ├── config/          # Configuration management
-│   ├── models/          # State and data models
-│   ├── nodes/           # LangGraph conversation nodes
-│   ├── services/        # Business logic services
-│   ├── utils/           # Utility functions (logging, etc.)
-│   └── prompts/         # LLM prompts
-├── tests/               # Test suite
-└── docs/                # Documentation
-```
 
 ## Testing
 
@@ -147,7 +132,7 @@ poetry run pytest -m integration
 ### Testing Nodes in isolation
 
 Each node can be tested in isolation.
-sample script can be found in `tests/run_node_with_graph.py`
+sample script can be found in `tests/scripts/run_node_with_graph.py`
 
 ```python
     # this method draws the graph - if you want to visualize the graph,
@@ -157,9 +142,12 @@ sample script can be found in `tests/run_node_with_graph.py`
     test_single_node(NodeName.COLLECTING_INFO, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
 ```
 
+to test the chatbot in full, use the run_node_
+run using `poetry run python tests/scripts/run_chatbot.py`
+
 use 
 ```bash
-    poetry run python tests/run_node_with_graph.py
+    poetry run python tests/scripts/run_node_with_graph.py
 ```
 
 ## Contributing

@@ -3,6 +3,7 @@ MeetingMuse LangGraph Workflow
 """
 
 from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.memory import MemorySaver
 
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
@@ -59,7 +60,10 @@ class GraphBuilder:
         graph_builder.add_edge(self.greeting_node.node_name, END)
         graph_builder.add_edge(self.clarify_request_node.node_name, END)
         
-        return graph_builder.compile()
+        return graph_builder.compile(
+            interrupt_after=[NodeName.COLLECTING_INFO],
+            checkpointer=MemorySaver()
+        )
     
     def draw_graph(self) -> None:
         try:

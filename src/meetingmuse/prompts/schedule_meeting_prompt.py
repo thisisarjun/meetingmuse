@@ -22,13 +22,15 @@ REQUIRED FIELDS:
 INSTRUCTIONS:
 - Extract meeting information from the user's message
 - Merge with current details, keeping existing values unless user provides updates
-- Set fields to null if not mentioned or unknown
+- Set fields to null (NOT None) if not mentioned or unknown
+- CRITICAL: Use "null" not "None" - this is JSON, not Python
 - IMPORTANT: Return ONLY valid JSON, no code blocks, no explanations, no markdown formatting
 - Do not wrap the JSON in ```json``` or any other formatting
 
 {format_instructions}
 
 CRITICAL: Your response must be ONLY the JSON object, nothing else.
+Remember: Use "null" not "None" - JSON format required!
 
 Examples of expected JSON output:
 
