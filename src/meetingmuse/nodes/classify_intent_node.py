@@ -3,7 +3,7 @@ from langgraph.graph.message import add_messages
 from langchain_core.messages import HumanMessage
 from meetingmuse.models.node import NodeName
 from meetingmuse.services.intent_classifier import IntentClassifier
-from meetingmuse.models.state import CalendarBotState, ConversationStep, UserIntent
+from meetingmuse.models.state import MeetingMuseBotState, ConversationStep, UserIntent
 from meetingmuse.nodes.base_node import BaseNode
 
 
@@ -26,7 +26,7 @@ class ClassifyIntentNode(BaseNode):
             raise ValueError(f"Unknown user intent: {user_intent}")
         
 
-    def node_action(self, state: CalendarBotState) -> CalendarBotState:
+    def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         last_message = state["messages"][-1]
 
         if isinstance(last_message, HumanMessage):

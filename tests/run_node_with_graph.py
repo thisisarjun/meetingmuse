@@ -4,7 +4,8 @@ from langchain_core.messages import HumanMessage
 
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
-from meetingmuse.models.state import CalendarBotState
+from meetingmuse.models.node import NodeName
+from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
@@ -25,7 +26,7 @@ process_request_node = ProcessRequestNode()
 conversation_router = ConversationRouter(logger)
 
 def create_intent_test_graph():
-    workflow = StateGraph(CalendarBotState)
+    workflow = StateGraph(MeetingMuseBotState)
     
     # Add only the intent classification node
     workflow.add_node("classify_intent", classify_intent_node.node_action)
@@ -37,7 +38,7 @@ def create_intent_test_graph():
 
 
 def create_greeting_test_graph():
-    workflow = StateGraph(CalendarBotState)
+    workflow = StateGraph(MeetingMuseBotState)
     workflow.add_node("greeting", greeting_node.node_action)
     workflow.add_edge(START, "greeting")
     workflow.add_edge("greeting", END)
@@ -45,29 +46,29 @@ def create_greeting_test_graph():
 
 
 def create_schedule_meeting_test_graph():
-    workflow = StateGraph(CalendarBotState)
+    workflow = StateGraph(MeetingMuseBotState)
     workflow.add_node("schedule_meeting", schedule_meeting_node.node_action)
     workflow.add_edge(START, "schedule_meeting")
     workflow.add_edge("schedule_meeting", END)
     return workflow.compile()
 
 def create_clarify_request_test_graph():
-    workflow = StateGraph(CalendarBotState)
+    workflow = StateGraph(MeetingMuseBotState)
     workflow.add_node("clarify_request", clarify_request_node.node_action)
     workflow.add_edge(START, "clarify_request")
     workflow.add_edge("clarify_request", END)
     return workflow.compile()
 
 def create_process_request_test_graph():
-    workflow = StateGraph(CalendarBotState)
+    workflow = StateGraph(MeetingMuseBotState)
     workflow.add_node("process_request", process_request_node.node_action)
     workflow.add_edge(START, "process_request")
     workflow.add_edge("process_request", END)
     return workflow.compile()
 
-def create_graph_with_all_nodes():
+def create_graph_with_all_nodes() -> GraphBuilder:
     graph_builder = GraphBuilder(
-        state=CalendarBotState,
+        state=MeetingMuseBotState,
         greeting_node=greeting_node,
         clarify_request_node=clarify_request_node,
         schedule_meeting_node=schedule_meeting_node,
@@ -77,15 +78,28 @@ def create_graph_with_all_nodes():
     )
     return graph_builder
 
-if __name__ == "__main__":
+def test_single_node(node_name: NodeName, input: str):
+    if node_name == NodeName.SCHEDULE_MEETING:
+        graph = create_schedule_meeting_test_graph()
+    elif node_name == NodeName.GREETING:
+        graph = create_greeting_test_graph()
+    elif node_name == NodeName.CLARIFY_REQUEST:
+        graph = create_clarify_request_test_graph()
+    elif node_name == NodeName.PROCESS_REQUEST:
+        graph = create_process_request_test_graph()
 
-    
-    # graph = create_intent_test_graph()
-    # graph = create_greeting_test_graph()
-    # graph = create_schedule_meeting_test_graph()
-    # graph = create_clarify_request_test_graph()
-    # output = graph.invoke({"messages": [HumanMessage("bla bla bla")]})
-    # logger.info(f"Graph output: {output}")
-    graph_builder = create_graph_with_all_nodes()
-    graph_builder.draw_graph()
-    
+    output = graph.invoke({"messages": [HumanMessage(input)]})
+    logger.info(f"Graph output: {output}")
+
+def draw_graph():
+    create_graph_with_all_nodes().draw_graph()
+
+if __name__ == "__main__":
+    """
+    Run the graph based on the input
+    temporarily used only for  testing the graph
+    move away from this once more sophisticated testing is implemented
+    """
+    # draw_graph()
+    test_single_node(NodeName.SCHEDULE_MEETING, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
+

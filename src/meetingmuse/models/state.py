@@ -20,7 +20,7 @@ class ConversationStep(StrEnum):
 
 
 # TODO: Make this a pydantic model
-class CalendarBotState(TypedDict):
+class MeetingMuseBotState(TypedDict):
     """
     This is the 'memory' of your bot - everything it remembers during a conversation.
     

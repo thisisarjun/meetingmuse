@@ -3,7 +3,7 @@ from langgraph.graph import StateGraph, START, END
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
-from meetingmuse.models.state import CalendarBotState, ConversationStep, UserIntent
+from meetingmuse.models.state import MeetingMuseBotState, ConversationStep, UserIntent
 from meetingmuse.prompts.greeting_prompt import GREETING_PROMPT
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.models.node import NodeName
@@ -19,7 +19,7 @@ class GreetingNode(BaseNode):
         ])
         self.chain = self.prompt | self.model.chat_model | self.parser
 
-    def node_action(self, state: CalendarBotState) -> CalendarBotState:
+    def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         last_human_message = None
         for message in reversed(state["messages"]):
             if isinstance(message, HumanMessage):

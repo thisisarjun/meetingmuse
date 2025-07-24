@@ -7,7 +7,7 @@ from langgraph.graph.message import add_messages
 from langgraph.graph import StateGraph, START, END
 
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import CalendarBotState
+from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
@@ -18,7 +18,7 @@ from meetingmuse.services.routing_service import ConversationRouter
 
 class GraphBuilder:
     def __init__(self, 
-        state: CalendarBotState,
+        state: MeetingMuseBotState,
         greeting_node: GreetingNode,
         clarify_request_node: ClarifyRequestNode,
         schedule_meeting_node: ScheduleMeetingNode,
@@ -53,6 +53,9 @@ class GraphBuilder:
                 NodeName.PROCESS_REQUEST: NodeName.PROCESS_REQUEST,
                 NodeName.CLARIFY_REQUEST: NodeName.CLARIFY_REQUEST,
             }
+        )
+        graph_builder.add_conditional_edges(
+            self.clarify_request_node.node_name,
         )
         return graph_builder.compile()
     

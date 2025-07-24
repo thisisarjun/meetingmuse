@@ -3,7 +3,7 @@ from unittest.mock import Mock
 from langchain_core.messages import HumanMessage, AIMessage
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.services.intent_classifier import IntentClassifier
-from meetingmuse.models.state import CalendarBotState, ConversationStep, UserIntent
+from meetingmuse.models.state import MeetingMuseBotState, ConversationStep, UserIntent
 
 
 class TestClassifyIntentNode:
@@ -55,7 +55,7 @@ class TestClassifyIntentNode:
         # Arrange
         mock_intent_classifier.classify.return_value = UserIntent.SCHEDULE_MEETING
         
-        initial_state: CalendarBotState = {
+        initial_state: MeetingMuseBotState = {
             "messages": [
                 AIMessage(content="Hello! How can I help you?"),
                 HumanMessage(content="I want to schedule a meeting")
@@ -86,7 +86,7 @@ class TestClassifyIntentNode:
         # Arrange
         mock_intent_classifier.classify.return_value = UserIntent.CANCEL_MEETING
         
-        state: CalendarBotState = {
+        state: MeetingMuseBotState = {
             "messages": [
                 HumanMessage(content="Hello"),
                 AIMessage(content="Hi! How can I help?"),

@@ -1,6 +1,6 @@
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import CalendarBotState, ConversationStep
+from meetingmuse.models.state import MeetingMuseBotState, ConversationStep
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage, AIMessage
@@ -20,7 +20,7 @@ class ClarifyRequestNode(BaseNode):
         self.parser = StrOutputParser()
         self.chain = self.prompt | self.model.chat_model | self.parser
 
-    def node_action(self, state: CalendarBotState) -> CalendarBotState:
+    def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         last_human_message = None
         for message in reversed(state["messages"]):
             if isinstance(message, HumanMessage):

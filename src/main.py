@@ -5,7 +5,7 @@ MeetingMuse CLI Entry Point
 
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
-from meetingmuse.models.state import CalendarBotState
+from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.services.intent_classifier import IntentClassifier

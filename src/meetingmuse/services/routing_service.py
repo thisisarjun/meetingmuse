@@ -1,13 +1,13 @@
 from meetingmuse.models.node import NodeName
 from meetingmuse.utils import Logger
-from meetingmuse.models.state import CalendarBotState, ConversationStep
+from meetingmuse.models.state import MeetingMuseBotState, ConversationStep
 
 class ConversationRouter:    
     
     def __init__(self, logger: Logger):
         self.logger = logger
 # FIXME: return node_name instead of value
-    def route(self, state: CalendarBotState) -> NodeName:
+    def route(self, state: MeetingMuseBotState) -> NodeName:
         current_step = state["current_step"]
         next_step = NodeName.GREETING
         if current_step == ConversationStep.GREETING:
