@@ -22,15 +22,14 @@ class ClarifyRequestNode(BaseNode):
 
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         last_human_message = None
-        for message in reversed(state["messages"]):
+        for message in reversed(state.messages):
             if isinstance(message, HumanMessage):
                 last_human_message = message
                 break
 
         if last_human_message:
             response = self.chain.invoke({"user_message": last_human_message.content})
-            state["messages"].append(AIMessage(content=response))
-            state["current_step"] = ConversationStep.COMPLETED
+            state.messages.append(AIMessage(content=response))
         return state
     
     @property

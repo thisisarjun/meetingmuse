@@ -4,6 +4,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.models.state import MeetingMuseBotState, ConversationStep, UserIntent
+from meetingmuse.models.meeting import MeetingFindings
 
 
 class TestClassifyIntentNode:
@@ -25,6 +26,7 @@ class TestClassifyIntentNode:
         (UserIntent.CANCEL_MEETING, ConversationStep.PROCESSING_REQUEST),
         (UserIntent.RESCHEDULE_MEETING, ConversationStep.PROCESSING_REQUEST),
         (UserIntent.UNKNOWN, ConversationStep.CLARIFYING_REQUEST),
+        (UserIntent.GENERAL_CHAT, ConversationStep.GREETING),
     ])
     def test_get_current_step_maps_intents_to_correct_conversation_steps(
         self, node, user_intent, expected_step
@@ -37,15 +39,6 @@ class TestClassifyIntentNode:
         result = node.get_current_step(user_intent)
         assert result == expected_step
 
-    def test_get_current_step_raises_error_for_general_chat_intent(self, node):
-        """
-        Test that GENERAL_CHAT intent raises an error since it's not handled.
-        
-        This tests error handling for unhandled intents - important for robustness.
-        """
-        with pytest.raises(ValueError, match="Unknown user intent: general"):
-            node.get_current_step(UserIntent.GENERAL_CHAT)
-
     def test_call_updates_state_with_classified_intent_and_step(self, node, mock_intent_classifier):
         """
         Test the core workflow: classify intent and update state appropriately.
@@ -55,27 +48,27 @@ class TestClassifyIntentNode:
         # Arrange
         mock_intent_classifier.classify.return_value = UserIntent.SCHEDULE_MEETING
         
-        initial_state: MeetingMuseBotState = {
-            "messages": [
+        initial_state = MeetingMuseBotState(
+            messages=[
                 AIMessage(content="Hello! How can I help you?"),
                 HumanMessage(content="I want to schedule a meeting")
             ],
-            "user_intent": None,
-            "current_step": ConversationStep.GREETING,
-            "meeting_details": {}
-        }
+            user_intent=None,
+            current_step=ConversationStep.GREETING,
+            meeting_details=MeetingFindings()
+        )
         
         # Act
-        result = node(initial_state)
+        result = node.node_action(initial_state)
         
         # Assert
         mock_intent_classifier.classify.assert_called_once_with("I want to schedule a meeting")
-        assert result["user_intent"] == UserIntent.SCHEDULE_MEETING
-        assert result["current_step"] == ConversationStep.COLLECTING_INFO
+        assert result.user_intent == UserIntent.SCHEDULE_MEETING
+        assert result.current_step == ConversationStep.COLLECTING_INFO
         
         # Ensure other state fields are preserved
-        assert len(result["messages"]) == 2
-        assert result["meeting_details"] == {}
+        assert len(result.messages) == 2
+        assert result.meeting_details == MeetingFindings()
 
     def test_call_handles_conversation_with_multiple_human_messages(self, node, mock_intent_classifier):
         """
@@ -86,21 +79,21 @@ class TestClassifyIntentNode:
         # Arrange
         mock_intent_classifier.classify.return_value = UserIntent.CANCEL_MEETING
         
-        state: MeetingMuseBotState = {
-            "messages": [
+        state = MeetingMuseBotState(
+            messages=[
                 HumanMessage(content="Hello"),
                 AIMessage(content="Hi! How can I help?"),
                 HumanMessage(content="Actually, cancel my 3pm meeting"),
             ],
-            "user_intent": UserIntent.GENERAL_CHAT,  # Previous intent
-            "current_step": ConversationStep.GREETING,
-            "meeting_details": {"title": "Old meeting"}
-        }
+            user_intent=UserIntent.GENERAL_CHAT,  # Previous intent
+            current_step=ConversationStep.GREETING,
+            meeting_details=MeetingFindings(title="Old meeting")
+        )
         
         # Act
-        result = node(state)
+        result = node.node_action(state)
         
         # Assert
         mock_intent_classifier.classify.assert_called_once_with("Actually, cancel my 3pm meeting")
-        assert result["user_intent"] == UserIntent.CANCEL_MEETING
-        assert result["current_step"] == ConversationStep.PROCESSING_REQUEST
+        assert result.user_intent == UserIntent.CANCEL_MEETING
+        assert result.current_step == ConversationStep.PROCESSING_REQUEST

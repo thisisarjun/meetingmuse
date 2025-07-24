@@ -1,6 +1,7 @@
 from enum import StrEnum
-from typing import Any, Dict, List, Optional, TypedDict, Annotated
+from typing import Any, Dict, List, Optional, Annotated
 from langgraph.graph.message import add_messages
+from pydantic import BaseModel, Field
 
 from meetingmuse.models.meeting import MeetingFindings
 
@@ -21,8 +22,7 @@ class ConversationStep(StrEnum):
     COMPLETED = "completed"
 
 
-# TODO: Make this a pydantic model
-class MeetingMuseBotState(TypedDict):
+class MeetingMuseBotState(BaseModel):
     """
     This is the 'memory' of your bot - everything it remembers during a conversation.
     
@@ -37,10 +37,7 @@ class MeetingMuseBotState(TypedDict):
     messages: Annotated[List, add_messages]
     
     # What does the user want? (schedule, cancel, check availability, etc.)
-    user_intent: Optional[UserIntent] 
-    
-    # Where are we in the conversation? (greeting, collecting info, confirming, etc.)
-    current_step: ConversationStep
+    user_intent: Optional[UserIntent] = None
     
     # Information about the meeting being scheduled
-    meeting_details: MeetingFindings
+    meeting_details: MeetingFindings = Field(default_factory=MeetingFindings)
