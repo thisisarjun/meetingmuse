@@ -154,7 +154,7 @@ sample script can be found in `tests/run_node_with_graph.py`
     draw_graph()
     # use this method, change NodeName value to test different node.
     # NOTE: make sure that the new node is added and helper method is     
-    test_single_node(NodeName.SCHEDULE_MEETING, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
+    test_single_node(NodeName.COLLECTING_INFO, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
 ```
 
 use 

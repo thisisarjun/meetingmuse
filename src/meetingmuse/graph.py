@@ -11,7 +11,7 @@ from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
-from meetingmuse.nodes.schedule_meeting_node import ScheduleMeetingNode
+from meetingmuse.nodes.schedule_meeting_node import CollectingInfoNode
 from meetingmuse.services.routing_service import ConversationRouter
 
 
@@ -20,7 +20,7 @@ class GraphBuilder:
         state: MeetingMuseBotState,
         greeting_node: GreetingNode,
         clarify_request_node: ClarifyRequestNode,
-        schedule_meeting_node: ScheduleMeetingNode,
+        schedule_meeting_node: CollectingInfoNode,
         classify_intent_node: ClassifyIntentNode,
         conversation_router: ConversationRouter,
     ) -> None:
@@ -45,7 +45,7 @@ class GraphBuilder:
             self.conversation_router.route,
             {
                 NodeName.GREETING: NodeName.GREETING,
-                NodeName.SCHEDULE_MEETING: NodeName.SCHEDULE_MEETING,
+                NodeName.COLLECTING_INFO: NodeName.COLLECTING_INFO,
                 NodeName.CLARIFY_REQUEST: NodeName.CLARIFY_REQUEST,
             }
         )

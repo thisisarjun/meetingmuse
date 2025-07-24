@@ -9,7 +9,7 @@ from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
-from meetingmuse.nodes.schedule_meeting_node import ScheduleMeetingNode
+from meetingmuse.nodes.schedule_meeting_node import CollectingInfoNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger
@@ -21,7 +21,7 @@ model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
 intent_classifier = IntentClassifier(model)
 classify_intent_node = ClassifyIntentNode(intent_classifier)
 greeting_node = GreetingNode(model)
-schedule_meeting_node = ScheduleMeetingNode(model, logger)
+schedule_meeting_node = CollectingInfoNode(model, logger)
 clarify_request_node = ClarifyRequestNode(model)
 conversation_router = ConversationRouter(logger)
 
@@ -88,7 +88,7 @@ def test_single_node(node_name: NodeName, user_message: str):
         graph = create_intent_test_graph()
     elif node_name == NodeName.GREETING:
         graph = create_greeting_test_graph()
-    elif node_name == NodeName.SCHEDULE_MEETING:
+    elif node_name == NodeName.COLLECTING_INFO:
         graph = create_schedule_meeting_test_graph()
     elif node_name == NodeName.CLARIFY_REQUEST:
         graph = create_clarify_request_test_graph()    
@@ -106,5 +106,5 @@ if __name__ == "__main__":
     draw_graph()
     # use this method, change NodeName value to test different node.
     # NOTE: make sure that the new node is added and helper method is     
-    test_single_node(NodeName.SCHEDULE_MEETING, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
+    test_single_node(NodeName.COLLECTING_INFO, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
 

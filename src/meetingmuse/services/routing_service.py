@@ -12,7 +12,7 @@ class ConversationRouter:
         if intent == UserIntent.GENERAL_CHAT:
             next_step = NodeName.GREETING
         if intent == UserIntent.SCHEDULE_MEETING:
-            next_step = NodeName.SCHEDULE_MEETING
+            next_step = NodeName.COLLECTING_INFO
         if intent == UserIntent.UNKNOWN:
             next_step = NodeName.CLARIFY_REQUEST
         

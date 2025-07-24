@@ -10,7 +10,7 @@ from meetingmuse.models.node import NodeName
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.utils.logger import Logger
 
-class ScheduleMeetingNode(BaseNode):
+class CollectingInfoNode(BaseNode):
 
     def __init__(self, model: HuggingFaceModel, logger: Logger):
         self.model = model
@@ -76,4 +76,4 @@ class ScheduleMeetingNode(BaseNode):
     
     @property
     def node_name(self) -> NodeName:
-        return NodeName.SCHEDULE_MEETING
+        return NodeName.COLLECTING_INFO

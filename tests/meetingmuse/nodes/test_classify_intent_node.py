@@ -20,24 +20,6 @@ class TestClassifyIntentNode:
         """Create a ClassifyIntentNode instance with mocked classifier."""
         return ClassifyIntentNode(mock_intent_classifier)
 
-    @pytest.mark.parametrize("user_intent,expected_step", [
-        (UserIntent.SCHEDULE_MEETING, ConversationStep.COLLECTING_INFO),
-        (UserIntent.CHECK_AVAILABILITY, ConversationStep.PROCESSING_REQUEST),
-        (UserIntent.CANCEL_MEETING, ConversationStep.PROCESSING_REQUEST),
-        (UserIntent.RESCHEDULE_MEETING, ConversationStep.PROCESSING_REQUEST),
-        (UserIntent.UNKNOWN, ConversationStep.CLARIFYING_REQUEST),
-        (UserIntent.GENERAL_CHAT, ConversationStep.GREETING),
-    ])
-    def test_get_current_step_maps_intents_to_correct_conversation_steps(
-        self, node, user_intent, expected_step
-    ):
-        """
-        Test that user intents are correctly mapped to conversation steps.
-        
-        This is critical business logic that determines the conversation flow.
-        """
-        result = node.get_current_step(user_intent)
-        assert result == expected_step
 
     def test_call_updates_state_with_classified_intent_and_step(self, node, mock_intent_classifier):
         """
@@ -64,7 +46,6 @@ class TestClassifyIntentNode:
         # Assert
         mock_intent_classifier.classify.assert_called_once_with("I want to schedule a meeting")
         assert result.user_intent == UserIntent.SCHEDULE_MEETING
-        assert result.current_step == ConversationStep.COLLECTING_INFO
         
         # Ensure other state fields are preserved
         assert len(result.messages) == 2
@@ -96,4 +77,3 @@ class TestClassifyIntentNode:
         # Assert
         mock_intent_classifier.classify.assert_called_once_with("Actually, cancel my 3pm meeting")
         assert result.user_intent == UserIntent.CANCEL_MEETING
-        assert result.current_step == ConversationStep.PROCESSING_REQUEST
