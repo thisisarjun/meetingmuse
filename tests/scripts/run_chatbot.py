@@ -1,8 +1,9 @@
 from langgraph.graph import StateGraph
 from langchain_core.messages import HumanMessage
-from meetingmuse.nodes import clarify_request_node, collecting_info_node, classify_intent_node, greeting_node
+from meetingmuse.nodes import clarify_request_node, classify_intent_node, greeting_node
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.graph import GraphBuilder
+from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
 from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel

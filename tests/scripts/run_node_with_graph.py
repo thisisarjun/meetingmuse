@@ -9,7 +9,7 @@ from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
-from meetingmuse.nodes.collecting_info_schedule_meeting.collecting_info_node import CollectingInfoNode
+from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger
