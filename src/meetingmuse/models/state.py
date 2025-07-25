@@ -14,13 +14,6 @@ class UserIntent(StrEnum):
     GENERAL_CHAT = "general"
     UNKNOWN = "unknown"
 
-class ConversationStep(StrEnum):
-    GREETING = "greeting"
-    COLLECTING_INFO = "collecting_info"
-    PROCESSING_REQUEST = "processing"
-    CLARIFYING_REQUEST = "clarifying"
-    COMPLETED = "completed"
-
 
 class MeetingMuseBotState(BaseModel):
     """

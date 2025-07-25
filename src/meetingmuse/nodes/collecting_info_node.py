@@ -1,6 +1,6 @@
 from langchain_core.messages import HumanMessage, AIMessage
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
-from meetingmuse.models.state import MeetingMuseBotState, ConversationStep
+from meetingmuse.models.state import MeetingMuseBotState
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 
