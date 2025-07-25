@@ -17,7 +17,7 @@ First, install Poetry if you haven't already:
 
 ```bash
 # On macOS/Linux
-curl -sSL https://install.python-poetry.org | python3 -
+brew install pipx && pipx install poetry
 
 # On Windows (PowerShell)
 (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
@@ -34,7 +34,7 @@ cd meetingmuse
 poetry install
 
 # Activate the virtual environment
-poetry shell
+poetry env activate
 ```
 
 ### 3. Environment Configuration

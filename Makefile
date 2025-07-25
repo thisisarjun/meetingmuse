@@ -31,8 +31,8 @@ poetry-install: install
 poetry-update:
 	poetry update
 
-poetry-shell:
-	poetry shell
+poetry-env:
+	poetry env activate
 
 # Testing with Poetry
 test:
