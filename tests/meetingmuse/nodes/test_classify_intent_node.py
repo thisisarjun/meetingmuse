@@ -3,7 +3,7 @@ from unittest.mock import Mock
 from langchain_core.messages import HumanMessage, AIMessage
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.services.intent_classifier import IntentClassifier
-from meetingmuse.models.state import MeetingMuseBotState, ConversationStep, UserIntent
+from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.models.meeting import MeetingFindings
 
 
@@ -36,7 +36,6 @@ class TestClassifyIntentNode:
                 HumanMessage(content="I want to schedule a meeting")
             ],
             user_intent=None,
-            current_step=ConversationStep.GREETING,
             meeting_details=MeetingFindings()
         )
         
@@ -67,7 +66,6 @@ class TestClassifyIntentNode:
                 HumanMessage(content="Actually, cancel my 3pm meeting"),
             ],
             user_intent=UserIntent.GENERAL_CHAT,  # Previous intent
-            current_step=ConversationStep.GREETING,
             meeting_details=MeetingFindings(title="Old meeting")
         )
         

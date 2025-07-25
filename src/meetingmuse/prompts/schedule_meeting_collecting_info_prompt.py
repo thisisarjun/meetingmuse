@@ -1,4 +1,4 @@
-SCHEDULE_MEETING_PROMPT = """
+SCHEDULE_MEETING_COLLECTING_INFO_PROMPT = """
 You are CalendarBot, helping to schedule a meeting.
 
 CURRENT MEETING DETAILS (JSON): 

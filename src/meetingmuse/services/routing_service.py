@@ -1,6 +1,6 @@
 from meetingmuse.models.node import NodeName
 from meetingmuse.utils import Logger
-from meetingmuse.models.state import MeetingMuseBotState, ConversationStep, UserIntent
+from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 
 class ConversationRouter:
     """

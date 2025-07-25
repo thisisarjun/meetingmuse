@@ -16,7 +16,6 @@ from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger
 from meetingmuse.models.meeting import MeetingFindings
-from meetingmuse.models.state import ConversationStep
 
 logger = Logger()
 model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
@@ -33,7 +32,6 @@ def create_initial_state_for_testing(user_message: str) -> MeetingMuseBotState:
     return MeetingMuseBotState(
         messages=[HumanMessage(content=user_message)],
         user_intent=None,
-        current_step=ConversationStep.GREETING,
         meeting_details=MeetingFindings()
     )
 
