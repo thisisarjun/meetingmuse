@@ -10,6 +10,8 @@ from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
+from meetingmuse.nodes.schedule_meeting_node import ScheduleMeetingNode
+from meetingmuse.nodes.human_interrupt_retry_node import HumanInterruptRetryNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger
@@ -23,6 +25,8 @@ classify_intent_node = ClassifyIntentNode(intent_classifier)
 greeting_node = GreetingNode(model)
 collecting_info_node = CollectingInfoNode(model, logger)
 clarify_request_node = ClarifyRequestNode(model)
+schedule_meeting_node = ScheduleMeetingNode()
+human_interrupt_retry_node = HumanInterruptRetryNode()
 conversation_router = ConversationRouter(logger)
 
 def create_initial_state_for_testing(user_message: str) -> MeetingMuseBotState:
@@ -75,6 +79,8 @@ def create_graph_with_all_nodes() -> GraphBuilder:
         greeting_node=greeting_node,
         clarify_request_node=clarify_request_node,
         collecting_info_node=collecting_info_node,
+        schedule_meeting_node=schedule_meeting_node,
+        human_interrupt_retry_node=human_interrupt_retry_node,
         conversation_router=conversation_router,
         classify_intent_node=classify_intent_node,
     )

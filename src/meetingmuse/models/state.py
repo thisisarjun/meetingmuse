@@ -41,3 +41,7 @@ class MeetingMuseBotState(BaseModel):
     
     # Information about the meeting being scheduled
     meeting_details: MeetingFindings = Field(default_factory=MeetingFindings)
+    
+    # API call status for retry logic
+    api_call_status: Optional[str] = None
+    api_error_message: Optional[str] = None
