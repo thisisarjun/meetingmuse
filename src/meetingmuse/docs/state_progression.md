@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document illustrates how the conversation state evolves as MeetingMuse interacts with users to schedule meetings. The state management system tracks user intent, conversation flow, and meeting details throughout the interaction.
+This document illustrates how the conversation state evolves as MeetingMuse interacts with users to schedule meetings, including the new human-in-the-loop retry flow with dedicated nodes for API calls and human interruption handling.
 
 ## 📊 State Structure
 
@@ -12,8 +12,32 @@ The core state object contains the following key components:
 |-------|------|-------------|
 | `messages` | `List[Message]` | Complete conversation history |
 | `user_intent` | `str \| None` | Classified user intention |
-| `current_step` | `str` | Current stage in the workflow |
 | `meeting_details` | `dict` | Collected meeting information |
+| `operation_name` | `str \| None` | Name of current operation for retry context |
+
+## 🏗️ Graph Routing Implementation
+
+The current graph implements the following routing flow:
+
+```
+START -> Classify Intent -> [Greeting|Collecting Info|Clarify Request]
+                             ↓
+Collecting Info (loop until complete) -> Schedule Meeting (SCHEDULE_MEETING)
+                                              ↓
+                                    ✅ success → END
+                                    ❌ failure → Human Interrupt Retry
+                                                        ↓
+                                              retry → SCHEDULE_MEETING (loop)
+                                              cancel → END
+```
+
+### Key Routing Logic:
+
+1. **`collecting_info_node.get_next_node_name()`**: Returns `NodeName.SCHEDULE_MEETING` when meeting details are complete
+2. **Command-based routing**: Schedule Meeting and Human Interrupt Retry nodes use `Command(goto=...)` for navigation
+3. **Human Interrupt Retry**: Uses LangGraph's `interrupt()` function for user decisions and routes via:
+   - `Command(goto="schedule_meeting")` for retry
+   - `Command(goto="end")` for cancel
 
 ## 🎯 State Evolution Examples
 
@@ -30,16 +54,17 @@ When a user first interacts with MeetingMuse:
     }
   ],
   "user_intent": null,
-  "current_step": "greeting",
-  "meeting_details": {}
+  "meeting_details": {},
+  "operation_name": null
 }
 ```
 
 **Key Points:**
 - ✅ User message captured
 - ❓ Intent not yet classified
-- 🚀 Workflow at greeting stage
+- 🚀 Workflow starting
 - 📝 No meeting details collected
+- 🔌 No API calls attempted
 
 ---
 
@@ -56,21 +81,65 @@ Once the system processes the user's intent:
     }
   ],
   "user_intent": "schedule",
-  "current_step": "collecting_info",
-  "meeting_details": {}
+  "meeting_details": {},
+  "schedule_meeting_status": null,
+  "api_error_message": null
 }
 ```
 
 **Key Changes:**
 - 🎯 **Intent identified**: `"schedule"`
-- 📋 **Step updated**: `"collecting_info"`
-- 🔄 Ready to gather meeting details
+- 📋 **Ready for**: Information collection
+- 🔄 **API status**: Not yet attempted
 
 ---
 
-### 3. After Collecting Information
+### 3. After API Call Success
 
-As the conversation progresses and details are gathered:
+When the meeting is successfully scheduled:
+
+```json
+{
+  "messages": [
+    {
+      "role": "human",
+      "content": "Hi, I want to schedule a meeting"
+    },
+    {
+      "role": "assistant", 
+      "content": "Great! What's the meeting about?"
+    },
+    {
+      "role": "human",
+      "content": "Team standup for tomorrow at 2pm"
+    },
+    {
+      "role": "assistant",
+      "content": "✅ Meeting scheduled successfully! Meeting ID: MTG_1234. Title: Team standup, Time: tomorrow at 2pm"
+    }
+  ],
+  "user_intent": "schedule",
+  "meeting_details": {
+    "title": "Team standup",
+    "date_time": "tomorrow at 2pm",
+    "duration": null,
+    "participants": null
+  },
+  "schedule_meeting_status": "success",
+  "api_error_message": null
+}
+```
+
+**Workflow Complete:**
+- ✅ **API call successful**: Meeting created
+- 🎯 **Status**: "success"
+- 🏁 **Next**: END node
+
+---
+
+### 4. After API Call Failure
+
+When the meeting scheduling fails:
 
 ```json
 {
@@ -84,26 +153,90 @@ As the conversation progresses and details are gathered:
       "content": "Great! What's the meeting about?"
     },
     {
-      "role": "human",
+      "role": "human", 
       "content": "Team standup for tomorrow at 2pm"
+    },
+    {
+      "role": "assistant",
+      "content": "❌ Failed to schedule meeting: Calendar service temporarily unavailable. Please try again."
     }
   ],
   "user_intent": "schedule",
-  "current_step": "collecting_info",
   "meeting_details": {
     "title": "Team standup",
-    "time": "tomorrow at 2pm",
+    "date_time": "tomorrow at 2pm",
     "duration": null,
     "participants": null
-  }
+  },
+  "schedule_meeting_status": "failed",
+  "api_error_message": "Calendar service temporarily unavailable. Please try again."
 }
 ```
 
-**Progress Made:**
-- 💬 **Conversation history**: Multi-turn dialogue
-- 📝 **Title extracted**: "Team standup"
-- ⏰ **Time identified**: "tomorrow at 2pm"
-- ⚠️ **Still needed**: Duration and participants
+**Requires Human Decision:**
+- ❌ **API call failed**: Error occurred
+- 🤔 **Next**: Human Interrupt Retry node
+- � **Options**: Retry or Cancel
+
+---
+
+### 5. After Human Retry Decision
+
+When user chooses to retry:
+
+```json
+{
+  "messages": [
+    // ... previous messages ...
+    {
+      "role": "assistant",
+      "content": "User chose to retry Meeting Scheduling. Attempting again..."
+    }
+  ],
+  "user_intent": "schedule", 
+  "meeting_details": {
+    "title": "Team standup",
+    "date_time": "tomorrow at 2pm",
+    "duration": null,
+    "participants": null
+  },
+  "operation_name": "Meeting Scheduling"
+}
+```
+
+**Retry Flow:**
+- 🔄 **User choice**: Retry
+- 🧹 **Status cleared**: Ready for new attempt
+- ➡️ **Next**: Back to Schedule Meeting node via `Command(goto="schedule_meeting")`
+
+When user chooses to cancel:
+
+```json
+{
+  "messages": [
+    // ... previous messages ...
+    {
+      "role": "assistant",
+      "content": "User chose to cancel Meeting Scheduling. Operation ended."
+    }
+  ],
+  "user_intent": "schedule",
+  "meeting_details": {
+    "title": "Team standup", 
+    "date_time": "tomorrow at 2pm",
+    "duration": null,
+    "participants": null
+  },
+  "schedule_meeting_status": "failed",
+  "api_error_message": "Calendar service temporarily unavailable. Please try again.",
+  "operation_name": "Meeting Scheduling"
+}
+```
+
+**Cancel Flow:**
+- ❌ **User choice**: Cancel
+- 🏁 **Operation**: Terminated
+- ➡️ **Next**: End workflow via `Command(goto="end")`
 
 ---
 
@@ -115,9 +248,11 @@ As the conversation progresses and details are gathered:
 graph LR
     A[greeting] --> B[intent_classification]
     B --> C[collecting_info]
-    C --> D[validation]
-    D --> E[scheduling]
-    E --> F[confirmation]
+    C --> D[schedule_meeting]
+    D -->|Success| E[end]
+    D -->|Failure| F[human_interrupt_retry]
+    F -->|Retry| D
+    F -->|Cancel| E
 ```
 
 ### Stage Descriptions
@@ -127,21 +262,22 @@ graph LR
 | `greeting` | Initial user contact | Any user message | Classify intent |
 | `intent_classification` | Determine user goal | User intent signals | Route to appropriate handler |
 | `collecting_info` | Gather meeting details | Meeting parameters | Validate completeness |
-| `validation` | Verify all required info | Complete meeting data | Proceed to scheduling |
-| `scheduling` | Create calendar event | Validated meeting details | Confirm with user |
-| `confirmation` | Final acknowledgment | User approval | Complete workflow |
+| `schedule_meeting` | Schedule meeting via API | Complete meeting data | Success -> END, Failure -> Retry |
+| `human_interrupt_retry` | Handle API failures | User retry decision | Retry -> API call, Cancel -> END |
+| `end` | Complete workflow | Final confirmation | Workflow finished |
 
 ## 🎨 Visual State Progression
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Initial       │    │   Intent        │    │   Information   │
-│   Contact       │───▶│   Classified    │───▶│   Collected     │
-│                 │    │                 │    │                 │
-│ 🙋 User says hi │    │ 🎯 Want to      │    │ 📝 Meeting      │
-│ ❓ Intent: null │    │    schedule     │    │    details      │
-│ 🚀 Step: greeting│    │ 📋 Step: info  │    │    gathered     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Initial       │    │   Intent        │    │   API Call      │    │   Success/      │
+│   Contact       │───▶│   Classified    │───▶│   Attempted     │───▶│   Retry Flow    │
+│                 │    │                 │    │                 │    │                 │
+│ 🙋 User says hi │    │ 🎯 Want to      │    │ � Schedule     │    │ ✅ Success->END │
+│ ❓ Intent: null │    │    schedule     │    │    meeting      │    │ ❌ Fail->Retry  │
+│ 🚀 Workflow     │    │ 📋 Collect info │    │ 🤞 API call    │    │ 🔄 User choice  │
+│    starting     │    │                 │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ## 🛠️ Implementation Notes
@@ -153,6 +289,43 @@ graph LR
 3. **Persistence**: Consider persisting state for long-running conversations
 4. **Error Handling**: Gracefully handle incomplete or invalid state
 
+### Testing the Human Interrupt Retry Flow
+
+The `HumanInterruptRetryNode` includes comprehensive test coverage for:
+
+- **Retry approval**: Tests when user chooses to retry the operation
+- **Cancel approval**: Tests when user chooses to cancel the operation  
+- **Custom operation names**: Tests with different operation names
+- **State preservation**: Ensures existing state is maintained during retry flow
+- **Interrupt parameters**: Validates the structure of interrupt calls
+- **Command routing**: Verifies correct `Command(goto=...)` routing
+
+**Running the tests:**
+```bash
+# Run all tests
+make test
+
+# Run specific human interrupt retry tests
+poetry run pytest tests/meetingmuse/nodes/test_human_interrupt_retry_node.py -v
+```
+
+Key test scenarios:
+```python
+# Test retry flow
+@patch('meetingmuse.nodes.human_interrupt_retry_node.interrupt')
+def test_retry_approval_true(self, mock_interrupt):
+    mock_interrupt.return_value = True
+    result = self.node.node_action(self.base_state)
+    assert result.goto == "schedule_meeting"
+
+# Test cancel flow  
+@patch('meetingmuse.nodes.human_interrupt_retry_node.interrupt')
+def test_retry_approval_false(self, mock_interrupt):
+    mock_interrupt.return_value = False
+    result = self.node.node_action(self.base_state)
+    assert result.goto == "end"
+```
+
 ### Example State Validation
 
 ```python
@@ -161,16 +334,17 @@ def validate_state_transition(current_state, new_state):
     valid_transitions = {
         "greeting": ["intent_classification"],
         "intent_classification": ["collecting_info"],
-        "collecting_info": ["validation", "collecting_info"],
-        "validation": ["scheduling", "collecting_info"],
-        "scheduling": ["confirmation"],
-        "confirmation": ["greeting"]  # For new conversations
+        "collecting_info": ["schedule_meeting"],
+        "schedule_meeting": ["end", "human_interrupt_retry"],
+        "human_interrupt_retry": ["schedule_meeting", "end"],
+        "end": ["greeting"]  # For new conversations
     }
     
-    current_step = current_state.get("current_step")
-    new_step = new_state.get("current_step")
+    # Note: Since we removed current_step, this validation would need
+    # to be adapted to use other state indicators like schedule_meeting_status
+    # or the presence of certain fields to determine current stage
     
-    return new_step in valid_transitions.get(current_step, [])
+    return True  # Simplified for this example
 ```
 
 ---
@@ -184,4 +358,4 @@ def validate_state_transition(current_state, new_state):
 
 ---
 
-*Last updated: $(date)*
+*Last updated: July 26, 2025*

@@ -36,16 +36,6 @@ class GraphBuilder:
         self.human_interrupt_retry_node = human_interrupt_retry_node
         self.conversation_router = conversation_router
 
-    def _api_call_status_router(self, state: MeetingMuseBotState) -> str:
-        """Route based on API call status."""
-        if state.api_call_status == "success":
-            return NodeName.END
-        elif state.api_call_status == "failed":
-            return NodeName.HUMAN_INTERRUPT_RETRY
-        else:
-            # Default case - should not happen
-            return NodeName.END
-
     def build(self) -> StateGraph:
         graph_builder = StateGraph(self.state)
         graph_builder.add_node(self.greeting_node.node_name, self.greeting_node.node_action)
@@ -74,17 +64,6 @@ class GraphBuilder:
                 NodeName.SCHEDULE_MEETING: NodeName.SCHEDULE_MEETING,
             }
         )
-       
-        graph_builder.add_conditional_edges(
-            self.schedule_meeting_node.node_name,
-            self._api_call_status_router,
-            {
-                NodeName.END: END,
-                NodeName.HUMAN_INTERRUPT_RETRY: NodeName.HUMAN_INTERRUPT_RETRY,
-            }
-        )
-        # Add edge from human interrupt retry back to API call on retry
-        graph_builder.add_edge(self.human_interrupt_retry_node.node_name, NodeName.SCHEDULE_MEETING)
         # Add edges to END for completion
         graph_builder.add_edge(self.greeting_node.node_name, END)
         graph_builder.add_edge(self.clarify_request_node.node_name, END)
