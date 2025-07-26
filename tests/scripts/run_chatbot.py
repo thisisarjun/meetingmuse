@@ -23,8 +23,8 @@ classify_intent_node = ClassifyIntentNode(intent_classifier)
 greeting_node = GreetingNode(model)
 collecting_info_node = CollectingInfoNode(model, logger)
 clarify_request_node = ClarifyRequestNode(model)
-schedule_meeting_node = ScheduleMeetingNode()
-human_interrupt_retry_node = HumanInterruptRetryNode()
+schedule_meeting_node = ScheduleMeetingNode(model, logger)
+human_interrupt_retry_node = HumanInterruptRetryNode(model, logger)
 
 class ChatBot:
     def __init__(self, graph):

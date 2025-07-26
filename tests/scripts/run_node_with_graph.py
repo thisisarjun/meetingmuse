@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
@@ -24,15 +24,15 @@ classify_intent_node = ClassifyIntentNode(intent_classifier)
 greeting_node = GreetingNode(model)
 collecting_info_node = CollectingInfoNode(model, logger)
 clarify_request_node = ClarifyRequestNode(model)
-schedule_meeting_node = ScheduleMeetingNode()
-human_interrupt_retry_node = HumanInterruptRetryNode()
+schedule_meeting_node = ScheduleMeetingNode(model, logger)
+human_interrupt_retry_node = HumanInterruptRetryNode(model, logger)
 conversation_router = ConversationRouter(logger)
 
 def create_initial_state_for_testing(user_message: str) -> MeetingMuseBotState:
     return MeetingMuseBotState(
         messages=[HumanMessage(content=user_message)],
-        user_intent=None,
-        meeting_details=MeetingFindings()
+        user_intent=UserIntent.SCHEDULE_MEETING,
+        meeting_details=MeetingFindings(date_time='2023-10-01T10:00:00Z', duration='60 minutes', title='Test Meeting', participants=['me', 'you'])
     )
 
 def create_intent_test_graph():
@@ -69,7 +69,13 @@ def create_clarify_request_test_graph():
     workflow.add_edge("clarify_request", END)
     return workflow.compile()
 
-
+def create_schedule_meeting_test_graph():
+    workflow = StateGraph(MeetingMuseBotState)
+    workflow.add_node("schedule_meeting", schedule_meeting_node.node_action)
+    workflow.add_node("human_interrupt_retry", human_interrupt_retry_node.node_action)
+    workflow.add_edge(START, "schedule_meeting")
+    workflow.add_edge("human_interrupt_retry", END)
+    return workflow.compile()
 
 def create_graph_with_all_nodes() -> GraphBuilder:
     graph_builder = GraphBuilder(
@@ -95,7 +101,9 @@ def test_single_node(node_name: NodeName, user_message: str):
     elif node_name == NodeName.COLLECTING_INFO:
         graph = create_collecting_info_test_graph()
     elif node_name == NodeName.CLARIFY_REQUEST:
-        graph = create_clarify_request_test_graph()    
+        graph = create_clarify_request_test_graph()
+    elif node_name == NodeName.SCHEDULE_MEETING:
+        graph = create_schedule_meeting_test_graph()
     
     result = graph.invoke(initial_state)
     logger.info(f"Final state: {result}")
@@ -109,6 +117,6 @@ if __name__ == "__main__":
     # this method draws the graph - if you want to visualize the graph,
     draw_graph()
     # use this method, change NodeName value to test different node.
-    # NOTE: make sure that the new node is added and helper method is     
-    test_single_node(NodeName.COLLECTING_INFO, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
+    # NOTE: make sure that the new node is added and helper method is
+    test_single_node(NodeName.SCHEDULE_MEETING, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
 

@@ -64,9 +64,11 @@ class GraphBuilder:
                 NodeName.SCHEDULE_MEETING: NodeName.SCHEDULE_MEETING,
             }
         )
-        # Add edges to END for completion
+        # Simple edges to END for completion (nodes handle their own routing via Command)
         graph_builder.add_edge(self.greeting_node.node_name, END)
         graph_builder.add_edge(self.clarify_request_node.node_name, END)
+        graph_builder.add_edge(self.schedule_meeting_node.node_name, END)
+        graph_builder.add_edge(self.human_interrupt_retry_node.node_name, END)
         
         return graph_builder.compile(
             interrupt_after=[NodeName.COLLECTING_INFO, NodeName.HUMAN_INTERRUPT_RETRY],

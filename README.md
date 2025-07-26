@@ -147,7 +147,7 @@ run using `poetry run python tests/scripts/run_chatbot.py`
 
 use 
 ```bash
-    poetry run python tests/scripts/run_node_with_graph.py
+poetry run python tests/scripts/run_node_with_graph.py
 ```
 
 ## Contributing
