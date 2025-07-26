@@ -43,7 +43,7 @@ class CollectingInfoNode(BaseNode):
         self.logger.info(f"Getting next node name: {state.meeting_details}")
         if state.meeting_details and self.is_meeting_details_complete(state.meeting_details):
             self.logger.info(f"Meeting details are complete, returning to END")
-            return NodeName.END
+            return NodeName.SCHEDULE_MEETING 
         self.logger.info(f"Meeting details are not complete, returning to COLLECTING_INFO")
         return NodeName.COLLECTING_INFO
     
