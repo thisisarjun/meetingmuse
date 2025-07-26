@@ -25,7 +25,7 @@ class ColoredFormatter(logging.Formatter):
         color = self.COLORS.get(record.levelname, '')
         
         # Create the base format
-        log_format = f"{self.BOLD}%(asctime)s{self.RESET} - {color}{self.BOLD}%(levelname)s{self.RESET} - %(message)s"
+        log_format = f"{self.BOLD}%(asctime)s{self.RESET} - {color}{self.BOLD}%(levelname)s{self.RESET} - {color}%(message)s"
         
         # Create formatter with the colored format
         formatter = logging.Formatter(
