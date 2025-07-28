@@ -3,7 +3,7 @@ MeetingMuse LangGraph Workflow
 """
 
 from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
@@ -11,6 +11,7 @@ from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
+from meetingmuse.nodes.human_schedule_meeting_more_info_node import HumanScheduleMeetingMoreInfoNode
 from meetingmuse.services.routing_service import ConversationRouter
 
 
@@ -22,6 +23,7 @@ class GraphBuilder:
         collecting_info_node: CollectingInfoNode,
         classify_intent_node: ClassifyIntentNode,
         conversation_router: ConversationRouter,
+        human_schedule_meeting_more_info_node: HumanScheduleMeetingMoreInfoNode,
     ) -> None:
         self.state = state
         self.greeting_node = greeting_node
@@ -29,13 +31,14 @@ class GraphBuilder:
         self.collecting_info_node = collecting_info_node
         self.classify_intent_node = classify_intent_node
         self.conversation_router = conversation_router
-
+        self.human_schedule_meeting_more_info_node = human_schedule_meeting_more_info_node
     def build(self) -> StateGraph:
         graph_builder = StateGraph(self.state)
         graph_builder.add_node(self.greeting_node.node_name, self.greeting_node.node_action)
         graph_builder.add_node(self.classify_intent_node.node_name, self.classify_intent_node.node_action)
         graph_builder.add_node(self.clarify_request_node.node_name, self.clarify_request_node.node_action)
         graph_builder.add_node(self.collecting_info_node.node_name, self.collecting_info_node.node_action)
+        graph_builder.add_node(self.human_schedule_meeting_more_info_node.node_name, self.human_schedule_meeting_more_info_node.node_action)
 
         graph_builder.add_edge(START, self.classify_intent_node.node_name)
         # add conditional route using the routing service
@@ -52,17 +55,17 @@ class GraphBuilder:
             self.collecting_info_node.node_name,
             self.collecting_info_node.get_next_node_name,
             {
-                NodeName.COLLECTING_INFO: NodeName.COLLECTING_INFO,
                 NodeName.END: END,
+                NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO: NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO,
             }
         )
+        graph_builder.add_edge(self.human_schedule_meeting_more_info_node.node_name, self.collecting_info_node.node_name)
         # Add edges to END for completion
         graph_builder.add_edge(self.greeting_node.node_name, END)
         graph_builder.add_edge(self.clarify_request_node.node_name, END)
         
         return graph_builder.compile(
-            interrupt_after=[NodeName.COLLECTING_INFO],
-            checkpointer=MemorySaver()
+            checkpointer=InMemorySaver()
         )
     
     def draw_graph(self) -> None:

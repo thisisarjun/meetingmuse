@@ -1,23 +1,70 @@
 .PHONY: help install dev-install test test-verbose test-coverage clean lint format type-check run build docs poetry-install poetry-update poetry-shell
 
+# Colors for output
+RED := \033[31m
+GREEN := \033[32m
+YELLOW := \033[33m
+BLUE := \033[34m
+MAGENTA := \033[35m
+CYAN := \033[36m
+WHITE := \033[37m
+BOLD := \033[1m
+RESET := \033[0m
+
 # Default target
 help:
-	@echo "Available commands:"
-	@echo "  install      - Install dependencies with Poetry"
-	@echo "  dev-install  - Install development dependencies with Poetry"
-	@echo "  poetry-install - Install all dependencies (same as install)"
-	@echo "  poetry-update - Update dependencies"
-	@echo "  poetry-shell - Activate Poetry virtual environment"
-	@echo "  test         - Run tests with pytest"
-	@echo "  test-verbose - Run tests with verbose output"
-	@echo "  test-coverage - Run tests with coverage report"
-	@echo "  lint         - Run linting checks"
-	@echo "  format       - Format code with black and isort"
-	@echo "  type-check   - Run type checking with mypy"
-	@echo "  clean        - Clean up build artifacts and cache"
-	@echo "  run          - Run the MeetingMuse CLI"
-	@echo "  build        - Build the package with Poetry"
-	@echo "  docs         - Generate documentation"
+	@echo ""
+	@echo "$(BOLD)$(BLUE)MeetingMuse - Your favourite calendar bot!$(RESET)"
+	@echo "$(CYAN)================================================$(RESET)"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)Poetry & Environment:$(RESET)"
+	@echo "  $(YELLOW)install$(RESET)         - Install dependencies with Poetry"
+	@echo "  $(YELLOW)dev-install$(RESET)     - Install development dependencies"
+	@echo "  $(YELLOW)shell$(RESET)           - Activate Poetry virtual environment"
+	@echo "  $(YELLOW)update$(RESET)          - Update dependencies"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)Testing:$(RESET)"
+	@echo "  $(YELLOW)test$(RESET)            - Run tests with pytest"
+	@echo "  $(YELLOW)test-verbose$(RESET)    - Run tests with verbose output"
+	@echo "  $(YELLOW)test-coverage$(RESET)   - Run tests with coverage report"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)Code Quality:$(RESET)"
+	@echo "  $(YELLOW)lint$(RESET)            - Run linting checks (flake8, pylint)"
+	@echo "  $(YELLOW)format$(RESET)          - Format code (black, isort)"
+	@echo "  $(YELLOW)type-check$(RESET)      - Run type checking with mypy"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)Running & Building:$(RESET)"
+	@echo "  $(YELLOW)run$(RESET)             - Run the MeetingMuse CLI"
+	@echo "  $(YELLOW)build$(RESET)           - Build the package with Poetry"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)Maintenance:$(RESET)"
+	@echo "  $(YELLOW)clean$(RESET)           - Clean up build artifacts and cache"
+	@echo "  $(YELLOW)docs$(RESET)            - Generate documentation"
+	@echo "  $(YELLOW)build-graph$(RESET)     - Generate graph visualization"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)Quick Commands:$(RESET)"
+	@echo "  $(YELLOW)qa$(RESET)              - Run format + lint + test"
+	@echo "  $(YELLOW)dev-setup$(RESET)       - Complete development setup"
+	@echo "  $(YELLOW)ci-test$(RESET)         - Run CI pipeline (coverage + lint + type-check)"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)Debug & Development:$(RESET)"
+	@echo "  $(YELLOW)debug-node$(RESET)      - Run node debugging script"
+	@echo "    $(CYAN)make debug-node NODE_NAME=COLLECTING_INFO MESSAGE=\"I want to schedule a meeting\"$(RESET)"	
+	@echo "    $(CYAN)make debug-node NODE_NAME=HUMAN_SCHEDULE_MEETING_MORE_INFO MESSAGE=\"Schedule meeting\" INTERRUPT=1$(RESET)"
+	@echo "  $(YELLOW)debug-chatbot$(RESET)   - Run chatbot debugging script"	
+	@echo "    $(CYAN)make debug-chatbot$(RESET) - Interactive chatbot session for testing"	
+	@echo ""
+	@echo "$(BOLD)$(GREEN)Information:$(RESET)"
+	@echo "  $(YELLOW)info$(RESET)            - Show project information"
+	@echo "  $(YELLOW)poetry-show$(RESET)     - Show installed packages"
+	@echo "  $(YELLOW)poetry-env-info$(RESET) - Show environment info"
+	@echo ""
+	@echo "$(BOLD)$(MAGENTA)Examples:$(RESET)"
+	@echo "  $(CYAN)make dev-setup$(RESET)   # Set up development environment"
+	@echo "  $(CYAN)make qa$(RESET)          # Quick development cycle"
+	@echo "  $(CYAN)make run$(RESET)         # Start the application"
+	@echo ""
+	@echo "$(CYAN)================================================$(RESET)"
 
 # Poetry dependency management
 install:
@@ -26,12 +73,10 @@ install:
 dev-install:
 	poetry install --with dev
 
-poetry-install: install
-
-poetry-update:
+update:
 	poetry update
 
-poetry-shell:
+shell:
 	poetry shell
 
 # Testing with Poetry
@@ -77,7 +122,9 @@ run:
 build: clean
 	poetry build
 
-# Documentation (if using sphinx)
+# Documentation & Graph generation
+build-graph:
+	poetry run python tests/scripts/generate_graph.py
 docs:
 	@echo "Documentation generation not yet configured"
 	@echo "Run: poetry add --group dev sphinx sphinx-rtd-theme"
@@ -93,7 +140,16 @@ dev-setup: dev-install
 ci-test: test-coverage lint type-check
 
 # Quick development cycle
-dev: format lint test
+qa: format lint test
+
+
+# debug scripts - make help for more info
+
+debug-node:
+	poetry run python tests/scripts/run_node_with_graph.py --node $(NODE_NAME) --message "$(MESSAGE)" $(if $(INTERRUPT),--interrupt)
+
+debug-chatbot:
+	poetry run python tests/scripts/run_chatbot.py
 
 # Poetry-specific commands
 poetry-check:
@@ -107,12 +163,16 @@ poetry-env-info:
 
 # Show project info
 info:
-	@echo "MeetingMuse - Your favourite calendar bot!"
-	@echo "Poetry version: $(shell poetry --version)"
-	@echo "Python version: $(shell poetry run python --version)"
-	@echo "Virtual environment: $(shell poetry env info --path)"
-	@echo "Project structure:"
+	@echo ""
+	@echo "$(BOLD)$(BLUE)📊 MeetingMuse Project Information$(RESET)"
+	@echo "$(CYAN)=====================================$(RESET)"
+	@echo "$(BOLD)Poetry version:$(RESET) $(shell poetry --version)"
+	@echo "$(BOLD)Python version:$(RESET) $(shell poetry run python --version)"
+	@echo "$(BOLD)Virtual environment:$(RESET) $(shell poetry env info --path)"
+	@echo ""
+	@echo "$(BOLD)$(GREEN)📁 Project structure:$(RESET)"
 	@find src/ -name "*.py" | head -10
+	@echo ""
 
 # Export requirements (for compatibility)
 requirements:

@@ -1,9 +1,11 @@
-from langgraph.graph import StateGraph
+from langgraph.types import Command
 from langchain_core.messages import HumanMessage
 from meetingmuse.nodes import clarify_request_node, classify_intent_node, greeting_node
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
+from meetingmuse.nodes.human_schedule_meeting_more_info_node import HumanScheduleMeetingMoreInfoNode
+from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
@@ -21,6 +23,8 @@ classify_intent_node = ClassifyIntentNode(intent_classifier)
 greeting_node = GreetingNode(model)
 collecting_info_node = CollectingInfoNode(model, logger)
 clarify_request_node = ClarifyRequestNode(model)
+meeting_details_service = MeetingDetailsService(model, logger)
+human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger, meeting_details_service)
 
 class ChatBot:
     def __init__(self, graph):
@@ -28,6 +32,13 @@ class ChatBot:
         self.thread_id = "conversation_1"
         self.config = {"configurable": {"thread_id": self.thread_id}}
     
+    def get_last_message(self, events: dict):
+        messages = events["messages"]
+        message = messages[-1]
+        if message and message.type == "ai" and message.content:
+            return message.content
+        return None
+
     def process_input(self, user_input: str):
         # Always add the user message and process
         input_data = {"messages": [HumanMessage(content=user_input)]}
@@ -37,14 +48,20 @@ class ChatBot:
             config=self.config,
             stream_mode="values"
         ):
-            messages = events["messages"]
-            message = messages[-1]
-            if message and message.type == "ai" and message.content:
-                print("Assistant:", message.content)        
-        # Check if we're interrupted and waiting for more input
-        current_state = self.graph.get_state(self.config)
-        if current_state and current_state.next:
-            print(f"[System: Waiting for your input, will resume at {current_state.next}]")
+            if "__interrupt__" in events:
+                interrupt_info = events["__interrupt__"][0]
+                user_input = input(f"{interrupt_info.value} ")
+                for _resume_chunk in self.graph.stream(Command(resume=user_input), self.config, stream_mode="values"):
+                    print(f"🆔 resume_chunk: {_resume_chunk}")
+                    message = self.get_last_message(_resume_chunk)
+                    if message:
+                        print("Assistant:", message)        
+                return
+
+            message = self.get_last_message(events)
+            if message:
+                print("Assistant:", message)        
+
 
 
 
@@ -56,6 +73,7 @@ if __name__ == "__main__":
         collecting_info_node=collecting_info_node,
         conversation_router=conversation_router,
         classify_intent_node=classify_intent_node,
+        human_schedule_meeting_more_info_node=human_schedule_meeting_more_info_node,
     )
     graph = graph_builder.build()
     chatbot = ChatBot(graph)

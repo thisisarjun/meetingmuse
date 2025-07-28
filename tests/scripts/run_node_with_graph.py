@@ -1,7 +1,8 @@
-
+import argparse
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.types import Command
 
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
@@ -78,17 +79,6 @@ def create_human_schedule_meeting_more_info_test_graph():
     workflow.add_edge("collecting_info", END)
     return workflow
 
-def create_graph_with_all_nodes() -> GraphBuilder:
-    graph_builder = GraphBuilder(
-        state=MeetingMuseBotState,
-        greeting_node=greeting_node,
-        clarify_request_node=clarify_request_node,
-        collecting_info_node=collecting_info_node,
-        conversation_router=conversation_router,
-        classify_intent_node=classify_intent_node,
-    )
-    return graph_builder
-
 def test_single_node(node_name: NodeName, user_message: str):
     
     initial_state = create_initial_state_for_testing(user_message)
@@ -110,14 +100,44 @@ def test_single_node(node_name: NodeName, user_message: str):
     logger.info(f"Final state: {result}")
     return result
 
-def draw_graph():
-    graph_builder = create_graph_with_all_nodes()
-    graph_builder.draw_graph()
+def interrupt_node(node_name: NodeName, user_message: str):
+    initial_state = create_initial_state_for_testing(user_message)
+    if node_name == NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO:
+        workflow = create_human_schedule_meeting_more_info_test_graph()
+    else:
+        raise ValueError(f"Node {node_name} does not support interruption")
+    
+    graph = workflow.compile(checkpointer=InMemorySaver())
+    config = {"configurable": {"thread_id": "test"}}
+    
+    for chunk in graph.stream(initial_state, config):
+        print(f"🤔 chunk: {chunk}")
+        if "__interrupt__" in chunk:
+            interrupt_info = chunk["__interrupt__"][0]
+            user_input = input(f"{interrupt_info.value} ")
+            for resume_chunk in graph.stream(Command(resume=user_input), config):
+                logger.info(f"🆔 resume_chunk: {resume_chunk}")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Debug individual nodes in isolation")
+    parser.add_argument("--node", type=str, required=True, 
+                       choices=["CLASSIFY_INTENT", "GREETING", "COLLECTING_INFO", "CLARIFY_REQUEST", "HUMAN_SCHEDULE_MEETING_MORE_INFO"],
+                       help="Node name to test")
+    parser.add_argument("--message", type=str, required=True, help="User message to test with")
+    parser.add_argument("--interrupt", action="store_true", help="Test node with interruption support (streaming)")
+    
+    args = parser.parse_args()
+    return args
 
 if __name__ == "__main__":
-    # this method draws the graph - if you want to visualize the graph,
-    draw_graph()
-    # use this method, change NodeName value to test different node.
-    # NOTE: make sure that the new node is added and helper method is     
-    test_single_node(NodeName.COLLECTING_INFO, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
+        
+    args = parse_args()    
+    
+    node_name = getattr(NodeName, args.node)
+    
+    if args.interrupt:
+        interrupt_node(node_name, args.message)
+    else:
+        test_single_node(node_name, args.message)
 

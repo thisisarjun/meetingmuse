@@ -14,17 +14,18 @@ class HumanScheduleMeetingMoreInfoNode(BaseNode):
         self.meeting_service = meeting_service
         self.logger = logger
 
+
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         
-        self.logger.info(f"current state: {state.meeting_details}")        
+        self.logger.info(f"Entering {self.node_name} node with current state: {state.meeting_details}")        
 
         # Check if we already have missing fields to avoid re-generating the prompt
         missing_fields = self.meeting_service.get_missing_required_fields(state.meeting_details)
         
         if not missing_fields:
             # No missing fields, continue to collecting info
-            self.logger.info("All required fields are present, continuing to collecting_info")
-            return Command(goto="collecting_info")
+            self.logger.error("All required fields are present, error in graph")
+            return Command(goto="END")
         
         try:
             response = self.meeting_service.invoke_missing_fields_prompt(state).content
@@ -45,7 +46,7 @@ class HumanScheduleMeetingMoreInfoNode(BaseNode):
         # Parse human input and update meeting details
         state.messages.append(HumanMessage(content=human_input))
         self.logger.info("Human input processed, continuing to collecting_info node")
-        return Command(goto="collecting_info")
+        return state
 
     
     @property
