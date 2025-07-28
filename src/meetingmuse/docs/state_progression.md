@@ -13,7 +13,6 @@ The core state object contains the following key components:
 | `messages` | `List[Message]` | Complete conversation history |
 | `user_intent` | `str \| None` | Classified user intention |
 | `meeting_details` | `dict` | Collected meeting information |
-| `operation_name` | `str \| None` | Name of current operation for retry context |
 
 ## 🏗️ Graph Routing Implementation
 
@@ -54,8 +53,7 @@ When a user first interacts with MeetingMuse:
     }
   ],
   "user_intent": null,
-  "meeting_details": {},
-  "operation_name": null
+  "meeting_details": {}
 }
 ```
 
@@ -190,7 +188,7 @@ When user chooses to retry:
     // ... previous messages ...
     {
       "role": "assistant",
-      "content": "User chose to retry Meeting Scheduling. Attempting again..."
+      "content": "User chose to retry. Attempting again..."
     }
   ],
   "user_intent": "schedule", 
@@ -200,7 +198,6 @@ When user chooses to retry:
     "duration": null,
     "participants": null
   },
-  "operation_name": "Meeting Scheduling"
 }
 ```
 
@@ -217,7 +214,7 @@ When user chooses to cancel:
     // ... previous messages ...
     {
       "role": "assistant",
-      "content": "User chose to cancel Meeting Scheduling. Operation ended."
+      "content": "User chose to cancel. Operation ended."
     }
   ],
   "user_intent": "schedule",
@@ -229,7 +226,6 @@ When user chooses to cancel:
   },
   "schedule_meeting_status": "failed",
   "api_error_message": "Calendar service temporarily unavailable. Please try again.",
-  "operation_name": "Meeting Scheduling"
 }
 ```
 
@@ -295,7 +291,6 @@ The `HumanInterruptRetryNode` includes comprehensive test coverage for:
 
 - **Retry approval**: Tests when user chooses to retry the operation
 - **Cancel approval**: Tests when user chooses to cancel the operation  
-- **Custom operation names**: Tests with different operation names
 - **State preservation**: Ensures existing state is maintained during retry flow
 - **Interrupt parameters**: Validates the structure of interrupt calls
 - **Command routing**: Verifies correct `Command(goto=...)` routing

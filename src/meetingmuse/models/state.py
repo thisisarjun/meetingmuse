@@ -35,5 +35,3 @@ class MeetingMuseBotState(BaseModel):
     # Information about the meeting being scheduled
     meeting_details: MeetingFindings = Field(default_factory=MeetingFindings)
     
-    # Operation name for human interrupt retry
-    operation_name: Optional[str] = None

@@ -20,8 +20,7 @@ class TestHumanInterruptRetryNode:
             meeting_details={
                 "title": "Team standup",
                 "date_time": "tomorrow at 2pm"
-            },
-            operation_name="Meeting Scheduling"
+            }
         )
     
     def test_node_name(self):
@@ -40,9 +39,8 @@ class TestHumanInterruptRetryNode:
         # Verify interrupt was called with correct parameters
         mock_interrupt.assert_called_once_with({
             "type": "operation_approval",
-            "message": "Meeting Scheduling failed. Would you like to retry?",
+            "message": "Meeting scheduling failed. Would you like to retry?",
             "question": "Would you like to retry this operation?",
-            "operation": "Meeting Scheduling",
             "options": ["retry", "cancel"]
         })
         
@@ -68,9 +66,8 @@ class TestHumanInterruptRetryNode:
         # Verify interrupt was called with correct parameters
         mock_interrupt.assert_called_once_with({
             "type": "operation_approval",
-            "message": "Meeting Scheduling failed. Would you like to retry?",
+            "message": "Meeting scheduling failed. Would you like to retry?",
             "question": "Would you like to retry this operation?",
-            "operation": "Meeting Scheduling",
             "options": ["retry", "cancel"]
         })
         
@@ -84,57 +81,6 @@ class TestHumanInterruptRetryNode:
         assert "cancel" in self.base_state.messages[0].content.lower()
         assert "operation ended" in self.base_state.messages[0].content.lower()
     
-    @patch('meetingmuse.nodes.human_interrupt_retry_node.interrupt')
-    def test_custom_operation_name(self, mock_interrupt):
-        """Test with custom operation name."""
-        # Set custom operation name
-        custom_state = MeetingMuseBotState(
-            messages=[],
-            user_intent="schedule",
-            meeting_details={},
-            operation_name="Calendar Sync"
-        )
-        
-        mock_interrupt.return_value = True
-        
-        # Execute node action
-        result = self.node.node_action(custom_state)
-        
-        # Verify interrupt was called with custom operation name
-        mock_interrupt.assert_called_once_with({
-            "type": "operation_approval",
-            "message": "Calendar Sync failed. Would you like to retry?",
-            "question": "Would you like to retry this operation?",
-            "operation": "Calendar Sync",
-            "options": ["retry", "cancel"]
-        })
-        
-        # Verify message contains custom operation name
-        assert "Calendar Sync" in custom_state.messages[0].content
-    
-    @patch('meetingmuse.nodes.human_interrupt_retry_node.interrupt')
-    def test_default_operation_name(self, mock_interrupt):
-        """Test with default operation name when none provided."""
-        # State without operation_name
-        state_without_op = MeetingMuseBotState(
-            messages=[],
-            user_intent="schedule",
-            meeting_details={}
-        )
-        
-        mock_interrupt.return_value = False
-        
-        # Execute node action
-        result = self.node.node_action(state_without_op)
-        
-        # Verify interrupt was called with default operation name
-        mock_interrupt.assert_called_once_with({
-            "type": "operation_approval",
-            "message": "Meeting Scheduling failed. Would you like to retry?",
-            "question": "Would you like to retry this operation?",
-            "operation": "Meeting Scheduling",
-            "options": ["retry", "cancel"]
-        })
     
     @patch('meetingmuse.nodes.human_interrupt_retry_node.interrupt')
     def test_state_preservation(self, mock_interrupt):
@@ -149,8 +95,7 @@ class TestHumanInterruptRetryNode:
             meeting_details={
                 "title": "Important meeting",
                 "participants": ["alice@example.com"]
-            },
-            operation_name="Meeting Scheduling"
+            }
         )
         
         mock_interrupt.return_value = True
@@ -181,7 +126,7 @@ class TestHumanInterruptRetryNode:
         call_args = mock_interrupt.call_args[0][0]
         
         # Verify all required keys are present
-        required_keys = ["type", "message", "question", "operation", "options"]
+        required_keys = ["type", "message", "question", "options"]
         for key in required_keys:
             assert key in call_args, f"Missing required key: {key}"
         
@@ -189,7 +134,6 @@ class TestHumanInterruptRetryNode:
         assert call_args["type"] == "operation_approval"
         assert isinstance(call_args["message"], str)
         assert isinstance(call_args["question"], str)
-        assert isinstance(call_args["operation"], str)
         assert isinstance(call_args["options"], list)
         assert call_args["options"] == ["retry", "cancel"]
     

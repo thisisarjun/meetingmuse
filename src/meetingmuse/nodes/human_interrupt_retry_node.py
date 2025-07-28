@@ -18,33 +18,29 @@ class HumanInterruptRetryNode(BaseNode):
         self.logger = logger
     
     def node_action(self, state: MeetingMuseBotState) -> Command[Literal["schedule_meeting", "__end__"]]:
-        # Get operation details from state
-        operation_name = getattr(state, "operation_name", "Meeting Scheduling")
-        
         if self.logger:
-            self.logger.info(f"Human interrupt requested for operation: {operation_name}")
+            self.logger.info("Human interrupt requested")
         
         # Use LangGraph's interrupt() for human decision
         approval = interrupt({
             "type": "operation_approval",
-            "message": f"{operation_name} failed. Would you like to retry?",
+            "message": "Meeting scheduling failed. Would you like to retry?",
             "question": "Would you like to retry this operation?",
-            "operation": operation_name,
             "options": ["retry", "cancel"]
         })
         
         if approval:
             # User chose to retry - go back to API call
-            retry_message = f"User chose to retry {operation_name}. Attempting again..."
+            retry_message = "User chose to retry. Attempting again..."
             if self.logger:
-                self.logger.info(f"User chose to retry operation: {operation_name}")
+                self.logger.info("User chose to retry operation")
             state.messages.append(AIMessage(content=retry_message))
             return Command(goto=NodeName.SCHEDULE_MEETING)
         else:
             # User chose to cancel - end the operation
-            cancel_message = f"User chose to cancel {operation_name}. Operation ended."
+            cancel_message = "User chose to cancel. Operation ended."
             if self.logger:
-                self.logger.info(f"User chose to cancel operation: {operation_name}")
+                self.logger.info("User chose to cancel operation")
             state.messages.append(AIMessage(content=cancel_message))
             return Command(goto=END)
     

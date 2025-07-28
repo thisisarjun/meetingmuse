@@ -20,9 +20,6 @@ class ScheduleMeetingNode(BaseNode):
         self.logger = logger
     
     def node_action(self, state: MeetingMuseBotState) -> Command[Literal["__end__", "human_interrupt_retry"]]:
-        # Set operation name for retry node to use
-        state.operation_name = "Meeting Scheduling"
-        
         if self.logger:
             self.logger.info("Starting meeting scheduling process")
         
