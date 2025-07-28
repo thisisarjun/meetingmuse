@@ -1,11 +1,14 @@
 
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import HumanMessage
+from langgraph.checkpoint.memory import InMemorySaver
 
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
+from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.nodes.human_schedule_meeting_more_info_node import HumanScheduleMeetingMoreInfoNode
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
@@ -13,6 +16,7 @@ from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
 from meetingmuse.nodes.schedule_meeting_node import ScheduleMeetingNode
 from meetingmuse.nodes.human_interrupt_retry_node import HumanInterruptRetryNode
 from meetingmuse.services.intent_classifier import IntentClassifier
+from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger
 from meetingmuse.models.meeting import MeetingFindings
@@ -27,6 +31,8 @@ clarify_request_node = ClarifyRequestNode(model)
 schedule_meeting_node = ScheduleMeetingNode(model, logger)
 human_interrupt_retry_node = HumanInterruptRetryNode(model, logger)
 conversation_router = ConversationRouter(logger)
+meeting_details_service = MeetingDetailsService(model, logger)
+human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger, meeting_details_service)
 
 def create_initial_state_for_testing(user_message: str) -> MeetingMuseBotState:
     return MeetingMuseBotState(
@@ -44,7 +50,7 @@ def create_intent_test_graph():
     # Simple flow: START -> classify_intent -> END
     workflow.add_edge(START, "classify_intent")
     workflow.add_edge("classify_intent", END)
-    return workflow.compile()
+    return workflow
 
 
 def create_greeting_test_graph():
@@ -52,15 +58,14 @@ def create_greeting_test_graph():
     workflow.add_node("greeting", greeting_node.node_action)
     workflow.add_edge(START, "greeting")
     workflow.add_edge("greeting", END)
-    return workflow.compile()
-
+    return workflow
 
 def create_collecting_info_test_graph():
     workflow = StateGraph(MeetingMuseBotState)
     workflow.add_node("collecting_info", collecting_info_node.node_action)
     workflow.add_edge(START, "collecting_info")
     workflow.add_edge("collecting_info", END)
-    return workflow.compile()
+    return workflow
 
 def create_clarify_request_test_graph():
     workflow = StateGraph(MeetingMuseBotState)
@@ -76,6 +81,15 @@ def create_schedule_meeting_test_graph():
     workflow.add_edge(START, "schedule_meeting")
     workflow.add_edge("human_interrupt_retry", END)
     return workflow.compile()
+
+def create_human_schedule_meeting_more_info_test_graph():
+    workflow = StateGraph(MeetingMuseBotState)
+    workflow.add_node("human_schedule_meeting_more_info", human_schedule_meeting_more_info_node.node_action)
+    workflow.add_node("collecting_info", collecting_info_node.node_action)
+    
+    workflow.add_edge(START, "human_schedule_meeting_more_info")
+    workflow.add_edge("collecting_info", END)
+    return workflow
 
 def create_graph_with_all_nodes() -> GraphBuilder:
     graph_builder = GraphBuilder(
@@ -95,19 +109,23 @@ def test_single_node(node_name: NodeName, user_message: str):
     initial_state = create_initial_state_for_testing(user_message)
     
     if node_name == NodeName.CLASSIFY_INTENT:
-        graph = create_intent_test_graph()
+        workflow = create_intent_test_graph()
     elif node_name == NodeName.GREETING:
-        graph = create_greeting_test_graph()
+        workflow = create_greeting_test_graph()
     elif node_name == NodeName.COLLECTING_INFO:
-        graph = create_collecting_info_test_graph()
+        workflow = create_collecting_info_test_graph()
     elif node_name == NodeName.CLARIFY_REQUEST:
-        graph = create_clarify_request_test_graph()
+        workflow = create_clarify_request_test_graph()
     elif node_name == NodeName.SCHEDULE_MEETING:
-        graph = create_schedule_meeting_test_graph()
+        workflow = create_schedule_meeting_test_graph()
+    elif node_name == NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO:
+        workflow = create_human_schedule_meeting_more_info_test_graph()
     
-    result = graph.invoke(initial_state)
+    graph = workflow.compile(checkpointer=InMemorySaver())
+    config = {"configurable": {"thread_id": "test"}}
+    result = graph.invoke(initial_state, config=config)
     logger.info(f"Final state: {result}")
-    return result
+    return result, graph, config
 
 def draw_graph():
     graph_builder = create_graph_with_all_nodes()
@@ -115,8 +133,38 @@ def draw_graph():
 
 if __name__ == "__main__":
     # this method draws the graph - if you want to visualize the graph,
-    draw_graph()
+    # draw_graph()
     # use this method, change NodeName value to test different node.
-    # NOTE: make sure that the new node is added and helper method is
-    test_single_node(NodeName.SCHEDULE_MEETING, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
+    # NOTE: make sure that the new node is added and helper method is     
+    try:
+        result, graph, config = test_single_node(NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
+        
+        # Check if graph was interrupted
+        state = graph.get_state(config)
+        if state.next:
+            print("GRAPH INTERRUPTED!")
+            user_response = input("Enter your response: ")
+            
+            print(f"Resuming with input: '{user_response}'")
+            current_state = graph.get_state(config)
+            print(f"Current state: {current_state}")
+            
+            # Update the state with the new message
+            updated_state = current_state.values.copy()
+            updated_state['messages'].append(HumanMessage(content=user_response))
+            updated_state['setup_human_input'] = True
+            # Apply the state update
+            graph.update_state(config, updated_state)
+            
+            # Resume execution
+            final_result = graph.invoke(None, config=config)
+            
+        else:
+            print("Graph completed without interruption")
+            print(f"Final result: {result}")
+            
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
 

@@ -44,8 +44,7 @@ class ChatBot:
             messages = events["messages"]
             message = messages[-1]
             if message and message.type == "ai" and message.content:
-                print("Assistant:", message.content)
-        
+                print("Assistant:", message.content)        
         # Check if we're interrupted and waiting for more input
         current_state = self.graph.get_state(self.config)
         if current_state and current_state.next:

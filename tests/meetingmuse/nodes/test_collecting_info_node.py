@@ -85,7 +85,7 @@ class TestGetNextNodeName(TestCollectingInfoNode):
 
 
 class TestIsMeetingDetailsComplete(TestCollectingInfoNode):
-    """Test suite for CollectingInfoNode.is_meeting_details_complete method."""
+    """Test suite for CollectingInfoNode.meeting_service.is_meeting_details_complete method."""
 
     @pytest.mark.parametrize("meeting_details,expected_result,test_description", [
         # Complete meeting details should return True
@@ -143,14 +143,14 @@ class TestIsMeetingDetailsComplete(TestCollectingInfoNode):
         This parameterized test covers various scenarios of complete and incomplete meeting details.
         """
         # Act
-        result = node.is_meeting_details_complete(meeting_details)
+        result = node.meeting_service.is_meeting_details_complete(meeting_details)
         
         # Assert
         assert result == expected_result, f"Failed for case: {test_description}"
 
 
 class TestUpdateStateMeetingDetails(TestCollectingInfoNode):
-    """Test suite for CollectingInfoNode.update_state_meeting_details method."""
+    """Test suite for CollectingInfoNode.meeting_service.update_state_meeting_details method."""
 
     @pytest.mark.parametrize("initial_state_details,new_meeting_details,expected_state_details,test_description", [
         # Update empty state with new details
@@ -244,7 +244,7 @@ class TestUpdateStateMeetingDetails(TestCollectingInfoNode):
         )
         
         # Act
-        result_state = node.update_state_meeting_details(new_meeting_details, state)
+        result_state = node.meeting_service.update_state_meeting_details(new_meeting_details, state)
         
         # Assert
         assert result_state.meeting_details.title == expected_state_details.title, f"Title mismatch for case: {test_description}"
@@ -287,7 +287,7 @@ class TestInvokeExtractionPrompt(TestCollectingInfoNode):
         assert result == expected_result, f"Failed for case: {test_description}"
 
 class TestInvokeMissingFieldsPrompt(TestCollectingInfoNode):
-    """Test suite for CollectingInfoNode.invoke_missing_fields_prompt method."""
+    """Test suite for CollectingInfoNode.meeting_service.invoke_missing_fields_prompt method."""
 
     @pytest.mark.skip(reason="live call to LLM")
     @pytest.mark.parametrize("state,expected_result,test_description", [
@@ -310,7 +310,7 @@ class TestInvokeMissingFieldsPrompt(TestCollectingInfoNode):
         Test invoke_missing_fields_prompt returns correct response based on state.
         """
         # Act
-        result = node.invoke_missing_fields_prompt(state)
+        result = node.meeting_service.invoke_missing_fields_prompt(state)
         print(result)
         
         # Assert
