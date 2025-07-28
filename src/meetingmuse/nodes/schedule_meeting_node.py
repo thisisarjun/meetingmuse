@@ -36,15 +36,6 @@ class ScheduleMeetingNode(BaseNode):
         # Simulate API call to schedule meeting
         # TODO: Replace with actual API call logic
         try:
-            # Check if we have sufficient meeting details
-            # TODO: Can be removed if dedicated validation node precedes this node
-            if not self._has_sufficient_details(state):
-                message = "Insufficient meeting details for scheduling."
-                if self.logger:
-                    self.logger.warning(message)
-                state.messages.append(AIMessage(content=message))
-                return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
-            
             # Simulate API call (30% success rate for demo purposes)
             if random.random() < 0.3:
                 # Success case
@@ -74,16 +65,6 @@ class ScheduleMeetingNode(BaseNode):
                 self.logger.error(f"Exception in scheduling: {error_msg}")
             state.messages.append(AIMessage(content=f"❌ {error_msg}"))
             return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
-    
-    def _has_sufficient_details(self, state: MeetingMuseBotState) -> bool:
-        """Check if we have enough details to schedule a meeting."""
-        details = state.meeting_details
-        return all([
-            details.title is not None,
-            details.date_time is not None,
-            details.participants is not None,
-            details.duration is not None
-        ])
     
     @property
     def node_name(self) -> NodeName:
