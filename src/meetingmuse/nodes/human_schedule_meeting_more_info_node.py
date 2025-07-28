@@ -16,11 +16,7 @@ class HumanScheduleMeetingMoreInfoNode(BaseNode):
 
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         
-        self.logger.info(f"current state: {state.meeting_details}")
-        if state.setup_human_input:
-            self.logger.info(f"Last human message: transitioning to collecting_info")
-            return Command(goto="collecting_info")
-        
+        self.logger.info(f"current state: {state.meeting_details}")        
 
         # Check if we already have missing fields to avoid re-generating the prompt
         missing_fields = self.meeting_service.get_missing_required_fields(state.meeting_details)

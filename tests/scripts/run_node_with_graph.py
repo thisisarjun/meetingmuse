@@ -108,7 +108,7 @@ def test_single_node(node_name: NodeName, user_message: str):
     config = {"configurable": {"thread_id": "test"}}
     result = graph.invoke(initial_state, config=config)
     logger.info(f"Final state: {result}")
-    return result, graph, config
+    return result
 
 def draw_graph():
     graph_builder = create_graph_with_all_nodes()
@@ -116,38 +116,8 @@ def draw_graph():
 
 if __name__ == "__main__":
     # this method draws the graph - if you want to visualize the graph,
-    # draw_graph()
+    draw_graph()
     # use this method, change NodeName value to test different node.
     # NOTE: make sure that the new node is added and helper method is     
-    try:
-        result, graph, config = test_single_node(NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
-        
-        # Check if graph was interrupted
-        state = graph.get_state(config)
-        if state.next:
-            print("GRAPH INTERRUPTED!")
-            user_response = input("Enter your response: ")
-            
-            print(f"Resuming with input: '{user_response}'")
-            current_state = graph.get_state(config)
-            print(f"Current state: {current_state}")
-            
-            # Update the state with the new message
-            updated_state = current_state.values.copy()
-            updated_state['messages'].append(HumanMessage(content=user_response))
-            updated_state['setup_human_input'] = True
-            # Apply the state update
-            graph.update_state(config, updated_state)
-            
-            # Resume execution
-            final_result = graph.invoke(None, config=config)
-            
-        else:
-            print("Graph completed without interruption")
-            print(f"Final result: {result}")
-            
-    except Exception as e:
-        logger.error(f"Error: {e}")
-        import traceback
-        traceback.print_exc()
+    test_single_node(NodeName.COLLECTING_INFO, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
 
