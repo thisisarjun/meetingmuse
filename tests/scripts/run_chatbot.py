@@ -6,6 +6,7 @@ from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
 from meetingmuse.nodes.human_schedule_meeting_more_info_node import HumanScheduleMeetingMoreInfoNode
+from meetingmuse.nodes.missing_meeting_details_node import PromptMissingMeetingDetailsNode
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger
@@ -25,7 +26,8 @@ greeting_node = GreetingNode(model)
 collecting_info_node = CollectingInfoNode(model, logger)
 clarify_request_node = ClarifyRequestNode(model)
 meeting_details_service = MeetingDetailsService(model, logger)
-human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger, meeting_details_service)
+human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
+prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(logger, meeting_details_service)
 
 class ChatBot:
     def __init__(self, graph):
@@ -83,6 +85,7 @@ if __name__ == "__main__":
         conversation_router=conversation_router,
         classify_intent_node=classify_intent_node,
         human_schedule_meeting_more_info_node=human_schedule_meeting_more_info_node,
+        prompt_missing_meeting_details_node=prompt_missing_meeting_details_node,
     )
     graph = graph_builder.build()
     chatbot = ChatBot(graph)

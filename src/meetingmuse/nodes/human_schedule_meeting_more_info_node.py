@@ -31,7 +31,7 @@ class HumanScheduleMeetingMoreInfoNode(BaseNode):
         state.messages.append(HumanMessage(content=human_input))
         state.ai_prompt_input = None
         self.logger.info("Human input processed, continuing to collecting_info node")
-        return Command(goto=NodeName.COLLECTING_INFO)
+        return state
 
     
     @property
