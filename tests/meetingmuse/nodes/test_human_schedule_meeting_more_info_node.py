@@ -80,9 +80,8 @@ class TestNodeAction(TestHumanScheduleMeetingMoreInfoNode):
         # Verify ai_prompt_input was cleared
         assert sample_state.ai_prompt_input is None
         
-        # Verify correct command is returned
-        assert isinstance(result, Command)
-        assert result.goto == NodeName.COLLECTING_INFO
+        # Verify state is returned (not a command)
+        assert result is sample_state
 
     @patch('meetingmuse.nodes.human_schedule_meeting_more_info_node.interrupt')
     def test_node_action_with_empty_human_input(self, mock_interrupt, node, mock_logger, sample_state):
