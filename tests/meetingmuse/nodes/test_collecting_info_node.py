@@ -38,7 +38,7 @@ class TestGetNextNodeName(TestCollectingInfoNode):
             NodeName.END,
             "all required fields present"
         ),
-        # Missing individual required fields should return COLLECTING_INFO
+        # Missing individual required fields should return HUMAN_SCHEDULE_MEETING_MORE_INFO
         (
             MeetingFindings(
                 title="Team Standup",
@@ -46,7 +46,7 @@ class TestGetNextNodeName(TestCollectingInfoNode):
                 participants=["john@example.com", "jane@example.com"],
                 duration="30 minutes"
             ),
-            NodeName.COLLECTING_INFO,
+            NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO,
             "missing date_time"
         ),
         (
@@ -56,12 +56,12 @@ class TestGetNextNodeName(TestCollectingInfoNode):
                 participants=[],  # Empty participants list
                 duration="30 minutes"
             ),
-            NodeName.COLLECTING_INFO,
+            NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO,
             "empty participants list"
         ),
         (
             MeetingFindings(),
-            NodeName.COLLECTING_INFO,
+            NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO,
             "empty meeting details"
         )
     ])

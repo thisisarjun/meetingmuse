@@ -27,10 +27,13 @@ class MeetingMuseBotState(BaseModel):
     """
     
     # The conversation history (user + bot messages)
-    messages: Annotated[List, add_messages]
+    messages: Annotated[List, add_messages] = []
     
     # What does the user want? (schedule, cancel, check availability, etc.)
     user_intent: Optional[UserIntent] = None
     
     # Information about the meeting being scheduled
     meeting_details: MeetingFindings = Field(default_factory=MeetingFindings)
+
+    # Human input
+    ai_prompt_input: Optional[str] = None

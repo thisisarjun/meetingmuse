@@ -13,6 +13,7 @@ from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
+from meetingmuse.nodes.missing_meeting_details_node import PromptMissingMeetingDetailsNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
@@ -28,7 +29,8 @@ collecting_info_node = CollectingInfoNode(model, logger)
 clarify_request_node = ClarifyRequestNode(model)
 conversation_router = ConversationRouter(logger)
 meeting_details_service = MeetingDetailsService(model, logger)
-human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger, meeting_details_service)
+human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
+prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(logger, meeting_details_service)
 
 def create_initial_state_for_testing(user_message: str) -> MeetingMuseBotState:
     return MeetingMuseBotState(
@@ -41,42 +43,51 @@ def create_intent_test_graph():
     workflow = StateGraph(MeetingMuseBotState)
     
     # Add only the intent classification node
-    workflow.add_node("classify_intent", classify_intent_node.node_action)
+    workflow.add_node(NodeName.CLASSIFY_INTENT, classify_intent_node.node_action)
     
     # Simple flow: START -> classify_intent -> END
-    workflow.add_edge(START, "classify_intent")
-    workflow.add_edge("classify_intent", END)
+    workflow.add_edge(START, NodeName.CLASSIFY_INTENT)
+    workflow.add_edge(NodeName.CLASSIFY_INTENT, END)
     return workflow
 
 
 def create_greeting_test_graph():
     workflow = StateGraph(MeetingMuseBotState)
-    workflow.add_node("greeting", greeting_node.node_action)
-    workflow.add_edge(START, "greeting")
-    workflow.add_edge("greeting", END)
+    workflow.add_node(NodeName.GREETING, greeting_node.node_action)
+    workflow.add_edge(START, NodeName.GREETING)
+    workflow.add_edge(NodeName.GREETING, END)
     return workflow
 
 def create_collecting_info_test_graph():
     workflow = StateGraph(MeetingMuseBotState)
-    workflow.add_node("collecting_info", collecting_info_node.node_action)
-    workflow.add_edge(START, "collecting_info")
-    workflow.add_edge("collecting_info", END)
+    workflow.add_node(NodeName.COLLECTING_INFO, collecting_info_node.node_action)
+    workflow.add_edge(START, NodeName.COLLECTING_INFO)
+    workflow.add_edge(NodeName.COLLECTING_INFO, END)
     return workflow
 
 def create_clarify_request_test_graph():
     workflow = StateGraph(MeetingMuseBotState)
-    workflow.add_node("clarify_request", clarify_request_node.node_action)
-    workflow.add_edge(START, "clarify_request")
-    workflow.add_edge("clarify_request", END)
+    workflow.add_node(NodeName.CLARIFY_REQUEST, clarify_request_node.node_action)
+    workflow.add_edge(START, NodeName.CLARIFY_REQUEST)
+    workflow.add_edge(NodeName.CLARIFY_REQUEST, END)
     return workflow
 
 def create_human_schedule_meeting_more_info_test_graph():
     workflow = StateGraph(MeetingMuseBotState)
-    workflow.add_node("human_schedule_meeting_more_info", human_schedule_meeting_more_info_node.node_action)
-    workflow.add_node("collecting_info", collecting_info_node.node_action)
+    workflow.add_node(NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO, human_schedule_meeting_more_info_node.node_action)
+    workflow.add_node(NodeName.COLLECTING_INFO, collecting_info_node.node_action)
     
-    workflow.add_edge(START, "human_schedule_meeting_more_info")
-    workflow.add_edge("collecting_info", END)
+    workflow.add_edge(START, NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO)
+    workflow.add_edge(NodeName.COLLECTING_INFO, END)
+    return workflow
+
+def create_prompt_missing_meeting_details_test_graph():
+    workflow = StateGraph(MeetingMuseBotState)
+    workflow.add_node(NodeName.PROMPT_MISSING_MEETING_DETAILS, prompt_missing_meeting_details_node.node_action)
+    workflow.add_node(NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO, human_schedule_meeting_more_info_node.node_action)
+    workflow.add_edge(START, NodeName.PROMPT_MISSING_MEETING_DETAILS)
+    workflow.add_edge(NodeName.PROMPT_MISSING_MEETING_DETAILS, NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO)
+    workflow.add_edge(NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO, END)
     return workflow
 
 def test_single_node(node_name: NodeName, user_message: str):
@@ -93,6 +104,8 @@ def test_single_node(node_name: NodeName, user_message: str):
         workflow = create_clarify_request_test_graph()    
     elif node_name == NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO:
         workflow = create_human_schedule_meeting_more_info_test_graph()
+    elif node_name == NodeName.PROMPT_MISSING_MEETING_DETAILS:
+        workflow = create_prompt_missing_meeting_details_test_graph()
     
     graph = workflow.compile(checkpointer=InMemorySaver())
     config = {"configurable": {"thread_id": "test"}}
@@ -102,8 +115,12 @@ def test_single_node(node_name: NodeName, user_message: str):
 
 def interrupt_node(node_name: NodeName, user_message: str):
     initial_state = create_initial_state_for_testing(user_message)
+    if node_name not in [NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO, NodeName.PROMPT_MISSING_MEETING_DETAILS]:
+        raise ValueError(f"Node {node_name} does not support interruption")    
     if node_name == NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO:
         workflow = create_human_schedule_meeting_more_info_test_graph()
+    elif node_name == NodeName.PROMPT_MISSING_MEETING_DETAILS:
+        workflow = create_prompt_missing_meeting_details_test_graph()
     else:
         raise ValueError(f"Node {node_name} does not support interruption")
     
@@ -122,7 +139,7 @@ def interrupt_node(node_name: NodeName, user_message: str):
 def parse_args():
     parser = argparse.ArgumentParser(description="Debug individual nodes in isolation")
     parser.add_argument("--node", type=str, required=True, 
-                       choices=["CLASSIFY_INTENT", "GREETING", "COLLECTING_INFO", "CLARIFY_REQUEST", "HUMAN_SCHEDULE_MEETING_MORE_INFO"],
+                       choices=["CLASSIFY_INTENT", "GREETING", "COLLECTING_INFO", "CLARIFY_REQUEST", "HUMAN_SCHEDULE_MEETING_MORE_INFO", "PROMPT_MISSING_MEETING_DETAILS"],
                        help="Node name to test")
     parser.add_argument("--message", type=str, required=True, help="User message to test with")
     parser.add_argument("--interrupt", action="store_true", help="Test node with interruption support (streaming)")

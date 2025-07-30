@@ -1,5 +1,6 @@
 from langgraph.types import Command
 from langchain_core.messages import HumanMessage
+from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.nodes import clarify_request_node, classify_intent_node, greeting_node
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.graph import GraphBuilder
@@ -31,31 +32,39 @@ class ChatBot:
         self.graph = graph
         self.thread_id = "conversation_1"
         self.config = {"configurable": {"thread_id": self.thread_id}}
-    
+        self.initial_state = MeetingMuseBotState(
+            messages=[],
+            user_intent=None,
+            meeting_details=MeetingFindings()
+        )
     def get_last_message(self, events: dict):
-        messages = events["messages"]
-        message = messages[-1]
-        if message and message.type == "ai" and message.content:
-            return message.content
+      # Skip interrupt events
+        if "__interrupt__" in events:
+            return None
+
+        # Get the state from the node result
+        for node_name, state in events.items():
+            if hasattr(state, 'messages') and state.messages:
+                message = state.messages[-1]
+                if message and message.type == "ai" and message.content:
+                    return message.content
         return None
+
 
     def process_input(self, user_input: str):
         # Always add the user message and process
-        input_data = {"messages": [HumanMessage(content=user_input)]}
+        self.initial_state.messages.append(HumanMessage(content=user_input))
         
         for events in self.graph.stream(
-            input_data, 
-            config=self.config,
-            stream_mode="values"
+            self.initial_state,
+            config=self.config
         ):
             if "__interrupt__" in events:
                 interrupt_info = events["__interrupt__"][0]
                 user_input = input(f"{interrupt_info.value} ")
                 for _resume_chunk in self.graph.stream(Command(resume=user_input), self.config, stream_mode="values"):
                     print(f"🆔 resume_chunk: {_resume_chunk}")
-                    message = self.get_last_message(_resume_chunk)
-                    if message:
-                        print("Assistant:", message)        
+                    pass
                 return
 
             message = self.get_last_message(events)
