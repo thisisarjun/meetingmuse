@@ -5,7 +5,6 @@ from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.nodes import clarify_request_node, classify_intent_node, greeting_node
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
@@ -70,7 +69,6 @@ class ChatBot:
                     Command(resume=user_input), self.config, stream_mode="values"
                 ):
                     print(f"🆔 resume_chunk: {_resume_chunk}")
-                    pass
                 return
 
             message = self.get_last_message(events)

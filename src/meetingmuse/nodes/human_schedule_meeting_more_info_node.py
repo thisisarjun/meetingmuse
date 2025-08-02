@@ -1,7 +1,7 @@
-from typing import Any, Union
+from typing import Any
 
 from langchain_core.messages import HumanMessage
-from langgraph.types import Command, interrupt
+from langgraph.types import interrupt
 
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState

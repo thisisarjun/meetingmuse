@@ -5,7 +5,6 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
 
-from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName

@@ -1,6 +1,5 @@
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
-from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode

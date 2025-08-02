@@ -138,14 +138,14 @@ sample script can be found in `tests/scripts/run_node_with_graph.py`
     # this method draws the graph - if you want to visualize the graph,
     draw_graph()
     # use this method, change NodeName value to test different node.
-    # NOTE: make sure that the new node is added and helper method is     
+    # NOTE: make sure that the new node is added and helper method is
     test_single_node(NodeName.COLLECTING_INFO, "I want to schedule a meeting with John Doe on 2025-08-01 at 10:00 AM for 1 hour")
 ```
 
 to test the chatbot in full, use the run_node_
 run using `poetry run python tests/scripts/run_chatbot.py`
 
-use 
+use
 ```bash
     poetry run python tests/scripts/run_node_with_graph.py
 ```
@@ -167,4 +167,4 @@ use
 
 ## License
 
-This project is currently unlicensed. 
+This project is currently unlicensed.

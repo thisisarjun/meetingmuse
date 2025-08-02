@@ -34,7 +34,7 @@ class IntentClassifier:
         try:
             result: str = self.chain.invoke({"user_message": user_message})
             return UserIntent(result)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             self.logger.error(f"Error classifying intent: {e}")
             self.logger.error(f"Error type: {type(e)}")
 

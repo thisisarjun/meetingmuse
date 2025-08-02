@@ -166,10 +166,10 @@ def validate_state_transition(current_state, new_state):
         "scheduling": ["confirmation"],
         "confirmation": ["greeting"]  # For new conversations
     }
-    
+
     current_step = current_state.get("current_step")
     new_step = new_state.get("current_step")
-    
+
     return new_step in valid_transitions.get(current_step, [])
 ```
 

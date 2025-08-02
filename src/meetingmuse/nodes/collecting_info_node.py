@@ -48,10 +48,10 @@ class CollectingInfoNode(BaseNode):
         if state.meeting_details and self.meeting_service.is_meeting_details_complete(
             state.meeting_details
         ):
-            self.logger.info(f"Meeting details are complete, returning to END")
+            self.logger.info("Meeting details are complete, returning to END")
             return NodeName.END
         self.logger.info(
-            f"Meeting details are not complete, returning to HUMAN_SCHEDULE_MEETING_MORE_INFO"
+            "Meeting details are not complete, returning to HUMAN_SCHEDULE_MEETING_MORE_INFO"
         )
         return NodeName.PROMPT_MISSING_MEETING_DETAILS
 
@@ -119,7 +119,7 @@ class CollectingInfoNode(BaseNode):
             new_meeting_details: MeetingFindings = self.invoke_extraction_prompt(
                 meeting_details, missing_required, last_human_message
             )
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             self.logger.error(f"Parsing error: {e}")
             # Fallback: keep existing details
             new_meeting_details = meeting_details
@@ -150,9 +150,9 @@ class CollectingInfoNode(BaseNode):
                         response = str(content)
                 else:
                     response = str(prompt_response)
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 self.logger.error(f"Missing fields prompt error: {e}")
-                response = "I need some more information to schedule your meeting. Could you provide the missing details?"
+                response = "I need some more information to schedule your meeting. Could you provide the missing details?"  # pylint: disable=line-too-long
         else:
             response = "Great! I have all the information I need."
 

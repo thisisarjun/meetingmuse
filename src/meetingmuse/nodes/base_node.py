@@ -5,7 +5,9 @@ from meetingmuse.models.state import MeetingMuseBotState
 
 
 class BaseNode(ABC):
-    def get_next_node(self, state: MeetingMuseBotState) -> NodeName:
+    def get_next_node(
+        self, state: MeetingMuseBotState
+    ) -> NodeName:  # pylint: disable=unused-argument
         return NodeName.END
 
     @abstractmethod

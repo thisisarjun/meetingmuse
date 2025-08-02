@@ -49,10 +49,10 @@ help:
 	@echo ""
 	@echo "$(BOLD)$(GREEN)Debug & Development:$(RESET)"
 	@echo "  $(YELLOW)debug-node$(RESET)      - Run node debugging script"
-	@echo "    $(CYAN)make debug-node NODE_NAME=COLLECTING_INFO MESSAGE=\"I want to schedule a meeting\"$(RESET)"	
+	@echo "    $(CYAN)make debug-node NODE_NAME=COLLECTING_INFO MESSAGE=\"I want to schedule a meeting\"$(RESET)"
 	@echo "    $(CYAN)make debug-node NODE_NAME=HUMAN_SCHEDULE_MEETING_MORE_INFO MESSAGE=\"Schedule meeting\" INTERRUPT=1$(RESET)"
-	@echo "  $(YELLOW)debug-chatbot$(RESET)   - Run chatbot debugging script"	
-	@echo "    $(CYAN)make debug-chatbot$(RESET) - Interactive chatbot session for testing"	
+	@echo "  $(YELLOW)debug-chatbot$(RESET)   - Run chatbot debugging script"
+	@echo "    $(CYAN)make debug-chatbot$(RESET) - Interactive chatbot session for testing"
 	@echo ""
 	@echo "$(BOLD)$(GREEN)Information:$(RESET)"
 	@echo "  $(YELLOW)info$(RESET)            - Show project information"
@@ -95,6 +95,12 @@ lint:
 	poetry run pylint src/meetingmuse/
 
 format:
+	# Remove unused imports and variables
+	poetry run autoflake --remove-all-unused-imports --remove-unused-variables --in-place --recursive src/ tests/
+	# Fix trailing whitespace and end-of-file issues
+	poetry run pre-commit run trailing-whitespace --all-files
+	poetry run pre-commit run end-of-file-fixer --all-files
+	# Format code
 	poetry run black src/ tests/
 	poetry run isort src/ tests/
 
@@ -177,4 +183,4 @@ info:
 # Export requirements (for compatibility)
 requirements:
 	poetry export -f requirements.txt --output requirements.txt --without-hashes
-	poetry export -f requirements.txt --output requirements-dev.txt --with dev --without-hashes 
+	poetry export -f requirements.txt --output requirements-dev.txt --with dev --without-hashes

@@ -112,7 +112,7 @@ class TestNodeActionWithIncompleteMeetingDetails(TestPromptMissingMeetingDetails
         original_ai_prompt_input = incomplete_meeting_state.ai_prompt_input
 
         # Act
-        result = node.node_action(incomplete_meeting_state)
+        node.node_action(incomplete_meeting_state)
 
         # Assert
         assert incomplete_meeting_state.ai_prompt_input != original_ai_prompt_input

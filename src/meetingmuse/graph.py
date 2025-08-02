@@ -22,7 +22,7 @@ from meetingmuse.nodes.prompt_missing_meeting_details_node import (
 from meetingmuse.services.routing_service import ConversationRouter
 
 
-class GraphBuilder:
+class GraphBuilder:  # pylint: disable=too-many-instance-attributes
     state: Type[MeetingMuseBotState]
     greeting_node: GreetingNode
     clarify_request_node: ClarifyRequestNode
@@ -32,7 +32,7 @@ class GraphBuilder:
     human_schedule_meeting_more_info_node: HumanScheduleMeetingMoreInfoNode
     prompt_missing_meeting_details_node: PromptMissingMeetingDetailsNode
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self,
         state: Type[MeetingMuseBotState],
         greeting_node: GreetingNode,

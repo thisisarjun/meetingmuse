@@ -1,4 +1,3 @@
-from huggingface_hub import InferenceClient
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 
 from ..config.config import config

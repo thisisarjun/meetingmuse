@@ -26,7 +26,7 @@ class ColoredFormatter(logging.Formatter):
         color: str = self.COLORS.get(record.levelname, "")
 
         # Create the base format
-        log_format: str = f"{self.BOLD}%(asctime)s{self.RESET} - {color}{self.BOLD}%(levelname)s{self.RESET} - {color}%(message)s"
+        log_format: str = f"{self.BOLD}%(asctime)s{self.RESET} - {color}{self.BOLD}%(levelname)s{self.RESET} - {color}%(message)s"  # pylint: disable=line-too-long
 
         # Create formatter with the colored format
         formatter: logging.Formatter = logging.Formatter(
