@@ -8,11 +8,6 @@ from meetingmuse.models.state import MeetingMuseBotState
 
 
 class BaseNode(ABC):
-    def get_next_node(
-        self, state: MeetingMuseBotState  # pylint: disable=unused-argument
-    ) -> NodeName:  # pylint: disable=unused-argument
-        return NodeName.END
-
     @abstractmethod
     def node_action(
         self, state: MeetingMuseBotState

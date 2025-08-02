@@ -4,6 +4,7 @@ from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
+from meetingmuse.nodes.end_node import EndNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.human_interrupt_retry_node import HumanInterruptRetryNode
 from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
@@ -33,6 +34,7 @@ prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
 )
 schedule_meeting_node = ScheduleMeetingNode(model, logger)
 human_interrupt_retry_node = HumanInterruptRetryNode(logger)
+end_node = EndNode()
 
 
 def create_graph_with_all_nodes() -> GraphBuilder:
@@ -47,6 +49,7 @@ def create_graph_with_all_nodes() -> GraphBuilder:
         prompt_missing_meeting_details_node=prompt_missing_meeting_details_node,
         schedule_meeting_node=schedule_meeting_node,
         human_interrupt_retry_node=human_interrupt_retry_node,
+        end_node=end_node,
     )
     return graph_builder
 
