@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
 
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.models.meeting import MeetingFindings
