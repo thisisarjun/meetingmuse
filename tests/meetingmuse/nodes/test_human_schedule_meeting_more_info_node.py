@@ -1,12 +1,14 @@
-import pytest
 from unittest.mock import Mock, patch
-from langchain_core.messages import HumanMessage
-from langgraph.types import Command
 
-from meetingmuse.nodes.human_schedule_meeting_more_info_node import HumanScheduleMeetingMoreInfoNode
-from meetingmuse.models.state import MeetingMuseBotState
+import pytest
+from langchain_core.messages import HumanMessage
+
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
+from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
+    HumanScheduleMeetingMoreInfoNode,
+)
 from meetingmuse.utils.logger import Logger
 
 
@@ -32,9 +34,9 @@ class TestHumanScheduleMeetingMoreInfoNode:
                 title="Team Standup",
                 date_time=None,
                 participants=["john@example.com"],
-                duration=None
+                duration=None,
             ),
-            ai_prompt_input="Please provide the missing meeting details."
+            ai_prompt_input="Please provide the missing meeting details.",
         )
 
 
@@ -45,7 +47,7 @@ class TestNodeName(TestHumanScheduleMeetingMoreInfoNode):
         """Test that node_name property returns the correct NodeName."""
         # Act
         result = node.node_name
-        
+
         # Assert
         assert result == NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO
 
@@ -53,84 +55,105 @@ class TestNodeName(TestHumanScheduleMeetingMoreInfoNode):
 class TestNodeAction(TestHumanScheduleMeetingMoreInfoNode):
     """Test suite for HumanScheduleMeetingMoreInfoNode.node_action method."""
 
-    @patch('meetingmuse.nodes.human_schedule_meeting_more_info_node.interrupt')
-    def test_node_action_with_valid_human_input(self, mock_interrupt, node, mock_logger, sample_state):
+    @patch("meetingmuse.nodes.human_schedule_meeting_more_info_node.interrupt")
+    def test_node_action_with_valid_human_input(
+        self, mock_interrupt, node, mock_logger, sample_state
+    ):
         """Test node_action with valid human input proceeds to collecting_info."""
         # Arrange
         mock_interrupt.return_value = "The meeting should be at 2:00 PM for 1 hour"
         initial_message_count = len(sample_state.messages)
-        
+
         # Act
         result = node.node_action(sample_state)
-        
+
         # Assert
         # Verify interrupt was called with the ai_prompt_input
-        mock_interrupt.assert_called_once_with("Please provide the missing meeting details.")
-        
+        mock_interrupt.assert_called_once_with(
+            "Please provide the missing meeting details."
+        )
+
         # Verify logger calls
-        mock_logger.info.assert_any_call(f"Entering {NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO} node with current state: {sample_state.meeting_details}")
-        mock_logger.info.assert_any_call("Received human input: The meeting should be at 2:00 PM for 1 hour")
-        mock_logger.info.assert_any_call("Human input processed, continuing to collecting_info node")
-        
+        mock_logger.info.assert_any_call(
+            f"Entering {NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO} node with current state: {sample_state.meeting_details}"
+        )
+        mock_logger.info.assert_any_call(
+            "Received human input: The meeting should be at 2:00 PM for 1 hour"
+        )
+        mock_logger.info.assert_any_call(
+            "Human input processed, continuing to collecting_info node"
+        )
+
         # Verify human message was added to state
         assert len(sample_state.messages) == initial_message_count + 1
         assert isinstance(sample_state.messages[-1], HumanMessage)
-        assert sample_state.messages[-1].content == "The meeting should be at 2:00 PM for 1 hour"
-        
+        assert (
+            sample_state.messages[-1].content
+            == "The meeting should be at 2:00 PM for 1 hour"
+        )
+
         # Verify ai_prompt_input was cleared
         assert sample_state.ai_prompt_input is None
-        
+
         # Verify state is returned (not a command)
         assert result is sample_state
 
-    @patch('meetingmuse.nodes.human_schedule_meeting_more_info_node.interrupt')
-    def test_node_action_with_empty_human_input(self, mock_interrupt, node, mock_logger, sample_state):
+    @patch("meetingmuse.nodes.human_schedule_meeting_more_info_node.interrupt")
+    def test_node_action_with_empty_human_input(
+        self, mock_interrupt, node, mock_logger, sample_state
+    ):
         """Test node_action with empty human input returns to same node."""
         # Arrange
         mock_interrupt.return_value = ""
         initial_message_count = len(sample_state.messages)
         initial_ai_prompt = sample_state.ai_prompt_input
-        
+
         # Act
         result = node.node_action(sample_state)
-        
+
         # Assert
         # Verify interrupt was called
-        mock_interrupt.assert_called_once_with("Please provide the missing meeting details.")
-        
+        mock_interrupt.assert_called_once_with(
+            "Please provide the missing meeting details."
+        )
+
         # Verify logger calls
-        mock_logger.info.assert_any_call(f"Entering {NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO} node with current state: {sample_state.meeting_details}")
+        mock_logger.info.assert_any_call(
+            f"Entering {NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO} node with current state: {sample_state.meeting_details}"
+        )
         mock_logger.info.assert_any_call("Received human input: ")
         mock_logger.info.assert_any_call("No input provided, asking again")
-        
+
         # Verify no message was added to state
         assert len(sample_state.messages) == initial_message_count
-        
+
         # Verify ai_prompt_input was not cleared
         assert sample_state.ai_prompt_input == initial_ai_prompt
-        
-        # Verify command returns to same node
-        assert isinstance(result, Command)
-        assert result.goto == NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO
 
-    @patch('meetingmuse.nodes.human_schedule_meeting_more_info_node.interrupt')
-    def test_node_action_with_whitespace_only_input(self, mock_interrupt, node, mock_logger, sample_state):
+        # Verify state is returned (not a command)
+        assert isinstance(result, MeetingMuseBotState)
+        assert result == sample_state
+
+    @patch("meetingmuse.nodes.human_schedule_meeting_more_info_node.interrupt")
+    def test_node_action_with_whitespace_only_input(
+        self, mock_interrupt, node, mock_logger, sample_state
+    ):
         """Test node_action with whitespace-only input returns to same node."""
         # Arrange
         mock_interrupt.return_value = "   \n\t  "
         initial_message_count = len(sample_state.messages)
-        
+
         # Act
         result = node.node_action(sample_state)
-        
+
         # Assert
         # Verify logger calls
         mock_logger.info.assert_any_call("Received human input:    \n\t  ")
         mock_logger.info.assert_any_call("No input provided, asking again")
-        
+
         # Verify no message was added to state
         assert len(sample_state.messages) == initial_message_count
-        
-        # Verify command returns to same node
-        assert isinstance(result, Command)
-        assert result.goto == NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO
+
+        # Verify state is returned (not a command)
+        assert isinstance(result, MeetingMuseBotState)
+        assert result == sample_state

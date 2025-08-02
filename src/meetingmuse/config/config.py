@@ -1,5 +1,6 @@
 import os
 from typing import Optional
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -8,9 +9,9 @@ load_dotenv()
 
 class Config:
     """Configuration class for MeetingMuse."""
-    
+
     HUGGINGFACE_API_TOKEN: Optional[str] = os.getenv("HUGGINGFACE_API_TOKEN")
-    
+
     @classmethod
     def validate(cls) -> None:
         """Validate that all required environment variables are set."""
@@ -19,4 +20,4 @@ class Config:
 
 
 # Create a singleton instance
-config: Config = Config() 
+config: Config = Config()

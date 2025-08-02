@@ -1,7 +1,7 @@
 SCHEDULE_MEETING_COLLECTING_INFO_PROMPT = """
 You are CalendarBot, helping to schedule a meeting.
 
-CURRENT MEETING DETAILS (JSON): 
+CURRENT MEETING DETAILS (JSON):
 {current_details}
 
 MISSING FIELDS (if any): {missing_fields}

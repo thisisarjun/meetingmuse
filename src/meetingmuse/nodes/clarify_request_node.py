@@ -1,17 +1,18 @@
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import Runnable
+
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.messages import HumanMessage, AIMessage
-from langchain_core.runnables import Runnable
-from meetingmuse.prompts.clarify_request_prompt import CLARIFY_REQUEST_PROMPT
 from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.prompts.clarify_request_prompt import CLARIFY_REQUEST_PROMPT
 
 
 class ClarifyRequestNode(BaseNode):
-
     model: HuggingFaceModel
     prompt: ChatPromptTemplate
     parser: StrOutputParser
@@ -19,10 +20,12 @@ class ClarifyRequestNode(BaseNode):
 
     def __init__(self, model: HuggingFaceModel) -> None:
         self.model = model
-        self.prompt = ChatPromptTemplate.from_messages([
-            ("system", CLARIFY_REQUEST_PROMPT),
-            ("user", "user message: {user_message}"),
-        ])
+        self.prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", CLARIFY_REQUEST_PROMPT),
+                ("user", "user message: {user_message}"),
+            ]
+        )
         self.parser = StrOutputParser()
         self.chain = self.prompt | self.model.chat_model | self.parser
 
@@ -34,10 +37,12 @@ class ClarifyRequestNode(BaseNode):
                 break
 
         if last_human_message:
-            response: str = self.chain.invoke({"user_message": last_human_message.content})
+            response: str = self.chain.invoke(
+                {"user_message": last_human_message.content}
+            )
             state.messages.append(AIMessage(content=response))
         return state
-    
+
     @property
     def node_name(self) -> NodeName:
         return NodeName.CLARIFY_REQUEST
