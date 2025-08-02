@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage
 
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState, OperationName, OperationStatus
+from meetingmuse.models.state import MeetingMuseBotState, OperationStatus
 from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
     HumanScheduleMeetingMoreInfoNode,
 )
@@ -37,7 +37,6 @@ class TestHumanScheduleMeetingMoreInfoNode:
                 duration=None,
             ),
             operation_status=OperationStatus(
-                operation_name=OperationName.SCHEDULE_MEETING,
                 status=False,
                 error_message=None,
                 ai_prompt_input="Please provide the missing meeting details.",

@@ -112,7 +112,7 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
             self.collecting_info_node.get_next_node_name,
             {
                 # TODO: should go to schedule meeting node
-                NodeName.END: NodeName.END,
+                NodeName.SCHEDULE_MEETING: NodeName.SCHEDULE_MEETING,
                 NodeName.PROMPT_MISSING_MEETING_DETAILS: NodeName.PROMPT_MISSING_MEETING_DETAILS,
             },
         )
@@ -132,9 +132,6 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
         graph_builder.add_edge(self.greeting_node.node_name, self.end_node.node_name)
         graph_builder.add_edge(
             self.clarify_request_node.node_name, self.end_node.node_name
-        )
-        graph_builder.add_edge(
-            self.collecting_info_node.node_name, self.end_node.node_name
         )
         graph_builder.add_edge(self.end_node.node_name, END)
 

@@ -8,7 +8,7 @@ from langchain_core.runnables import Runnable
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState, OperationName
+from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.prompts.schedule_meeting_collecting_info_prompt import (
     SCHEDULE_MEETING_COLLECTING_INFO_PROMPT,
@@ -48,8 +48,10 @@ class CollectingInfoNode(BaseNode):
         if state.meeting_details and self.meeting_service.is_meeting_details_complete(
             state.meeting_details
         ):
-            self.logger.info("Meeting details are complete, returning to END")
-            return NodeName.END
+            self.logger.info(
+                "Meeting details are complete, returning to Schedule Meeting Node"
+            )
+            return NodeName.SCHEDULE_MEETING
         self.logger.info(
             "Meeting details are not complete, returning to HUMAN_SCHEDULE_MEETING_MORE_INFO"
         )
@@ -87,8 +89,6 @@ class CollectingInfoNode(BaseNode):
         return prompt
 
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
-        state.operation_status.operation_name = OperationName.SCHEDULE_MEETING
-
         self.logger.info(
             f"Entering {self.node_name} node with current state: {state.meeting_details}"
         )
@@ -131,9 +131,10 @@ class CollectingInfoNode(BaseNode):
             new_meeting_details = meeting_details
 
         # Update only non None fields
-        state = self.meeting_service.update_state_meeting_details(
+        updated_meeting_details = self.meeting_service.update_state_meeting_details(
             new_meeting_details, state
         )
+        state.meeting_details = updated_meeting_details
 
         self.logger.info(f"Updated meeting details: {state.meeting_details}")
 

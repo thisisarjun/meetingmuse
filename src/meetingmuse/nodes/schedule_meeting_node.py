@@ -2,7 +2,6 @@ import random
 from typing import Any
 
 from langchain_core.messages import AIMessage
-from langgraph.graph import END
 from langgraph.types import Command
 
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
@@ -32,9 +31,12 @@ class ScheduleMeetingNode(BaseNode):
 
         # Check if user intent is schedule
         if state.user_intent != UserIntent.SCHEDULE_MEETING:
-            message: str = "No scheduling action needed for this intent."
+            self.logger.error(
+                f"No scheduling action needed for this intent: {state.user_intent}, wrong workflow"
+            )
+            message = "No scheduling action needed for this intent."
             state.messages.append(AIMessage(content=message))
-            return Command(goto=END)
+            return Command(goto=NodeName.END)
 
         # Simulate API call to schedule meeting
         # TODO: Replace with actual API call logic
@@ -43,8 +45,8 @@ class ScheduleMeetingNode(BaseNode):
             success_probability: float = random.random()
             if success_probability < 0.3:
                 # Success case
-                meeting_id: str = f"MTG_{random.randint(1000, 9999)}"
-                success_message: str = (
+                meeting_id = f"MTG_{random.randint(1000, 9999)}"
+                success_message = (
                     f"✅ Meeting scheduled successfully! "
                     f"Meeting ID: {meeting_id}. "
                     f"Title: {state.meeting_details.title or 'Meeting'}, "
@@ -54,13 +56,13 @@ class ScheduleMeetingNode(BaseNode):
                     f"Meeting scheduled successfully with ID: {meeting_id}"
                 )
                 state.messages.append(AIMessage(content=success_message))
-                return Command(goto=END)
+                return Command(goto=NodeName.END)
             # Failure case
             raise Exception("Meeting scheduling failed")
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             # Exception handling
-            exception_error_msg: str = f"Unexpected error during scheduling: {str(e)}"
+            exception_error_msg = f"Unexpected error during scheduling: {str(e)}"
             self.logger.error(f"Exception in scheduling: {exception_error_msg}")
             state.messages.append(AIMessage(content=f"❌ {exception_error_msg}"))
             return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)

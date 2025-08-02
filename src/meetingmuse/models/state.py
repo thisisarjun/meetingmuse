@@ -10,9 +10,9 @@ from meetingmuse.models.meeting import MeetingFindings
 
 
 class UserIntent(StrEnum):
-    GENERAL_CHAT = "general_chat"
-    SCHEDULE_MEETING = "schedule_meeting"
-    CANCEL_MEETING = "cancel_meeting"
+    GENERAL_CHAT = "general"
+    SCHEDULE_MEETING = "schedule"
+    CANCEL_MEETING = "cancel"
     CHECK_AVAILABILITY = "check_availability"
     UNKNOWN = "unknown"
 
@@ -22,7 +22,6 @@ class OperationName(StrEnum):
 
 
 class OperationStatus(BaseModel):
-    operation_name: OperationName = OperationName.SCHEDULE_MEETING
     status: bool = False
     error_message: Optional[str] = None
     ai_prompt_input: Optional[str] = None
