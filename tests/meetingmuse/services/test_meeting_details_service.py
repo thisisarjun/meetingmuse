@@ -1,5 +1,6 @@
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock, patch
+
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
@@ -169,14 +170,16 @@ class TestMeetingDetailsService:
         )
         mock_response = Mock()
         mock_response.content = "What time would you like the meeting?"
-        service.missing_fields_chain.invoke.return_value = mock_response
         
-        # Act
-        result = service.invoke_missing_fields_prompt(state)
-        
-        # Assert
-        assert result == mock_response
-        service.missing_fields_chain.invoke.assert_called_once()
+        with patch.object(service, 'missing_fields_chain') as mock_chain:
+            mock_chain.invoke.return_value = mock_response
+            
+            # Act
+            result = service.invoke_missing_fields_prompt(state)
+            
+            # Assert
+            assert result == mock_response
+            mock_chain.invoke.assert_called_once()
 
     def test_invoke_missing_fields_prompt_error(self, service, mock_logger):
         """Test invoke_missing_fields_prompt handles errors correctly."""
@@ -185,10 +188,12 @@ class TestMeetingDetailsService:
             messages=[],
             meeting_details=MeetingFindings(title="Team Meeting")
         )
-        service.missing_fields_chain.invoke.side_effect = Exception("LLM Error")
         
-        # Act & Assert
-        with pytest.raises(Exception, match="LLM Error"):
-            service.invoke_missing_fields_prompt(state)
-        
-        mock_logger.error.assert_called_once_with("Missing fields prompt error: LLM Error") 
+        with patch.object(service, 'missing_fields_chain') as mock_chain:
+            mock_chain.invoke.side_effect = Exception("LLM Error")
+            
+            # Act & Assert
+            with pytest.raises(Exception, match="LLM Error"):
+                service.invoke_missing_fields_prompt(state)
+            
+            mock_logger.error.assert_called_once_with("Missing fields prompt error: LLM Error") 

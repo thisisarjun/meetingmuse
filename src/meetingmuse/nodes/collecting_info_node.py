@@ -32,8 +32,8 @@ class CollectingInfoNode(BaseNode):
         if state.meeting_details and self.meeting_service.is_meeting_details_complete(state.meeting_details):
             self.logger.info(f"Meeting details are complete, returning to END")
             return NodeName.END
-        self.logger.info(f"Meeting details are not complete, returning to COLLECTING_INFO")
-        return NodeName.COLLECTING_INFO
+        self.logger.info(f"Meeting details are not complete, returning to HUMAN_SCHEDULE_MEETING_MORE_INFO")
+        return NodeName.PROMPT_MISSING_MEETING_DETAILS
 
     def complete_state(self, meeting_details: MeetingFindings, state: MeetingMuseBotState) -> MeetingMuseBotState:
         """Complete the state with the missing required fields"""
@@ -52,7 +52,9 @@ class CollectingInfoNode(BaseNode):
     
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
 
-        # TODO: make this a helper method in utils.py
+        self.logger.info(f"Entering {self.node_name} node with current state: {state.meeting_details}")
+
+        # TODO: make this a helper method in utils.py        
         last_human_message = None
         for message in reversed(state.messages):
             if isinstance(message, HumanMessage):
