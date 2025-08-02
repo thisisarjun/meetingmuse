@@ -1,6 +1,7 @@
 
 from enum import StrEnum
 
+
 class NodeName(StrEnum):
     CLARIFY_REQUEST = "clarify_request"
     GREETING = "greeting"

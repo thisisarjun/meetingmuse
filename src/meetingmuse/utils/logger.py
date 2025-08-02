@@ -2,6 +2,7 @@
 
 import logging
 import sys
+from typing import Union, TextIO
 
 
 class ColoredFormatter(logging.Formatter):
@@ -19,16 +20,16 @@ class ColoredFormatter(logging.Formatter):
     RESET = '\033[0m'  # Reset color
     BOLD = '\033[1m'   # Bold text
     
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         """Format the log record with colors."""
         # Get the color for this log level
-        color = self.COLORS.get(record.levelname, '')
+        color: str = self.COLORS.get(record.levelname, '')
         
         # Create the base format
-        log_format = f"{self.BOLD}%(asctime)s{self.RESET} - {color}{self.BOLD}%(levelname)s{self.RESET} - {color}%(message)s"
+        log_format: str = f"{self.BOLD}%(asctime)s{self.RESET} - {color}{self.BOLD}%(levelname)s{self.RESET} - {color}%(message)s"
         
         # Create formatter with the colored format
-        formatter = logging.Formatter(
+        formatter: logging.Formatter = logging.Formatter(
             fmt=log_format,
             datefmt='%Y-%m-%d %H:%M:%S'
         )
@@ -39,7 +40,10 @@ class ColoredFormatter(logging.Formatter):
 class Logger:
     """Simple console logger class with color support."""
     
-    def __init__(self, enable_colors: bool = True):
+    logger: logging.Logger
+    enable_colors: bool
+    
+    def __init__(self, enable_colors: bool = True) -> None:
         """Initialize the logger.
         
         Args:
@@ -51,9 +55,10 @@ class Logger:
         # Avoid adding handlers multiple times
         if not self.logger.handlers:
             # Create console handler
-            handler = logging.StreamHandler(sys.stdout)
+            handler: logging.StreamHandler[TextIO] = logging.StreamHandler(sys.stdout)
             
             # Create formatter (colored or plain)
+            formatter: Union[ColoredFormatter, logging.Formatter]
             if self.enable_colors and self._supports_color():
                 formatter = ColoredFormatter()
             else:
@@ -95,7 +100,7 @@ class Logger:
         """Log a success message (using info level with special formatting)."""
         if self.enable_colors and self._supports_color():
             # Green background with white text for success
-            colored_message = f"\033[42m\033[30m ✓ {message} \033[0m"
+            colored_message: str = f"\033[42m\033[30m ✓ {message} \033[0m"
             self.logger.info(colored_message)
         else:
             self.logger.info(f"✓ {message}")

@@ -1,17 +1,18 @@
+from typing import List, Optional
 from enum import StrEnum
-from typing import Any, Dict, List, Optional, Annotated
 from langgraph.graph.message import add_messages
+from langchain_core.messages import BaseMessage
 from pydantic import BaseModel, Field
+from typing_extensions import Annotated
 
 from meetingmuse.models.meeting import MeetingFindings
 
 
 class UserIntent(StrEnum):
-    SCHEDULE_MEETING = "schedule"
+    GENERAL_CHAT = "general_chat"
+    SCHEDULE_MEETING = "schedule_meeting"
+    CANCEL_MEETING = "cancel_meeting"
     CHECK_AVAILABILITY = "check_availability"
-    CANCEL_MEETING = "cancel"
-    RESCHEDULE_MEETING = "reschedule"
-    GENERAL_CHAT = "general"
     UNKNOWN = "unknown"
 
 
@@ -27,7 +28,7 @@ class MeetingMuseBotState(BaseModel):
     """
     
     # The conversation history (user + bot messages)
-    messages: Annotated[List, add_messages] = []
+    messages: Annotated[List[BaseMessage], add_messages] = Field(default_factory=list)
     
     # What does the user want? (schedule, cancel, check availability, etc.)
     user_intent: Optional[UserIntent] = None
