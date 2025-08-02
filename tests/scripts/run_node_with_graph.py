@@ -140,6 +140,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Debug individual nodes in isolation")
     parser.add_argument("--node", type=str, required=True, 
                        choices=[node.name for node in NodeName],
+                       help="Node name to test")
 
     parser.add_argument("--message", type=str, required=True, help="User message to test with")
     parser.add_argument("--interrupt", action="store_true", help="Test node with interruption support (streaming)")
