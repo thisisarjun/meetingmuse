@@ -40,3 +40,7 @@ class MeetingMuseBotState(BaseModel):
 
     # Human input
     human_input: Optional[str] = None
+    
+    # TODO: revisit this
+    # Whether the human input has been processed
+    setup_human_input: Optional[bool] = False
