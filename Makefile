@@ -76,8 +76,8 @@ dev-install:
 update:
 	poetry update
 
-shell:
-	poetry shell
+poetry-env:
+	poetry env activate
 
 # Testing with Poetry
 test:

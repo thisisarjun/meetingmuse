@@ -31,8 +31,8 @@ class CollectingInfoNode(BaseNode):
         self.logger.info(f"Getting next node name: {state.meeting_details}")
         if state.meeting_details and self.meeting_service.is_meeting_details_complete(state.meeting_details):
             self.logger.info(f"Meeting details are complete, returning to END")
-            return NodeName.END
-        self.logger.info(f"Meeting details are not complete, returning to HUMAN_SCHEDULE_MEETING_MORE_INFO")
+            return NodeName.SCHEDULE_MEETING 
+        self.logger.info(f"Meeting details are not complete, returning to COLLECTING_INFO")
         return NodeName.PROMPT_MISSING_MEETING_DETAILS
 
     def complete_state(self, meeting_details: MeetingFindings, state: MeetingMuseBotState) -> MeetingMuseBotState:

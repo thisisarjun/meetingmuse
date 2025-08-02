@@ -35,6 +35,8 @@ class MeetingMuseBotState(BaseModel):
     # Information about the meeting being scheduled
     meeting_details: MeetingFindings = Field(default_factory=MeetingFindings)
 
+    # Whether the human input has been processed
+    setup_human_input: Optional[bool] = False
     # Prompt input for Human nodes
     ai_prompt_input: Optional[str] = None
 

@@ -7,12 +7,15 @@ from langgraph.types import Command
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName
+from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.human_schedule_meeting_more_info_node import HumanScheduleMeetingMoreInfoNode
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
+from meetingmuse.nodes.schedule_meeting_node import ScheduleMeetingNode
+from meetingmuse.nodes.human_interrupt_retry_node import HumanInterruptRetryNode
 from meetingmuse.nodes.prompt_missing_meeting_details_node import PromptMissingMeetingDetailsNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
@@ -27,6 +30,8 @@ classify_intent_node = ClassifyIntentNode(intent_classifier)
 greeting_node = GreetingNode(model)
 collecting_info_node = CollectingInfoNode(model, logger)
 clarify_request_node = ClarifyRequestNode(model)
+schedule_meeting_node = ScheduleMeetingNode(model, logger)
+human_interrupt_retry_node = HumanInterruptRetryNode(model, logger)
 conversation_router = ConversationRouter(logger)
 meeting_details_service = MeetingDetailsService(model, logger)
 human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
@@ -35,8 +40,8 @@ prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(logger, me
 def create_initial_state_for_testing(user_message: str) -> MeetingMuseBotState:
     return MeetingMuseBotState(
         messages=[HumanMessage(content=user_message)],
-        user_intent=None,
-        meeting_details=MeetingFindings()
+        user_intent=UserIntent.SCHEDULE_MEETING,
+        meeting_details=MeetingFindings(date_time='2023-10-01T10:00:00Z', duration='60 minutes', title='Test Meeting', participants=['me', 'you'])
     )
 
 def create_intent_test_graph():
@@ -72,6 +77,14 @@ def create_clarify_request_test_graph():
     workflow.add_edge(NodeName.CLARIFY_REQUEST, END)
     return workflow
 
+def create_schedule_meeting_test_graph():
+    workflow = StateGraph(MeetingMuseBotState)
+    workflow.add_node(NodeName.SCHEDULE_MEETING, schedule_meeting_node.node_action)
+    workflow.add_node(NodeName.HUMAN_INTERRUPT_RETRY, human_interrupt_retry_node.node_action)
+    workflow.add_edge(START, NodeName.SCHEDULE_MEETING)
+    workflow.add_edge(NodeName.HUMAN_INTERRUPT_RETRY, END)
+    return workflow.compile()
+
 def create_human_schedule_meeting_more_info_test_graph():
     workflow = StateGraph(MeetingMuseBotState)
     workflow.add_node(NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO, human_schedule_meeting_more_info_node.node_action)
@@ -101,7 +114,9 @@ def test_single_node(node_name: NodeName, user_message: str):
     elif node_name == NodeName.COLLECTING_INFO:
         workflow = create_collecting_info_test_graph()
     elif node_name == NodeName.CLARIFY_REQUEST:
-        workflow = create_clarify_request_test_graph()    
+        workflow = create_clarify_request_test_graph()
+    elif node_name == NodeName.SCHEDULE_MEETING:
+        workflow = create_schedule_meeting_test_graph()
     elif node_name == NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO:
         workflow = create_human_schedule_meeting_more_info_test_graph()
     elif node_name == NodeName.PROMPT_MISSING_MEETING_DETAILS:
