@@ -5,7 +5,7 @@ MeetingMuse LangGraph Workflow
 from typing import Any, Type
 
 from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.graph import START, StateGraph
+from langgraph.graph import END, START, StateGraph
 
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
@@ -136,6 +136,8 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
         graph_builder.add_edge(
             self.collecting_info_node.node_name, self.end_node.node_name
         )
+        graph_builder.add_edge(self.end_node.node_name, END)
+
         return graph_builder.compile(checkpointer=InMemorySaver())
 
     def draw_graph(self) -> None:
