@@ -4,12 +4,16 @@ from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 
 class BaseNode(ABC):
+
+    def get_next_node(self, state: MeetingMuseBotState) -> NodeName:
+        return NodeName.END
+
     @abstractmethod
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         raise NotImplementedError(
             f"Node action not implemented for {self.__class__.__name__}"
-        )
-
+        )    
+    
     @property
     @abstractmethod
     def node_name(self) -> NodeName:
