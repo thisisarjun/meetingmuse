@@ -16,7 +16,7 @@ class PromptMissingMeetingDetailsNode(BaseNode):
         self.logger = logger
 
     def get_next_node(self, state: MeetingMuseBotState) -> NodeName:
-        if not state.ai_prompt_input:
+        if not state.operation_status.ai_prompt_input:
             return NodeName.END
         return NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO
 
@@ -37,6 +37,7 @@ class PromptMissingMeetingDetailsNode(BaseNode):
         try:
             prompt_response = self.meeting_service.invoke_missing_fields_prompt(state)
             # Handle both string and complex content types
+
             if hasattr(prompt_response, "content"):
                 content = prompt_response.content
                 if isinstance(content, str):
@@ -51,7 +52,7 @@ class PromptMissingMeetingDetailsNode(BaseNode):
                 + ", ".join(missing_fields)
             )
 
-        state.ai_prompt_input = response
+        state.operation_status.ai_prompt_input = response
         return state
 
     @property

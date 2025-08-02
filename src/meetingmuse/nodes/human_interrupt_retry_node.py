@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Any
 
 from langchain_core.messages import AIMessage
 from langgraph.types import Command, interrupt
@@ -21,9 +21,7 @@ class HumanInterruptRetryNode(BaseNode):
         """Initialize the node with logger."""
         self.logger = logger
 
-    def node_action(
-        self, state: MeetingMuseBotState
-    ) -> Command[Literal["schedule_meeting", "__end__"]]:
+    def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
         if self.logger:
             self.logger.info("Human interrupt requested")
 

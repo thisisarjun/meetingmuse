@@ -17,6 +17,17 @@ class UserIntent(StrEnum):
     UNKNOWN = "unknown"
 
 
+class OperationName(StrEnum):
+    SCHEDULE_MEETING = "schedule_meeting"
+
+
+class OperationStatus(BaseModel):
+    operation_name: OperationName = OperationName.SCHEDULE_MEETING
+    status: bool = False
+    error_message: Optional[str] = None
+    ai_prompt_input: Optional[str] = None
+
+
 class MeetingMuseBotState(BaseModel):
     """
     This is the 'memory' of your bot - everything it remembers during a conversation.
@@ -36,11 +47,8 @@ class MeetingMuseBotState(BaseModel):
     # Information about the meeting being scheduled
     meeting_details: MeetingFindings = Field(default_factory=MeetingFindings)
 
-    # Prompt input for Human nodes
-    ai_prompt_input: Optional[str] = None
+    operation_status: OperationStatus = Field(default_factory=OperationStatus)
 
-    # Human input
-    human_input: Optional[str] = None
     # TODO: revisit this
     # Whether the human input has been processed
     setup_human_input: Optional[bool] = False

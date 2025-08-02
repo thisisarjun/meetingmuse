@@ -5,7 +5,7 @@ import pytest
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, OperationName, OperationStatus
 from meetingmuse.nodes.prompt_missing_meeting_details_node import (
     PromptMissingMeetingDetailsNode,
 )
@@ -43,6 +43,12 @@ class TestPromptMissingMeetingDetailsNode:
                 participants=["john@example.com", "jane@example.com"],
                 duration="30 minutes",
             ),
+            operation_status=OperationStatus(
+                operation_name=OperationName.SCHEDULE_MEETING,
+                status=False,
+                error_message=None,
+                ai_prompt_input=None,
+            ),
         )
 
     @pytest.fixture
@@ -55,6 +61,12 @@ class TestPromptMissingMeetingDetailsNode:
                 date_time=None,
                 participants=["john@example.com"],
                 duration=None,
+            ),
+            operation_status=OperationStatus(
+                operation_name=OperationName.SCHEDULE_MEETING,
+                status=False,
+                error_message=None,
+                ai_prompt_input=None,
             ),
         )
 
@@ -90,13 +102,18 @@ class TestNodeActionWithCompleteMeetingDetails(TestPromptMissingMeetingDetailsNo
     ):
         """Test that ai_prompt_input is not modified when details are complete."""
         # Arrange
-        original_ai_prompt_input = complete_meeting_state.ai_prompt_input
+        original_ai_prompt_input = (
+            complete_meeting_state.operation_status.ai_prompt_input
+        )
 
         # Act
         node.node_action(complete_meeting_state)
 
         # Assert
-        assert complete_meeting_state.ai_prompt_input == original_ai_prompt_input
+        assert (
+            complete_meeting_state.operation_status.ai_prompt_input
+            == original_ai_prompt_input
+        )
 
 
 class TestNodeActionWithIncompleteMeetingDetails(TestPromptMissingMeetingDetailsNode):
@@ -108,13 +125,20 @@ class TestNodeActionWithIncompleteMeetingDetails(TestPromptMissingMeetingDetails
     ):
         """Test that ai_prompt_input is set with a response when fields are missing."""
         # Arrange
-        original_ai_prompt_input = incomplete_meeting_state.ai_prompt_input
+        original_ai_prompt_input = (
+            incomplete_meeting_state.operation_status.ai_prompt_input
+        )
 
         # Act
         node.node_action(incomplete_meeting_state)
 
         # Assert
-        assert incomplete_meeting_state.ai_prompt_input != original_ai_prompt_input
-        assert incomplete_meeting_state.ai_prompt_input is not None
-        assert isinstance(incomplete_meeting_state.ai_prompt_input, str)
-        assert len(incomplete_meeting_state.ai_prompt_input) > 0
+        assert (
+            incomplete_meeting_state.operation_status.ai_prompt_input
+            != original_ai_prompt_input
+        )
+        assert incomplete_meeting_state.operation_status.ai_prompt_input is not None
+        assert isinstance(
+            incomplete_meeting_state.operation_status.ai_prompt_input, str
+        )
+        assert len(incomplete_meeting_state.operation_status.ai_prompt_input) > 0

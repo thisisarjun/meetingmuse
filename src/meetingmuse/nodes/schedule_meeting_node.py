@@ -1,5 +1,5 @@
 import random
-from typing import Literal
+from typing import Any
 
 from langchain_core.messages import AIMessage
 from langgraph.graph import END
@@ -27,15 +27,12 @@ class ScheduleMeetingNode(BaseNode):
         self.model = model
         self.logger = logger
 
-    def node_action(
-        self, state: MeetingMuseBotState
-    ) -> Command[Literal[NodeName.END, NodeName.HUMAN_INTERRUPT_RETRY]]:
+    def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
         self.logger.info("Starting meeting scheduling process")
 
         # Check if user intent is schedule
         if state.user_intent != UserIntent.SCHEDULE_MEETING:
             message: str = "No scheduling action needed for this intent."
-            self.logger.info(message)
             state.messages.append(AIMessage(content=message))
             return Command(goto=END)
 
@@ -59,14 +56,7 @@ class ScheduleMeetingNode(BaseNode):
                 state.messages.append(AIMessage(content=success_message))
                 return Command(goto=END)
             # Failure case
-            failure_error_msg: str = (
-                "Calendar service temporarily unavailable. Please try again."
-            )
-            self.logger.error(f"Meeting scheduling failed: {failure_error_msg}")
-            state.messages.append(
-                AIMessage(content=f"❌ Failed to schedule meeting: {failure_error_msg}")
-            )
-            return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
+            raise Exception("Meeting scheduling failed")
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             # Exception handling

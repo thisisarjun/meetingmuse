@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage
 
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, OperationName, OperationStatus
 from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
     HumanScheduleMeetingMoreInfoNode,
 )
@@ -36,7 +36,12 @@ class TestHumanScheduleMeetingMoreInfoNode:
                 participants=["john@example.com"],
                 duration=None,
             ),
-            ai_prompt_input="Please provide the missing meeting details.",
+            operation_status=OperationStatus(
+                operation_name=OperationName.SCHEDULE_MEETING,
+                status=False,
+                error_message=None,
+                ai_prompt_input="Please provide the missing meeting details.",
+            ),
         )
 
 
@@ -93,7 +98,7 @@ class TestNodeAction(TestHumanScheduleMeetingMoreInfoNode):
         )
 
         # Verify ai_prompt_input was cleared
-        assert sample_state.ai_prompt_input is None
+        assert sample_state.operation_status.ai_prompt_input is None
 
         # Verify state is returned (not a command)
         assert result is sample_state
@@ -106,7 +111,7 @@ class TestNodeAction(TestHumanScheduleMeetingMoreInfoNode):
         # Arrange
         mock_interrupt.return_value = ""
         initial_message_count = len(sample_state.messages)
-        initial_ai_prompt = sample_state.ai_prompt_input
+        initial_ai_prompt = sample_state.operation_status.ai_prompt_input
 
         # Act
         result = node.node_action(sample_state)
@@ -128,7 +133,7 @@ class TestNodeAction(TestHumanScheduleMeetingMoreInfoNode):
         assert len(sample_state.messages) == initial_message_count
 
         # Verify ai_prompt_input was not cleared
-        assert sample_state.ai_prompt_input == initial_ai_prompt
+        assert sample_state.operation_status.ai_prompt_input == initial_ai_prompt
 
         # Verify state is returned (not a command)
         assert isinstance(result, MeetingMuseBotState)

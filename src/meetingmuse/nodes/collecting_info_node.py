@@ -8,7 +8,7 @@ from langchain_core.runnables import Runnable
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, OperationName
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.prompts.schedule_meeting_collecting_info_prompt import (
     SCHEDULE_MEETING_COLLECTING_INFO_PROMPT,
@@ -87,6 +87,8 @@ class CollectingInfoNode(BaseNode):
         return prompt
 
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
+        state.operation_status.operation_name = OperationName.SCHEDULE_MEETING
+
         self.logger.info(
             f"Entering {self.node_name} node with current state: {state.meeting_details}"
         )
@@ -140,6 +142,7 @@ class CollectingInfoNode(BaseNode):
             str
         ] = self.meeting_service.get_missing_required_fields(state.meeting_details)
 
+        # TODO: refactor this method
         if updated_missing_required:
             try:
                 prompt_response = self.meeting_service.invoke_missing_fields_prompt(

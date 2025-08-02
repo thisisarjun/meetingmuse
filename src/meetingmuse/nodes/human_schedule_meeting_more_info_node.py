@@ -19,7 +19,9 @@ class HumanScheduleMeetingMoreInfoNode(BaseNode):
         self.logger.info(
             f"Entering {self.node_name} node with current state: {state.meeting_details}"
         )
-        human_input: Any = interrupt(state.ai_prompt_input)
+        human_input: Any = interrupt(state.operation_status.ai_prompt_input)
+        if not isinstance(human_input, str):
+            raise ValueError("Human input must be a string")
 
         self.logger.info(f"Received human input: {human_input}")
 
@@ -32,7 +34,7 @@ class HumanScheduleMeetingMoreInfoNode(BaseNode):
 
         # Parse human input and update meeting details
         state.messages.append(HumanMessage(content=human_input))
-        state.ai_prompt_input = None
+        state.operation_status.ai_prompt_input = None
         self.logger.info("Human input processed, continuing to collecting_info node")
         return state
 

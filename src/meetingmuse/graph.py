@@ -82,6 +82,13 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
             self.human_schedule_meeting_more_info_node.node_name,
             self.human_schedule_meeting_more_info_node.node_action,
         )
+        graph_builder.add_node(
+            self.schedule_meeting_node.node_name, self.schedule_meeting_node.node_action
+        )
+        graph_builder.add_node(
+            self.human_interrupt_retry_node.node_name,
+            self.human_interrupt_retry_node.node_action,
+        )
         graph_builder.add_edge(START, self.classify_intent_node.node_name)
         # add conditional route using the routing service
         graph_builder.add_conditional_edges(
@@ -117,8 +124,6 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
         # Add edges to END for completion
         graph_builder.add_edge(self.greeting_node.node_name, END)
         graph_builder.add_edge(self.clarify_request_node.node_name, END)
-        graph_builder.add_edge(self.schedule_meeting_node.node_name, END)
-        graph_builder.add_edge(self.human_interrupt_retry_node.node_name, END)
 
         return graph_builder.compile(checkpointer=InMemorySaver())
 
