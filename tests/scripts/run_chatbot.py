@@ -31,7 +31,7 @@ meeting_details_service = MeetingDetailsService(model, logger)
 human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
 prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(logger, meeting_details_service)
 schedule_meeting_node = ScheduleMeetingNode(model, logger)
-human_interrupt_retry_node = HumanInterruptRetryNode(model, logger)
+human_interrupt_retry_node = HumanInterruptRetryNode(logger)
 
 class ChatBot:
     def __init__(self, graph):

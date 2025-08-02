@@ -14,22 +14,18 @@ class ScheduleMeetingNode(BaseNode):
     On success, goes to END. On failure, goes to human interrupt retry node.
     """
     
-    def __init__(self, model=None, logger=None):
+    def __init__(self, model, logger):
         """Initialize the node with optional model and logger."""
         self.model = model
         self.logger = logger
     
-    def node_action(self, state: MeetingMuseBotState) -> Command[Literal["__end__", "human_interrupt_retry"]]:
-        if self.logger:
-            self.logger.info("Starting meeting scheduling process")
-        
-        print(f"DEBUG: Current state: {state}")
+    def node_action(self, state: MeetingMuseBotState) -> Command[Literal[NodeName.END, NodeName.HUMAN_INTERRUPT_RETRY]]:
+        self.logger.info("Starting meeting scheduling process")
         
         # Check if user intent is schedule
         if state.user_intent != UserIntent.SCHEDULE_MEETING:
             message = "No scheduling action needed for this intent."
-            if self.logger:
-                self.logger.info(message)
+            self.logger.info(message)
             state.messages.append(AIMessage(content=message))
             return Command(goto=END)
         
@@ -46,23 +42,20 @@ class ScheduleMeetingNode(BaseNode):
                     f"Title: {state.meeting_details.title or 'Meeting'}, "
                     f"Time: {state.meeting_details.date_time or 'TBD'}"
                 )
-                if self.logger:
-                    self.logger.info(f"Meeting scheduled successfully with ID: {meeting_id}")
+                self.logger.info(f"Meeting scheduled successfully with ID: {meeting_id}")
                 state.messages.append(AIMessage(content=success_message))
                 return Command(goto=END)
             else:
                 # Failure case
                 error_msg = "Calendar service temporarily unavailable. Please try again."
-                if self.logger:
-                    self.logger.error(f"Meeting scheduling failed: {error_msg}")
+                self.logger.error(f"Meeting scheduling failed: {error_msg}")
                 state.messages.append(AIMessage(content=f"❌ Failed to schedule meeting: {error_msg}"))
                 return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
                 
         except Exception as e:
             # Exception handling
             error_msg = f"Unexpected error during scheduling: {str(e)}"
-            if self.logger:
-                self.logger.error(f"Exception in scheduling: {error_msg}")
+            self.logger.error(f"Exception in scheduling: {error_msg}")
             state.messages.append(AIMessage(content=f"❌ {error_msg}"))
             return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
     

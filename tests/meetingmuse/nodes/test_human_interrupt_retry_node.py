@@ -1,11 +1,12 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, Mock
 from langgraph.types import Command
 from langchain_core.messages import AIMessage
 
 from meetingmuse.nodes.human_interrupt_retry_node import HumanInterruptRetryNode
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.models.node import NodeName
+from meetingmuse.models.meeting import MeetingFindings
 
 
 class TestHumanInterruptRetryNode:
@@ -13,14 +14,15 @@ class TestHumanInterruptRetryNode:
     
     def setup_method(self):
         """Set up test fixtures."""
-        self.node = HumanInterruptRetryNode()
+        mock_logger = Mock()
+        self.node = HumanInterruptRetryNode(logger=mock_logger)
         self.base_state = MeetingMuseBotState(
             messages=[],
             user_intent="schedule",
-            meeting_details={
-                "title": "Team standup",
-                "date_time": "tomorrow at 2pm"
-            }
+            meeting_details=MeetingFindings(
+                title="Team standup",
+                date_time="tomorrow at 2pm"
+            )
         )
     
     def test_node_name(self):
@@ -73,7 +75,7 @@ class TestHumanInterruptRetryNode:
         
         # Verify result is Command to go to end
         assert isinstance(result, Command)
-        assert result.goto == "end"
+        assert result.goto == NodeName.END
         
         # Verify cancel message was added to state
         assert len(self.base_state.messages) == 1
@@ -92,10 +94,10 @@ class TestHumanInterruptRetryNode:
                 AIMessage(content="Another message")
             ],
             user_intent="schedule",
-            meeting_details={
-                "title": "Important meeting",
-                "participants": ["alice@example.com"]
-            }
+            meeting_details=MeetingFindings(
+                title="Important meeting",
+                participants=["alice@example.com"]
+            )
         )
         
         mock_interrupt.return_value = True
@@ -109,8 +111,8 @@ class TestHumanInterruptRetryNode:
         assert state_with_history.messages[1].content == "Another message"
         
         # Verify meeting details are preserved
-        assert state_with_history.meeting_details["title"] == "Important meeting"
-        assert "alice@example.com" in state_with_history.meeting_details["participants"]
+        assert state_with_history.meeting_details.title == "Important meeting"
+        assert "alice@example.com" in state_with_history.meeting_details.participants
         
         # Verify user intent is preserved
         assert state_with_history.user_intent == "schedule"

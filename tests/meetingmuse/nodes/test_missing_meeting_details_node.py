@@ -72,14 +72,14 @@ class TestNodeName(TestPromptMissingMeetingDetailsNode):
 class TestNodeActionWithCompleteMeetingDetails(TestPromptMissingMeetingDetailsNode):
     """Test suite for node_action when meeting details are complete."""
 
-    def test_node_action_with_complete_details_returns_end_command(self, node, complete_meeting_state):
-        """Test node_action returns END command when all required fields are present."""
+    def test_node_action_with_complete_details_returns_state(self, node, complete_meeting_state):
+        """Test node_action returns state when all required fields are present."""
         # Act
         result = node.node_action(complete_meeting_state)
         
         # Assert
-        assert isinstance(result, Command)
-        assert result.goto == NodeName.END
+        assert isinstance(result, MeetingMuseBotState)
+        assert result == complete_meeting_state
 
     def test_node_action_with_complete_details_does_not_modify_ai_prompt_input(self, node, complete_meeting_state):
         """Test that ai_prompt_input is not modified when details are complete."""

@@ -49,7 +49,8 @@ class GraphBuilder:
         graph_builder.add_node(self.collecting_info_node.node_name, self.collecting_info_node.node_action)
         graph_builder.add_node(self.prompt_missing_meeting_details_node.node_name, self.prompt_missing_meeting_details_node.node_action)
         graph_builder.add_node(self.human_schedule_meeting_more_info_node.node_name, self.human_schedule_meeting_more_info_node.node_action)
-
+        graph_builder.add_node(self.human_interrupt_retry_node.node_name, self.human_interrupt_retry_node.node_action)
+        graph_builder.add_node(self.schedule_meeting_node.node_name, self.schedule_meeting_node.node_action)
         graph_builder.add_edge(START, self.classify_intent_node.node_name)
         # add conditional route using the routing service
         graph_builder.add_conditional_edges(

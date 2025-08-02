@@ -7,10 +7,10 @@ class NodeName(StrEnum):
     COLLECTING_INFO = "collecting_info"
     CLASSIFY_INTENT = "classify_intent"
     SCHEDULE_MEETING = "schedule_meeting"
-    HUMAN_INTERRUPT_RETRY = "human_interrupt_retry"
     END = "end"
     
     # Human nodes
+    HUMAN_INTERRUPT_RETRY = "human_interrupt_retry"
     HUMAN_SCHEDULE_MEETING_MORE_INFO = "human_schedule_meeting_more_info"
 
     # Prompt Nodes
