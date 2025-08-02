@@ -6,7 +6,7 @@ from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
 from meetingmuse.nodes.human_schedule_meeting_more_info_node import HumanScheduleMeetingMoreInfoNode
-from meetingmuse.nodes.missing_meeting_details_node import PromptMissingMeetingDetailsNode
+from meetingmuse.nodes.prompt_missing_meeting_details_node import PromptMissingMeetingDetailsNode
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger

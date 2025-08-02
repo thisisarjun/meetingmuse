@@ -13,7 +13,7 @@ from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
-from meetingmuse.nodes.missing_meeting_details_node import PromptMissingMeetingDetailsNode
+from meetingmuse.nodes.prompt_missing_meeting_details_node import PromptMissingMeetingDetailsNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter

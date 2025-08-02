@@ -12,7 +12,7 @@ from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
 from meetingmuse.nodes.human_schedule_meeting_more_info_node import HumanScheduleMeetingMoreInfoNode
-from meetingmuse.nodes.missing_meeting_details_node import PromptMissingMeetingDetailsNode
+from meetingmuse.nodes.prompt_missing_meeting_details_node import PromptMissingMeetingDetailsNode
 from meetingmuse.services.routing_service import ConversationRouter
 
 
@@ -64,7 +64,10 @@ class GraphBuilder:
                 NodeName.PROMPT_MISSING_MEETING_DETAILS: NodeName.PROMPT_MISSING_MEETING_DETAILS,
             }
         )        
-        graph_builder.add_edge(self.prompt_missing_meeting_details_node.node_name, self.human_schedule_meeting_more_info_node.node_name)
+        graph_builder.add_conditional_edges(self.prompt_missing_meeting_details_node.node_name, self.prompt_missing_meeting_details_node.get_next_node, {
+            NodeName.END: END,
+            NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO: self.human_schedule_meeting_more_info_node.node_name,
+        })
         graph_builder.add_edge(self.human_schedule_meeting_more_info_node.node_name, self.collecting_info_node.node_name)
         # Add edges to END for completion
         graph_builder.add_edge(self.greeting_node.node_name, END)

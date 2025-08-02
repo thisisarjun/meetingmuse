@@ -11,15 +11,20 @@ class PromptMissingMeetingDetailsNode(BaseNode):
           self.meeting_service = meeting_service
           self.logger = logger
 
+    def get_next_node(self, state: MeetingMuseBotState) -> NodeName:
+        if not state.ai_prompt_input:
+            return NodeName.END
+        return NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO
+    
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         self.logger.info(f"Entering {self.node_name} node...")
 
         missing_fields = self.meeting_service.get_missing_required_fields(state.meeting_details)
 
         if not missing_fields:
-            # NOTE: this is an error in graph, should not happen
+            # NOTE: this is an error in graph, should not happen!
             self.logger.error(f"Meeting details are complete, but node {self.node_name} was called")
-            return Command(goto=NodeName.END)
+            return state
 
         try:
             response = self.meeting_service.invoke_missing_fields_prompt(state).content

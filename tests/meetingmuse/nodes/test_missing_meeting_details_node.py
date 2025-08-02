@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import Mock
 from langgraph.types import Command
 
-from meetingmuse.nodes.missing_meeting_details_node import PromptMissingMeetingDetailsNode
+from meetingmuse.nodes.prompt_missing_meeting_details_node import PromptMissingMeetingDetailsNode
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
