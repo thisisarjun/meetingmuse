@@ -1,21 +1,25 @@
-from langgraph.types import Command
 from langchain_core.messages import HumanMessage
-from meetingmuse.models.meeting import MeetingFindings
-from meetingmuse.nodes import clarify_request_node, classify_intent_node, greeting_node
-from meetingmuse.models.state import MeetingMuseBotState
+from langgraph.types import Command
+
 from meetingmuse.graph import GraphBuilder
+from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.models.meeting import MeetingFindings
+from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.nodes import clarify_request_node, classify_intent_node, greeting_node
+from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
+from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
-from meetingmuse.nodes.human_schedule_meeting_more_info_node import HumanScheduleMeetingMoreInfoNode
-from meetingmuse.nodes.prompt_missing_meeting_details_node import PromptMissingMeetingDetailsNode
+from meetingmuse.nodes.greeting_node import GreetingNode
+from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
+    HumanScheduleMeetingMoreInfoNode,
+)
+from meetingmuse.nodes.prompt_missing_meeting_details_node import (
+    PromptMissingMeetingDetailsNode,
+)
+from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
-from meetingmuse.services.intent_classifier import IntentClassifier
-from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
-from meetingmuse.nodes.greeting_node import GreetingNode
-from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
-from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 
 logger = Logger()
 conversation_router = ConversationRouter(logger)
@@ -27,7 +31,10 @@ collecting_info_node = CollectingInfoNode(model, logger)
 clarify_request_node = ClarifyRequestNode(model)
 meeting_details_service = MeetingDetailsService(model, logger)
 human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
-prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(logger, meeting_details_service)
+prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
+    logger, meeting_details_service
+)
+
 
 class ChatBot:
     def __init__(self, graph):
@@ -35,45 +42,40 @@ class ChatBot:
         self.thread_id = "conversation_1"
         self.config = {"configurable": {"thread_id": self.thread_id}}
         self.initial_state = MeetingMuseBotState(
-            messages=[],
-            user_intent=None,
-            meeting_details=MeetingFindings()
+            messages=[], user_intent=None, meeting_details=MeetingFindings()
         )
+
     def get_last_message(self, events: dict):
-      # Skip interrupt events
+        # Skip interrupt events
         if "__interrupt__" in events:
             return None
 
         # Get the state from the node result
         for state in events.values():
-            if hasattr(state, 'messages') and state.messages:
+            if hasattr(state, "messages") and state.messages:
                 message = state.messages[-1]
                 if message and message.type == "ai" and message.content:
                     return message.content
         return None
 
-
     def process_input(self, user_input: str):
         # Always add the user message and process
         self.initial_state.messages.append(HumanMessage(content=user_input))
-        
-        for events in self.graph.stream(
-            self.initial_state,
-            config=self.config
-        ):
+
+        for events in self.graph.stream(self.initial_state, config=self.config):
             if "__interrupt__" in events:
                 interrupt_info = events["__interrupt__"][0]
                 user_input = input(f"{interrupt_info.value} ")
-                for _resume_chunk in self.graph.stream(Command(resume=user_input), self.config, stream_mode="values"):
+                for _resume_chunk in self.graph.stream(
+                    Command(resume=user_input), self.config, stream_mode="values"
+                ):
                     print(f"🆔 resume_chunk: {_resume_chunk}")
                     pass
                 return
 
             message = self.get_last_message(events)
             if message:
-                print("Assistant:", message)        
-
-
+                print("Assistant:", message)
 
 
 if __name__ == "__main__":
@@ -89,7 +91,7 @@ if __name__ == "__main__":
     )
     graph = graph_builder.build()
     chatbot = ChatBot(graph)
-    
+
     while True:
         try:
             user_input = input("User: ")

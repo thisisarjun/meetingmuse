@@ -1,10 +1,10 @@
 from huggingface_hub import InferenceClient
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
+
 from ..config.config import config
 
 
 class HuggingFaceModel:
-    
     model_name: str
     llm: HuggingFaceEndpoint
 
@@ -15,16 +15,7 @@ class HuggingFaceModel:
             model=self.model_name,
             huggingfacehub_api_token=config.HUGGINGFACE_API_TOKEN,
         )
-    
+
     @property
     def chat_model(self) -> ChatHuggingFace:
-        return ChatHuggingFace(
-            llm=self.llm
-        )
-    
-        
-
-
-
-
-
+        return ChatHuggingFace(llm=self.llm)

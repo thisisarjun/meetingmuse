@@ -1,7 +1,7 @@
-
 from typing import Any, Union
+
 from langchain_core.messages import HumanMessage
-from langgraph.types import interrupt, Command
+from langgraph.types import Command, interrupt
 
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
@@ -10,26 +10,26 @@ from meetingmuse.utils.logger import Logger
 
 
 class HumanScheduleMeetingMoreInfoNode(BaseNode):
-    
     logger: Logger
-    
+
     def __init__(self, logger: Logger) -> None:
         self.logger = logger
 
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
-        
-        self.logger.info(f"Entering {self.node_name} node with current state: {state.meeting_details}")        
+        self.logger.info(
+            f"Entering {self.node_name} node with current state: {state.meeting_details}"
+        )
         human_input: Any = interrupt(state.ai_prompt_input)
 
         self.logger.info(f"Received human input: {human_input}")
-        
+
         # Check if user provided any input
         if not human_input or human_input.strip() == "":
             self.logger.info("No input provided, asking again")
             # For now, we'll continue with the state instead of returning Command
             # TODO: Implement proper retry logic
             return state
-        
+
         # Parse human input and update meeting details
         state.messages.append(HumanMessage(content=human_input))
         state.ai_prompt_input = None

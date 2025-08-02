@@ -15,7 +15,7 @@ from meetingmuse.utils import Logger
 def main() -> None:
     """Main entry point for the MeetingMuse CLI."""
     logger: Logger = Logger()
-    logger.info("Welcome to MeetingMuse - Your favourite calendar bot!")    
+    logger.info("Welcome to MeetingMuse - Your favourite calendar bot!")
     # TODO: Implement CLI interface
 
 

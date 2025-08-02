@@ -1,15 +1,17 @@
-
-
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.nodes.human_schedule_meeting_more_info_node import HumanScheduleMeetingMoreInfoNode
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
-from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
-from meetingmuse.nodes.prompt_missing_meeting_details_node import PromptMissingMeetingDetailsNode
+from meetingmuse.nodes.greeting_node import GreetingNode
+from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
+    HumanScheduleMeetingMoreInfoNode,
+)
+from meetingmuse.nodes.prompt_missing_meeting_details_node import (
+    PromptMissingMeetingDetailsNode,
+)
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
@@ -25,7 +27,10 @@ clarify_request_node = ClarifyRequestNode(model)
 conversation_router = ConversationRouter(logger)
 meeting_details_service = MeetingDetailsService(model, logger)
 human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
-prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(logger, meeting_details_service)
+prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
+    logger, meeting_details_service
+)
+
 
 def create_graph_with_all_nodes() -> GraphBuilder:
     graph_builder = GraphBuilder(
@@ -40,9 +45,11 @@ def create_graph_with_all_nodes() -> GraphBuilder:
     )
     return graph_builder
 
+
 def generate_graph():
     graph_builder = create_graph_with_all_nodes()
     graph_builder.draw_graph()
+
 
 if __name__ == "__main__":
     generate_graph()
