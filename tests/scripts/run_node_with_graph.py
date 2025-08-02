@@ -139,8 +139,8 @@ def interrupt_node(node_name: NodeName, user_message: str):
 def parse_args():
     parser = argparse.ArgumentParser(description="Debug individual nodes in isolation")
     parser.add_argument("--node", type=str, required=True, 
-                       choices=["CLASSIFY_INTENT", "GREETING", "COLLECTING_INFO", "CLARIFY_REQUEST", "HUMAN_SCHEDULE_MEETING_MORE_INFO", "PROMPT_MISSING_MEETING_DETAILS"],
-                       help="Node name to test")
+                       choices=[node.name for node in NodeName],
+
     parser.add_argument("--message", type=str, required=True, help="User message to test with")
     parser.add_argument("--interrupt", action="store_true", help="Test node with interruption support (streaming)")
     
