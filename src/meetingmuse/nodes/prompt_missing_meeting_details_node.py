@@ -1,3 +1,4 @@
+from typing import List, Optional
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
@@ -7,7 +8,11 @@ from langgraph.types import Command, interrupt
 
 
 class PromptMissingMeetingDetailsNode(BaseNode):
-    def __init__(self, logger: Logger, meeting_service: MeetingDetailsService):
+    
+    meeting_service: MeetingDetailsService
+    logger: Logger
+    
+    def __init__(self, logger: Logger, meeting_service: MeetingDetailsService) -> None:
           self.meeting_service = meeting_service
           self.logger = logger
 
@@ -19,7 +24,7 @@ class PromptMissingMeetingDetailsNode(BaseNode):
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         self.logger.info(f"Entering {self.node_name} node...")
 
-        missing_fields = self.meeting_service.get_missing_required_fields(state.meeting_details)
+        missing_fields: List[str] = self.meeting_service.get_missing_required_fields(state.meeting_details)
 
         if not missing_fields:
             # NOTE: this is an error in graph, should not happen!
@@ -27,7 +32,16 @@ class PromptMissingMeetingDetailsNode(BaseNode):
             return state
 
         try:
-            response = self.meeting_service.invoke_missing_fields_prompt(state).content
+            prompt_response = self.meeting_service.invoke_missing_fields_prompt(state)
+            # Handle both string and complex content types
+            if hasattr(prompt_response, 'content'):
+                content = prompt_response.content
+                if isinstance(content, str):
+                    response = content
+                else:
+                    response = str(content)
+            else:
+                response = str(prompt_response)
         except Exception as e:
             response = "I need some more information, could you provide all the details? I need the following information: " + ", ".join(missing_fields)
 

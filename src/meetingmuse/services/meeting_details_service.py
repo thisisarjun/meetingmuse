@@ -1,4 +1,7 @@
+from typing import List, Dict, Any
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import BaseMessage
+from langchain_core.runnables import Runnable
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
@@ -9,7 +12,12 @@ from meetingmuse.utils.logger import Logger
 class MeetingDetailsService:
     """Service for handling meeting details validation and prompts"""
     
-    def __init__(self, model: HuggingFaceModel, logger: Logger):
+    model: HuggingFaceModel
+    logger: Logger
+    missing_fields_prompt: ChatPromptTemplate
+    missing_fields_chain: Runnable[Dict[str, Any], BaseMessage]
+    
+    def __init__(self, model: HuggingFaceModel, logger: Logger) -> None:
         self.model = model
         self.logger = logger
         self.missing_fields_prompt = ChatPromptTemplate.from_messages([
@@ -26,9 +34,9 @@ class MeetingDetailsService:
             meeting_details.duration is not None
         ])
 
-    def get_missing_required_fields(self, meeting_details: MeetingFindings) -> list[str]:
+    def get_missing_required_fields(self, meeting_details: MeetingFindings) -> List[str]:
         """Get missing required fields (title, date_time, participants, duration)"""
-        missing = []
+        missing: List[str] = []
         if not meeting_details.title:
             missing.append("title")
         if not meeting_details.date_time:
@@ -39,7 +47,7 @@ class MeetingDetailsService:
             missing.append("duration")
         return missing
 
-    def invoke_missing_fields_prompt(self, state: MeetingMuseBotState) -> str:
+    def invoke_missing_fields_prompt(self, state: MeetingMuseBotState) -> BaseMessage:
         """Invoke the missing fields prompt to get the missing required fields"""
         try:
             return self.missing_fields_chain.invoke({
@@ -59,9 +67,12 @@ class MeetingDetailsService:
 
     def generate_completion_message(self, meeting_details: MeetingFindings) -> str:
         """Generate a completion message when all meeting details are collected"""
-        response = f"Perfect! I'll schedule your meeting '{meeting_details.title}' " \
-                  f"for {meeting_details.date_time} with {', '.join(meeting_details.participants)} " \
-                  f"for {meeting_details.duration}"
+        # Ensure participants is not None before joining
+        participants_str: str = ", ".join(meeting_details.participants) if meeting_details.participants else "unknown participants"
+        
+        response: str = f"Perfect! I'll schedule your meeting '{meeting_details.title}' " \
+                      f"for {meeting_details.date_time} with {participants_str} " \
+                      f"for {meeting_details.duration}"
         if meeting_details.location:
             response += f" at {meeting_details.location}"
         response += "."
@@ -71,7 +82,7 @@ class MeetingDetailsService:
         """Parse human input and update meeting details"""
         # TODO: Implement proper parsing logic using LLM
         # For now, basic implementation that assumes human input is the meeting title
-        updated_details = MeetingFindings(
+        updated_details: MeetingFindings = MeetingFindings(
             title=current_details.title or human_input,
             participants=current_details.participants,
             date_time=current_details.date_time,

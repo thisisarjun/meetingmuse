@@ -1,23 +1,29 @@
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, BaseMessage
 from meetingmuse.models.node import NodeName
 from meetingmuse.services.intent_classifier import IntentClassifier
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.base_node import BaseNode
 
 
 class ClassifyIntentNode(BaseNode):
     
+    intent_classifier: IntentClassifier
 
-    def __init__(self, intent_classifier: IntentClassifier):
+    def __init__(self, intent_classifier: IntentClassifier) -> None:
         self.intent_classifier = intent_classifier
-
         
-
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
-        last_message = state.messages[-1]
+        last_message: BaseMessage = state.messages[-1]
 
         if isinstance(last_message, HumanMessage):
-            intent = self.intent_classifier.classify(last_message.content)
+            # Handle both string and complex content types
+            content = last_message.content
+            if isinstance(content, str):
+                message_text = content
+            else:
+                message_text = str(content)
+            
+            intent: UserIntent = self.intent_classifier.classify(message_text)
             state.user_intent = intent
 
         return state

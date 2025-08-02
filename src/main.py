@@ -11,11 +11,13 @@ from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.utils import Logger
 
-def main():
+
+def main() -> None:
     """Main entry point for the MeetingMuse CLI."""
-    logger = Logger()
+    logger: Logger = Logger()
     logger.info("Welcome to MeetingMuse - Your favourite calendar bot!")    
     # TODO: Implement CLI interface
+
 
 if __name__ == "__main__":
     main()
