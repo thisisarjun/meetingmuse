@@ -45,7 +45,7 @@ class ChatBot:
             return None
 
         # Get the state from the node result
-        for node_name, state in events.items():
+        for state in events.values():
             if hasattr(state, 'messages') and state.messages:
                 message = state.messages[-1]
                 if message and message.type == "ai" and message.content:
