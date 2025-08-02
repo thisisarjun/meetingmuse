@@ -1,9 +1,7 @@
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
 
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
-from meetingmuse.utils.logger import Logger
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
 
