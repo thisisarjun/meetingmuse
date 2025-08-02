@@ -19,6 +19,7 @@ class PromptMissingMeetingDetailsNode(BaseNode):
         if not missing_fields:
             # NOTE: this is an error in graph, should not happen
             self.logger.error(f"Meeting details are complete, but node {self.node_name} was called")
+<!-- TODO: Route to meeting scheduler -->
             return Command(goto=NodeName.END)
 
         try:
