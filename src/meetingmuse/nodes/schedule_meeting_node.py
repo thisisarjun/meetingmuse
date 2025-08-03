@@ -1,11 +1,16 @@
+import random
 from typing import Literal
-from langgraph.types import Command
+
+from langchain_core.messages import AIMessage
 from langgraph.graph import END
-from meetingmuse.nodes.base_node import BaseNode
+from langgraph.types import Command
+
+from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
-from langchain_core.messages import AIMessage
-import random
+from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.utils.logger import Logger
+
 
 class ScheduleMeetingNode(BaseNode):
     """
@@ -13,18 +18,20 @@ class ScheduleMeetingNode(BaseNode):
     If the user intent is 'schedule', this node will attempt to schedule the meeting.
     On success, goes to END. On failure, goes to human interrupt retry node.
     """
-    
-    def __init__(self, model=None, logger=None):
+
+    def __init__(self, model: HuggingFaceModel, logger: Logger) -> None:
         """Initialize the node with optional model and logger."""
         self.model = model
         self.logger = logger
-    
-    def node_action(self, state: MeetingMuseBotState) -> Command[Literal["__end__", "human_interrupt_retry"]]:
+
+    def node_action(
+        self, state: MeetingMuseBotState
+    ) -> Command[Literal["__end__", "human_interrupt_retry"]]:
         if self.logger:
             self.logger.info("Starting meeting scheduling process")
-        
+
         print(f"DEBUG: Current state: {state}")
-        
+
         # Check if user intent is schedule
         if state.user_intent != UserIntent.SCHEDULE_MEETING:
             message = "No scheduling action needed for this intent."
@@ -32,7 +39,7 @@ class ScheduleMeetingNode(BaseNode):
                 self.logger.info(message)
             state.messages.append(AIMessage(content=message))
             return Command(goto=END)
-        
+
         # Simulate API call to schedule meeting
         # TODO: Replace with actual API call logic
         try:
@@ -47,17 +54,23 @@ class ScheduleMeetingNode(BaseNode):
                     f"Time: {state.meeting_details.date_time or 'TBD'}"
                 )
                 if self.logger:
-                    self.logger.info(f"Meeting scheduled successfully with ID: {meeting_id}")
+                    self.logger.info(
+                        f"Meeting scheduled successfully with ID: {meeting_id}"
+                    )
                 state.messages.append(AIMessage(content=success_message))
                 return Command(goto=END)
             else:
                 # Failure case
-                error_msg = "Calendar service temporarily unavailable. Please try again."
+                error_msg = (
+                    "Calendar service temporarily unavailable. Please try again."
+                )
                 if self.logger:
                     self.logger.error(f"Meeting scheduling failed: {error_msg}")
-                state.messages.append(AIMessage(content=f"❌ Failed to schedule meeting: {error_msg}"))
+                state.messages.append(
+                    AIMessage(content=f"❌ Failed to schedule meeting: {error_msg}")
+                )
                 return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
-                
+
         except Exception as e:
             # Exception handling
             error_msg = f"Unexpected error during scheduling: {str(e)}"
@@ -65,7 +78,7 @@ class ScheduleMeetingNode(BaseNode):
                 self.logger.error(f"Exception in scheduling: {error_msg}")
             state.messages.append(AIMessage(content=f"❌ {error_msg}"))
             return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
-    
+
     @property
     def node_name(self) -> NodeName:
         return NodeName.SCHEDULE_MEETING
