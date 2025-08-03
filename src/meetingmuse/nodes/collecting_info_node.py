@@ -49,9 +49,9 @@ class CollectingInfoNode(BaseNode):
             state.meeting_details
         ):
             self.logger.info("Meeting details are complete, returning to END")
-            return NodeName.END
+            return NodeName.SCHEDULE_MEETING
         self.logger.info(
-            "Meeting details are not complete, returning to HUMAN_SCHEDULE_MEETING_MORE_INFO"
+            "Meeting details are not complete, returning to COLLECTING_INFO"
         )
         return NodeName.PROMPT_MISSING_MEETING_DETAILS
 
