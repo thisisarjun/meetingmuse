@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from langchain_core.messages import HumanMessage
 
+from meetingmuse.models.interrupts import InterruptInfo, InterruptType
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, OperationStatus
@@ -73,9 +74,12 @@ class TestNodeAction(TestHumanScheduleMeetingMoreInfoNode):
 
         # Assert
         # Verify interrupt was called with the ai_prompt_input
-        mock_interrupt.assert_called_once_with(
-            "Please provide the missing meeting details."
+        interrupt_info = InterruptInfo(
+            type=InterruptType.SEEK_MORE_INFO,
+            message="Need more information to schedule the meeting",
+            question="Please provide the missing meeting details.",
         )
+        mock_interrupt.assert_called_once_with(interrupt_info)
 
         # Verify human message was added to state
         assert len(sample_state.messages) == initial_message_count + 1
@@ -106,9 +110,12 @@ class TestNodeAction(TestHumanScheduleMeetingMoreInfoNode):
 
         # Assert
         # Verify interrupt was called
-        mock_interrupt.assert_called_once_with(
-            "Please provide the missing meeting details."
+        interrupt_info = InterruptInfo(
+            type=InterruptType.SEEK_MORE_INFO,
+            message="Need more information to schedule the meeting",
+            question="Please provide the missing meeting details.",
         )
+        mock_interrupt.assert_called_once_with(interrupt_info)
 
         # Verify logger calls - since we're using a mock logger, prefixes aren't applied
         mock_logger.info.assert_any_call("Received human input: ")

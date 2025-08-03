@@ -1,48 +1,33 @@
+from typing import Any, Optional
+
 from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 
 from meetingmuse.graph import GraphBuilder
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
-from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
-from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
-from meetingmuse.nodes.end_node import EndNode
-from meetingmuse.nodes.greeting_node import GreetingNode
-from meetingmuse.nodes.human_interrupt_retry_node import HumanInterruptRetryNode
-from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
-    HumanScheduleMeetingMoreInfoNode,
-)
-from meetingmuse.nodes.prompt_missing_meeting_details_node import (
-    PromptMissingMeetingDetailsNode,
-)
-from meetingmuse.nodes.schedule_meeting_node import ScheduleMeetingNode
-from meetingmuse.services.intent_classifier import IntentClassifier
-from meetingmuse.services.meeting_details_service import MeetingDetailsService
-from meetingmuse.services.routing_service import ConversationRouter
 from meetingmuse.utils.logger import Logger
+from scripts.common import initialize_nodes
 
 logger = Logger()
-conversation_router = ConversationRouter(logger)
-model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
-intent_classifier = IntentClassifier(model)
-classify_intent_node = ClassifyIntentNode(intent_classifier)
-greeting_node = GreetingNode(model, logger)
-collecting_info_node = CollectingInfoNode(model, logger)
-clarify_request_node = ClarifyRequestNode(model, logger)
-meeting_details_service = MeetingDetailsService(model, logger)
-human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
-prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
-    meeting_details_service, logger
-)
-schedule_meeting_node = ScheduleMeetingNode(model, logger)
-human_interrupt_retry_node = HumanInterruptRetryNode(logger)
-end_node = EndNode()
+nodes = initialize_nodes()
+model = nodes["model"]
+intent_classifier = nodes["intent_classifier"]
+classify_intent_node = nodes["classify_intent_node"]
+greeting_node = nodes["greeting_node"]
+collecting_info_node = nodes["collecting_info_node"]
+clarify_request_node = nodes["clarify_request_node"]
+meeting_details_service = nodes["meeting_details_service"]
+human_schedule_meeting_more_info_node = nodes["human_schedule_meeting_more_info_node"]
+prompt_missing_meeting_details_node = nodes["prompt_missing_meeting_details_node"]
+schedule_meeting_node = nodes["schedule_meeting_node"]
+human_interrupt_retry_node = nodes["human_interrupt_retry_node"]
+conversation_router = nodes["conversation_router"]
+end_node = nodes["end_node"]
 
 
 class ChatBot:
-    def __init__(self, graph):
+    def __init__(self, graph: Any) -> None:
         self.graph = graph
         self.thread_id = "conversation_1"
         self.config = {"configurable": {"thread_id": self.thread_id}}
@@ -50,7 +35,7 @@ class ChatBot:
             messages=[], user_intent=None, meeting_details=MeetingFindings()
         )
 
-    def get_last_message(self, events: dict):
+    def get_last_message(self, events: dict[str, Any]) -> Optional[str]:
         # Skip interrupt events
         if "__interrupt__" in events:
             return None
@@ -60,17 +45,17 @@ class ChatBot:
             if hasattr(state, "messages") and state.messages:
                 message = state.messages[-1]
                 if message and message.type == "ai" and message.content:
-                    return message.content
+                    return str(message.content)
         return None
 
-    def process_input(self, user_input: str):
+    def process_input(self, user_input: str) -> None:
         # Always add the user message and process
         self.initial_state.messages.append(HumanMessage(content=user_input))
 
         for events in self.graph.stream(self.initial_state, config=self.config):
             if "__interrupt__" in events:
                 interrupt_info = events["__interrupt__"][0]
-                user_input = input(f"{interrupt_info.value} ")
+                user_input = input(f"{interrupt_info.value.question} ")
                 for _resume_chunk in self.graph.stream(
                     Command(resume=user_input), self.config, stream_mode="values"
                 ):

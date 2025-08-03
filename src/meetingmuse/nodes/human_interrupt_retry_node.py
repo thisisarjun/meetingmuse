@@ -3,6 +3,7 @@ from typing import Any
 from langchain_core.messages import AIMessage
 from langgraph.types import Command, interrupt
 
+from meetingmuse.models.interrupts import InterruptInfo, InterruptType
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
@@ -24,16 +25,20 @@ class HumanInterruptRetryNode(BaseNode):
         self.logger.info("Human interrupt requested")
 
         # Use LangGraph's interrupt() for human decision
-        approval: Any = interrupt(
-            {
-                "type": "operation_approval",
-                "message": "Meeting scheduling failed. Would you like to retry?",
-                "question": "Would you like to retry this operation?",
-                "options": ["retry", "cancel"],
-            }
+        options = ["retry", "cancel"]
+        interrupt_info = InterruptInfo(
+            type=InterruptType.OPERATION_APPROVAL,
+            message="Meeting scheduling failed.",
+            question="Would you like to retry this operation?",
+            options=options,
         )
+        approval: Any = interrupt(interrupt_info)
 
-        if approval:
+        if approval not in options:
+            self.logger.error(f"Invalid choice, please choose {'/ '.join(options)}")
+            return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
+
+        if approval == "retry":
             # User chose to retry - go back to API call
             retry_message: str = "User chose to retry. Attempting again..."
 

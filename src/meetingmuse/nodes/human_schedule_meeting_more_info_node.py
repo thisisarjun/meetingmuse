@@ -3,6 +3,7 @@ from typing import Any
 from langchain_core.messages import HumanMessage
 from langgraph.types import interrupt
 
+from meetingmuse.models.interrupts import InterruptInfo, InterruptType
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
@@ -16,7 +17,12 @@ class HumanScheduleMeetingMoreInfoNode(BaseNode):
 
     @log_node_entry(NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
-        human_input: Any = interrupt(state.operation_status.ai_prompt_input)
+        interrupt_info = InterruptInfo(
+            type=InterruptType.SEEK_MORE_INFO,
+            message="Need more information to schedule the meeting",
+            question=state.operation_status.ai_prompt_input or "",
+        )
+        human_input: Any = interrupt(interrupt_info)
         if not isinstance(human_input, str):
             raise ValueError("Human input must be a string")
 

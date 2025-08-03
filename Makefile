@@ -152,10 +152,10 @@ qa: format lint test
 # debug scripts - make help for more info
 
 debug-node:
-	poetry run python tests/scripts/run_node_with_graph.py --node $(NODE_NAME) --message "$(MESSAGE)" $(if $(INTERRUPT),--interrupt)
+	poetry run python scripts/run_node_with_graph.py --node $(NODE_NAME) --message "$(MESSAGE)" $(if $(INTERRUPT),--interrupt)
 
 debug-chatbot:
-	poetry run python tests/scripts/run_chatbot.py
+	poetry run python scripts/run_chatbot.py
 
 # Poetry-specific commands
 poetry-check:

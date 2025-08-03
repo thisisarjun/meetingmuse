@@ -24,7 +24,7 @@ from meetingmuse.utils.logger import Logger
 logger = Logger()
 model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
 intent_classifier = IntentClassifier(model)
-classify_intent_node = ClassifyIntentNode(intent_classifier)
+classify_intent_node = ClassifyIntentNode(intent_classifier, logger)
 greeting_node = GreetingNode(model, logger)
 collecting_info_node = CollectingInfoNode(model, logger)
 clarify_request_node = ClarifyRequestNode(model, logger)
@@ -36,7 +36,7 @@ prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
 )
 schedule_meeting_node = ScheduleMeetingNode(model, logger)
 human_interrupt_retry_node = HumanInterruptRetryNode(logger)
-end_node = EndNode()
+end_node = EndNode(logger)
 
 
 def draw_graph(graph_builder: Any) -> None:
@@ -67,7 +67,7 @@ def create_graph_with_all_nodes() -> GraphBuilder:
     return graph_builder
 
 
-def generate_graph():
+def generate_graph() -> None:
     graph_builder = create_graph_with_all_nodes()
     draw_graph(graph_builder)
 
