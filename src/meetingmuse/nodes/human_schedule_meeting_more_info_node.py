@@ -10,15 +10,10 @@ from meetingmuse.utils.logger import Logger
 
 
 class HumanScheduleMeetingMoreInfoNode(BaseNode):
-    logger: Logger
-
     def __init__(self, logger: Logger) -> None:
-        self.logger = logger
+        super().__init__(logger)
 
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
-        self.logger.info(
-            f"Entering {self.node_name} node with current state: {state.meeting_details}"
-        )
         human_input: Any = interrupt(state.operation_status.ai_prompt_input)
         if not isinstance(human_input, str):
             raise ValueError("Human input must be a string")

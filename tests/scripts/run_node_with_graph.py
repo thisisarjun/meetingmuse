@@ -8,7 +8,7 @@ from langgraph.types import Command
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
@@ -30,16 +30,16 @@ logger = Logger()
 model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
 intent_classifier = IntentClassifier(model)
 classify_intent_node = ClassifyIntentNode(intent_classifier)
-greeting_node = GreetingNode(model)
+greeting_node = GreetingNode(model, logger)
 collecting_info_node = CollectingInfoNode(model, logger)
-clarify_request_node = ClarifyRequestNode(model)
+clarify_request_node = ClarifyRequestNode(model, logger)
 schedule_meeting_node = ScheduleMeetingNode(model, logger)
 human_interrupt_retry_node = HumanInterruptRetryNode(logger)
 conversation_router = ConversationRouter(logger)
 meeting_details_service = MeetingDetailsService(model, logger)
 human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
 prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
-    logger, meeting_details_service
+    meeting_details_service, logger
 )
 
 
@@ -119,6 +119,14 @@ def create_prompt_missing_meeting_details_test_graph():
     return workflow
 
 
+def create_schedule_meeting_test_graph():
+    workflow = StateGraph(MeetingMuseBotState)
+    workflow.add_node(NodeName.SCHEDULE_MEETING, schedule_meeting_node.node_action)
+    workflow.add_edge(START, NodeName.SCHEDULE_MEETING)
+    workflow.add_edge(NodeName.SCHEDULE_MEETING, END)
+    return workflow
+
+
 def test_single_node(node_name: NodeName, user_message: str):
     initial_state = create_initial_state_for_testing(user_message)
 
@@ -134,7 +142,9 @@ def test_single_node(node_name: NodeName, user_message: str):
         workflow = create_human_schedule_meeting_more_info_test_graph()
     elif node_name == NodeName.PROMPT_MISSING_MEETING_DETAILS:
         workflow = create_prompt_missing_meeting_details_test_graph()
-
+    elif node_name == NodeName.SCHEDULE_MEETING:
+        initial_state.user_intent = UserIntent.SCHEDULE_MEETING
+        workflow = create_schedule_meeting_test_graph()
     graph = workflow.compile(checkpointer=InMemorySaver())
     config = {"configurable": {"thread_id": "test"}}
     result = graph.invoke(initial_state, config=config)

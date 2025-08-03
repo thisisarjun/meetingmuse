@@ -19,16 +19,13 @@ class ScheduleMeetingNode(BaseNode):
     """
 
     model: HuggingFaceModel
-    logger: Logger
 
     def __init__(self, model: HuggingFaceModel, logger: Logger) -> None:
-        """Initialize the node with model and logger."""
+        """Initialize the node with model and optional logger."""
+        super().__init__(logger)
         self.model = model
-        self.logger = logger
 
     def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
-        self.logger.info("Starting meeting scheduling process")
-
         # Check if user intent is schedule
         if state.user_intent != UserIntent.SCHEDULE_MEETING:
             self.logger.error(
@@ -47,7 +44,7 @@ class ScheduleMeetingNode(BaseNode):
                 # Success case
                 meeting_id = f"MTG_{random.randint(1000, 9999)}"
                 success_message = (
-                    f"✅ Meeting scheduled successfully! "
+                    f"✅ Meeting scheduled successfully! \n"
                     f"Meeting ID: {meeting_id}. "
                     f"Title: {state.meeting_details.title or 'Meeting'}, "
                     f"Time: {state.meeting_details.date_time or 'TBD'}"

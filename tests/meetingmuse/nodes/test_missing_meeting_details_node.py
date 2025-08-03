@@ -30,7 +30,7 @@ class TestPromptMissingMeetingDetailsNode:
     @pytest.fixture
     def node(self, mock_logger, meeting_service):
         """Create a PromptMissingMeetingDetailsNode instance with real meeting service."""
-        return PromptMissingMeetingDetailsNode(mock_logger, meeting_service)
+        return PromptMissingMeetingDetailsNode(meeting_service, mock_logger)
 
     @pytest.fixture
     def complete_meeting_state(self):

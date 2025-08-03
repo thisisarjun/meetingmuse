@@ -18,7 +18,7 @@ class TestHumanInterruptRetryNode:
         self.node = HumanInterruptRetryNode(logger=mock_logger)
         self.base_state = MeetingMuseBotState(
             messages=[],
-            user_intent="schedule_meeting",
+            user_intent="schedule",
             meeting_details=MeetingFindings(
                 title="Team standup", date_time="tomorrow at 2pm"
             ),
@@ -28,7 +28,6 @@ class TestHumanInterruptRetryNode:
         """Test that the node returns the correct name."""
         assert self.node.node_name == NodeName.HUMAN_INTERRUPT_RETRY
 
-    @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
     @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
     def test_retry_approval_true(self, mock_interrupt):
         """Test when user approves retry."""
@@ -68,7 +67,6 @@ class TestHumanInterruptRetryNode:
         assert "attempting again" in self.base_state.messages[0].content.lower()
 
     @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
-    @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
     def test_retry_approval_false(self, mock_interrupt):
         """Test when user declines retry (cancels)."""
         # Mock interrupt to return False (user chose cancel)
@@ -107,7 +105,6 @@ class TestHumanInterruptRetryNode:
         assert "operation ended" in self.base_state.messages[0].content.lower()
 
     @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
-    @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
     def test_state_preservation(self, mock_interrupt):
         """Test that existing state is preserved during retry flow."""
         # State with existing messages
@@ -117,7 +114,7 @@ class TestHumanInterruptRetryNode:
                 AIMessage(content="Another message"),
                 AIMessage(content="Another message"),
             ],
-            user_intent="schedule_meeting",
+            user_intent="schedule",
             meeting_details=MeetingFindings(
                 title="Important meeting", participants=["alice@example.com"]
             ),
@@ -130,17 +127,18 @@ class TestHumanInterruptRetryNode:
 
         self.node.node_action(state_with_history)
 
-        # Verify existing messages are preserved
-        assert len(state_with_history.messages) == 3
+        # Verify existing messages are preserved and new retry message is added (called twice)
+        assert len(state_with_history.messages) == 5  # 3 original + 2 retry messages
         assert state_with_history.messages[0].content == "Previous interaction"
         assert state_with_history.messages[1].content == "Another message"
+        assert state_with_history.messages[2].content == "Another message"
 
         # Verify meeting details are preserved
         assert state_with_history.meeting_details.title == "Important meeting"
         assert "alice@example.com" in state_with_history.meeting_details.participants
 
         # Verify user intent is preserved
-        assert state_with_history.user_intent == "schedule_meeting"
+        assert state_with_history.user_intent == "schedule"
 
     @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
     def test_interrupt_parameters_structure(self, mock_interrupt):

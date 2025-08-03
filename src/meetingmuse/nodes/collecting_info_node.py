@@ -28,10 +28,10 @@ class CollectingInfoNode(BaseNode):
     parser: PydanticOutputParser[MeetingFindings]
     prompt: ChatPromptTemplate
     chain: Runnable[Dict[str, Any], MeetingFindings]
-    logger: Logger
     meeting_service: MeetingDetailsService
 
     def __init__(self, model: HuggingFaceModel, logger: Logger) -> None:
+        super().__init__(logger)
         self.model = model
         self.parser = PydanticOutputParser(pydantic_object=MeetingFindings)
         self.prompt = ChatPromptTemplate.from_messages(
@@ -40,8 +40,7 @@ class CollectingInfoNode(BaseNode):
             ]
         )
         self.chain = self.prompt | self.model.chat_model | self.parser
-        self.logger = logger
-        self.meeting_service = MeetingDetailsService(model, logger)
+        self.meeting_service = MeetingDetailsService(model, self.logger)
 
     def get_next_node_name(self, state: MeetingMuseBotState) -> NodeName:
         self.logger.info(f"Getting next node name: {state.meeting_details}")

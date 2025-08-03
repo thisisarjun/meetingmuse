@@ -15,15 +15,11 @@ class HumanInterruptRetryNode(BaseNode):
     This node uses interrupt() and Command() for proper human-in-the-loop workflow.
     """
 
-    logger: Logger
-
     def __init__(self, logger: Logger) -> None:
-        """Initialize the node with logger."""
-        self.logger = logger
+        super().__init__(logger)
 
     def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
-        if self.logger:
-            self.logger.info("Human interrupt requested")
+        self.logger.info("Human interrupt requested")
 
         # Use LangGraph's interrupt() for human decision
         approval: Any = interrupt(
@@ -38,14 +34,14 @@ class HumanInterruptRetryNode(BaseNode):
         if approval:
             # User chose to retry - go back to API call
             retry_message: str = "User chose to retry. Attempting again..."
-            if self.logger:
-                self.logger.info("User chose to retry operation")
+
+            self.logger.info("User chose to retry operation")
             state.messages.append(AIMessage(content=retry_message))
             return Command(goto=NodeName.SCHEDULE_MEETING)
         # User chose to cancel - end the operation
         cancel_message: str = "User chose to cancel. Operation ended."
-        if self.logger:
-            self.logger.info("User chose to cancel operation")
+
+        self.logger.info("User chose to cancel operation")
         state.messages.append(AIMessage(content=cancel_message))
         return Command(goto=NodeName.END)
 

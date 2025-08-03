@@ -28,13 +28,13 @@ conversation_router = ConversationRouter(logger)
 model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
 intent_classifier = IntentClassifier(model)
 classify_intent_node = ClassifyIntentNode(intent_classifier)
-greeting_node = GreetingNode(model)
+greeting_node = GreetingNode(model, logger)
 collecting_info_node = CollectingInfoNode(model, logger)
-clarify_request_node = ClarifyRequestNode(model)
+clarify_request_node = ClarifyRequestNode(model, logger)
 meeting_details_service = MeetingDetailsService(model, logger)
 human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
 prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
-    logger, meeting_details_service
+    meeting_details_service, logger
 )
 schedule_meeting_node = ScheduleMeetingNode(model, logger)
 human_interrupt_retry_node = HumanInterruptRetryNode(logger)
@@ -74,7 +74,7 @@ class ChatBot:
                 for _resume_chunk in self.graph.stream(
                     Command(resume=user_input), self.config, stream_mode="values"
                 ):
-                    print(f"🆔 resume_chunk: {_resume_chunk}")
+                    pass
                 return
 
             message = self.get_last_message(events)

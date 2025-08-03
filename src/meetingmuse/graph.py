@@ -136,13 +136,3 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
         graph_builder.add_edge(self.end_node.node_name, END)
 
         return graph_builder.compile(checkpointer=InMemorySaver())
-
-    def draw_graph(self) -> None:
-        try:
-            graph: Any = self.build()
-            with open("graph.png", "wb") as f:
-                f.write(graph.get_graph().draw_mermaid_png())
-            print("Graph saved as graph.png")
-        except Exception as e:
-            print(f"Could not generate graph: {e}")
-            raise e

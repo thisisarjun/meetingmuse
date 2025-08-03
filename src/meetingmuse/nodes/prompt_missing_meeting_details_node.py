@@ -9,11 +9,10 @@ from meetingmuse.utils.logger import Logger
 
 class PromptMissingMeetingDetailsNode(BaseNode):
     meeting_service: MeetingDetailsService
-    logger: Logger
 
-    def __init__(self, logger: Logger, meeting_service: MeetingDetailsService) -> None:
+    def __init__(self, meeting_service: MeetingDetailsService, logger: Logger) -> None:
+        super().__init__(logger)
         self.meeting_service = meeting_service
-        self.logger = logger
 
     def get_next_node(self, state: MeetingMuseBotState) -> NodeName:
         if not state.operation_status.ai_prompt_input:

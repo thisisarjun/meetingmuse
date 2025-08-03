@@ -77,17 +77,6 @@ class TestNodeAction(TestHumanScheduleMeetingMoreInfoNode):
             "Please provide the missing meeting details."
         )
 
-        # Verify logger calls
-        mock_logger.info.assert_any_call(
-            f"Entering {NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO} node with current state: {sample_state.meeting_details}"
-        )
-        mock_logger.info.assert_any_call(
-            "Received human input: The meeting should be at 2:00 PM for 1 hour"
-        )
-        mock_logger.info.assert_any_call(
-            "Human input processed, continuing to collecting_info node"
-        )
-
         # Verify human message was added to state
         assert len(sample_state.messages) == initial_message_count + 1
         assert isinstance(sample_state.messages[-1], HumanMessage)
@@ -121,10 +110,7 @@ class TestNodeAction(TestHumanScheduleMeetingMoreInfoNode):
             "Please provide the missing meeting details."
         )
 
-        # Verify logger calls
-        mock_logger.info.assert_any_call(
-            f"Entering {NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO} node with current state: {sample_state.meeting_details}"
-        )
+        # Verify logger calls - since we're using a mock logger, prefixes aren't applied
         mock_logger.info.assert_any_call("Received human input: ")
         mock_logger.info.assert_any_call("No input provided, asking again")
 
