@@ -8,6 +8,7 @@ from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.utils.decorators.log_decorator import log_node_entry
 from meetingmuse.utils.logger import Logger
 
 
@@ -25,6 +26,7 @@ class ScheduleMeetingNode(BaseNode):
         super().__init__(logger)
         self.model = model
 
+    @log_node_entry(NodeName.SCHEDULE_MEETING)
     def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
         # Check if user intent is schedule
         if state.user_intent != UserIntent.SCHEDULE_MEETING:

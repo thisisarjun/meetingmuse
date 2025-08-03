@@ -1,6 +1,7 @@
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.utils.decorators.log_decorator import log_node_entry
 
 
 class EndNode(BaseNode):
@@ -8,6 +9,7 @@ class EndNode(BaseNode):
     This node will be the final node before reaching END
     """
 
+    @log_node_entry(NodeName.END)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         # revert the state to initial state
         state = MeetingMuseBotState()

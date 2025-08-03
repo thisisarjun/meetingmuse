@@ -6,6 +6,7 @@ from langgraph.types import Command, interrupt
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.utils.decorators.log_decorator import log_node_entry
 from meetingmuse.utils.logger import Logger
 
 
@@ -18,6 +19,7 @@ class HumanInterruptRetryNode(BaseNode):
     def __init__(self, logger: Logger) -> None:
         super().__init__(logger)
 
+    @log_node_entry(NodeName.HUMAN_INTERRUPT_RETRY)
     def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
         self.logger.info("Human interrupt requested")
 

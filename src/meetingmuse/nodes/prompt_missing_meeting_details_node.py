@@ -4,6 +4,7 @@ from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
+from meetingmuse.utils.decorators.log_decorator import log_node_entry
 from meetingmuse.utils.logger import Logger
 
 
@@ -19,9 +20,8 @@ class PromptMissingMeetingDetailsNode(BaseNode):
             return NodeName.END
         return NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO
 
+    @log_node_entry(NodeName.PROMPT_MISSING_MEETING_DETAILS)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
-        self.logger.info(f"Entering {self.node_name} node...")
-
         missing_fields: List[str] = self.meeting_service.get_missing_required_fields(
             state.meeting_details
         )

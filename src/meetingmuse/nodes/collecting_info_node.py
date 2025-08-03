@@ -14,6 +14,7 @@ from meetingmuse.prompts.schedule_meeting_collecting_info_prompt import (
     SCHEDULE_MEETING_COLLECTING_INFO_PROMPT,
 )
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
+from meetingmuse.utils.decorators.log_decorator import log_node_entry
 from meetingmuse.utils.logger import Logger
 
 
@@ -42,6 +43,7 @@ class CollectingInfoNode(BaseNode):
         self.chain = self.prompt | self.model.chat_model | self.parser
         self.meeting_service = MeetingDetailsService(model, self.logger)
 
+    @log_node_entry(NodeName.COLLECTING_INFO)
     def get_next_node_name(self, state: MeetingMuseBotState) -> NodeName:
         self.logger.info(f"Getting next node name: {state.meeting_details}")
         if state.meeting_details and self.meeting_service.is_meeting_details_complete(
