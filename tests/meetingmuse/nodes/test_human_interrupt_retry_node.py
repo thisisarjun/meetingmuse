@@ -29,6 +29,7 @@ class TestHumanInterruptRetryNode:
         assert self.node.node_name == NodeName.HUMAN_INTERRUPT_RETRY
 
     @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
+    @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
     def test_retry_approval_true(self, mock_interrupt):
         """Test when user approves retry."""
         # Mock interrupt to return True (user chose retry)
@@ -38,6 +39,15 @@ class TestHumanInterruptRetryNode:
         result = self.node.node_action(self.base_state)
 
         # Verify interrupt was called with correct parameters
+        mock_interrupt.assert_called_once_with(
+            {
+                "type": "operation_approval",
+                "message": "Meeting scheduling failed. Would you like to retry?",
+                "question": "Would you like to retry this operation?",
+                "options": ["retry", "cancel"],
+            }
+        )
+
         mock_interrupt.assert_called_once_with(
             {
                 "type": "operation_approval",
@@ -58,6 +68,7 @@ class TestHumanInterruptRetryNode:
         assert "attempting again" in self.base_state.messages[0].content.lower()
 
     @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
+    @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
     def test_retry_approval_false(self, mock_interrupt):
         """Test when user declines retry (cancels)."""
         # Mock interrupt to return False (user chose cancel)
@@ -67,6 +78,15 @@ class TestHumanInterruptRetryNode:
         result = self.node.node_action(self.base_state)
 
         # Verify interrupt was called with correct parameters
+        mock_interrupt.assert_called_once_with(
+            {
+                "type": "operation_approval",
+                "message": "Meeting scheduling failed. Would you like to retry?",
+                "question": "Would you like to retry this operation?",
+                "options": ["retry", "cancel"],
+            }
+        )
+
         mock_interrupt.assert_called_once_with(
             {
                 "type": "operation_approval",
@@ -87,12 +107,14 @@ class TestHumanInterruptRetryNode:
         assert "operation ended" in self.base_state.messages[0].content.lower()
 
     @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
+    @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
     def test_state_preservation(self, mock_interrupt):
         """Test that existing state is preserved during retry flow."""
         # State with existing messages
         state_with_history = MeetingMuseBotState(
             messages=[
                 AIMessage(content="Previous interaction"),
+                AIMessage(content="Another message"),
                 AIMessage(content="Another message"),
             ],
             user_intent="schedule_meeting",
@@ -104,6 +126,8 @@ class TestHumanInterruptRetryNode:
         mock_interrupt.return_value = True
 
         # Execute node action
+        self.node.node_action(state_with_history)
+
         self.node.node_action(state_with_history)
 
         # Verify existing messages are preserved
@@ -147,6 +171,8 @@ class TestHumanInterruptRetryNode:
         assert isinstance(self.node, BaseNode)
 
         # Verify required methods exist
+        assert hasattr(self.node, "node_action")
+        assert hasattr(self.node, "node_name")
         assert hasattr(self.node, "node_action")
         assert hasattr(self.node, "node_name")
         assert callable(self.node.node_action)
