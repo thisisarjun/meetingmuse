@@ -8,7 +8,7 @@ from typing import Any, AsyncGenerator, Dict, Optional
 
 from langchain_core.messages import AIMessage
 
-from ..langgraph.langgraph_factory import LangGraphSingletonFactory
+from .langgraph_factory import LangGraphSingletonFactory
 
 logger = logging.getLogger(__name__)
 
