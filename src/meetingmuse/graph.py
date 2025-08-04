@@ -30,6 +30,8 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
     clarify_request_node: ClarifyRequestNode
     collecting_info_node: CollectingInfoNode
     classify_intent_node: ClassifyIntentNode
+    schedule_meeting_node: ScheduleMeetingNode
+    human_interrupt_retry_node: HumanInterruptRetryNode
     conversation_router: ConversationRouter
     human_schedule_meeting_more_info_node: HumanScheduleMeetingMoreInfoNode
     prompt_missing_meeting_details_node: PromptMissingMeetingDetailsNode
@@ -81,6 +83,13 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
         graph_builder.add_node(
             self.human_schedule_meeting_more_info_node.node_name,
             self.human_schedule_meeting_more_info_node.node_action,
+        )
+        graph_builder.add_node(
+            self.schedule_meeting_node.node_name, self.schedule_meeting_node.node_action
+        )
+        graph_builder.add_node(
+            self.human_interrupt_retry_node.node_name,
+            self.human_interrupt_retry_node.node_action,
         )
         graph_builder.add_edge(START, self.classify_intent_node.node_name)
         # add conditional route using the routing service

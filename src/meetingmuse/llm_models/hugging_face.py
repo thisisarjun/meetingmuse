@@ -11,7 +11,6 @@ class HuggingFaceModel:
         self.model_name = model_name
         self.llm = HuggingFaceEndpoint(
             repo_id=self.model_name,
-            model=self.model_name,
             huggingfacehub_api_token=config.HUGGINGFACE_API_TOKEN,
         )
 
