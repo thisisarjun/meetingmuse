@@ -1,4 +1,4 @@
-.PHONY: help install dev-install test test-verbose test-coverage clean lint format type-check run build docs poetry-install poetry-update poetry-shell
+.PHONY: help install dev-install test test-verbose test-coverage clean lint format type-check run run-server build docs poetry-install poetry-update poetry-shell
 
 # Colors for output
 RED := \033[31m
@@ -35,6 +35,7 @@ help:
 	@echo ""
 	@echo "$(BOLD)$(GREEN)Running & Building:$(RESET)"
 	@echo "  $(YELLOW)run$(RESET)             - Run the MeetingMuse CLI"
+	@echo "  $(YELLOW)run-server$(RESET)      - Run the WebSocket server locally"
 	@echo "  $(YELLOW)build$(RESET)           - Build the package with Poetry"
 	@echo ""
 	@echo "$(BOLD)$(GREEN)Maintenance:$(RESET)"
@@ -123,6 +124,10 @@ clean:
 # Run application with Poetry
 run:
 	poetry run python src/main.py
+
+# Run WebSocket server locally
+run-server:
+	poetry run python -m src.meetingmuse_server.main
 
 # Build with Poetry
 build: clean
