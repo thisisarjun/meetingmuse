@@ -7,6 +7,7 @@ import asyncio
 import websockets
 import json
 import sys
+import aiohttp
 from datetime import datetime
 
 
@@ -105,8 +106,7 @@ async def test_websocket_client():
 
 
 async def test_admin_endpoints():
-    """Test admin endpoints using HTTP requests"""
-    import aiohttp
+    """Test admin endpoints using HTTP requests"""    
     
     print("Testing admin endpoints...")
     
