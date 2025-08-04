@@ -12,6 +12,9 @@ from unittest.mock import Mock
 
 class MockBaseModel:
     def __init__(self, **kwargs):
+        # Set defaults for known models
+        if hasattr(self, '_set_defaults'):
+            self._set_defaults()
         for key, value in kwargs.items():
             setattr(self, key, value)
     
@@ -26,7 +29,7 @@ sys.modules['pydantic'] = Mock()
 sys.modules['pydantic'].BaseModel = MockBaseModel
 sys.modules['pydantic'].Field = MockField
 
-from meetingmuse_server.message_protocol import MessageProtocol
+from server.models.message_protocol import MessageProtocol
 
 
 class TestMessageProtocol:

@@ -12,9 +12,8 @@ class HumanInterruptRetryNode(BaseNode):
     This node uses interrupt() and Command() for proper human-in-the-loop workflow.
     """
     
-    def __init__(self, model=None, logger=None):
-        """Initialize the node with optional model and logger."""
-        self.model = model
+    def __init__(self, logger=None):
+        """Initialize the node with optional logger."""
         self.logger = logger
     
     def node_action(self, state: MeetingMuseBotState) -> Command[Literal["schedule_meeting", "__end__"]]:

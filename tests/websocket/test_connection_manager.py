@@ -28,7 +28,7 @@ class MockField:
 sys.modules['pydantic'].BaseModel = MockBaseModel
 sys.modules['pydantic'].Field = MockField
 
-from meetingmuse_server.connection_manager import ConnectionManager
+from server.services.connection_manager import ConnectionManager
 
 
 @pytest.fixture

@@ -4,7 +4,7 @@ Entry point for the MeetingMuse WebSocket server
 """
 import uvicorn
 import logging
-from .websocket_routes import app
+from .api.websocket_routes import app
 
 logger = logging.getLogger(__name__)
 

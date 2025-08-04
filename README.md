@@ -80,9 +80,12 @@ make quality
 make clean
 ```
 
-### Running the Application
+### Running the WebSocket Server
 
 ```bash
+# Using the demo script (recommended)
+./demo.sh
+
 # Using Poetry
 poetry run python src/main.py
 

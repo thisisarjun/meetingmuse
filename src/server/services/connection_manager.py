@@ -8,7 +8,7 @@ import json
 import logging
 from datetime import datetime
 
-from .constants import SystemMessageTypes
+from ..constants import SystemMessageTypes
 
 logger = logging.getLogger(__name__)
 
@@ -109,13 +109,14 @@ class ConnectionManager:
             logger.error(f"Failed to send message to client {client_id}: {str(e)}")
             return False
     
-    async def send_system_message(self, client_id: str, system_type: str) -> bool:
+    async def send_system_message(self, client_id: str, system_type: str, additional_data: dict = None) -> bool:
         """
         Send a system message to a specific client
         
         Args:
             client_id: Target client identifier
             system_type: Type of system message (see SystemMessageTypes constants)
+            additional_data: Optional additional data to include in the message
             
         Returns:
             bool: True if message was sent successfully, False otherwise
@@ -132,6 +133,10 @@ class ConnectionManager:
                 "timestamp": datetime.now().isoformat()
             }
             
+            # Add additional data if provided
+            if additional_data:
+                system_message["metadata"] = additional_data
+            
             await websocket.send_text(json.dumps(system_message))
             return True
             
@@ -139,7 +144,7 @@ class ConnectionManager:
             logger.error(f"Failed to send system message to client {client_id}: {str(e)}")
             return False
     
-    async def send_error_message(self, client_id: str, error_code: str, message: str, retry_suggested: bool = True) -> bool:
+    async def send_error_message(self, client_id: str, error_code: str, message: str, retry_suggested: bool = True, additional_metadata: dict = None) -> bool:
         """
         Send an error message to a specific client
         
@@ -148,6 +153,7 @@ class ConnectionManager:
             error_code: Error code identifier
             message: Human-readable error message
             retry_suggested: Whether client should retry the operation
+            additional_metadata: Optional additional metadata to include
             
         Returns:
             bool: True if message was sent successfully, False otherwise
@@ -165,6 +171,10 @@ class ConnectionManager:
                 "timestamp": datetime.now().isoformat(),
                 "retry_suggested": retry_suggested
             }
+            
+            # Add additional metadata if provided
+            if additional_metadata:
+                error_response["metadata"] = additional_metadata
             
             await websocket.send_text(json.dumps(error_response))
             return True
