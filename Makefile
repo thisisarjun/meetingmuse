@@ -130,7 +130,7 @@ build: clean
 
 # Documentation & Graph generation
 build-graph:
-	poetry run python tests/scripts/generate_graph.py
+	poetry run python scripts/generate_graph.py
 docs:
 	@echo "Documentation generation not yet configured"
 	@echo "Run: poetry add --group dev sphinx sphinx-rtd-theme"

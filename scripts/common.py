@@ -40,7 +40,9 @@ def initialize_nodes() -> dict[str, Any]:
 
     return {
         "conversation_router": ConversationRouter(logger),
+        "intent_classifier": intent_classifier,
         "model": model,
+        "meeting_details_service": meeting_details_service,
         NodeName.CLASSIFY_INTENT: classify_intent_node,
         NodeName.GREETING: greeting_node,
         NodeName.COLLECTING_INFO: collecting_info_node,
