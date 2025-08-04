@@ -1,6 +1,8 @@
 import pytest
+
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.utils import Logger
+
 
 @pytest.mark.skip(reason="Real model test")
 def test_hugging_face_model():

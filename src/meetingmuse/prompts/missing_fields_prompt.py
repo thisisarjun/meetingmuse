@@ -14,7 +14,7 @@ CRITICAL INSTRUCTIONS:
 
 REQUIRED FIELDS REFERENCE:
 - title: Meeting purpose/subject
-- date_time: Date and time for the meeting  
+- date_time: Date and time for the meeting
 - participants: Who should attend the meeting
 - duration: How long the meeting should be
 

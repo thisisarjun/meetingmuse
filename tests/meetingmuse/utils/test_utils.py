@@ -1,9 +1,9 @@
 import pytest
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
-from meetingmuse.utils.utils import Utils
-from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.models.meeting import MeetingFindings
+from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.utils.utils import Utils
 
 
 class TestUtils:
@@ -12,17 +12,14 @@ class TestUtils:
     @pytest.fixture
     def empty_state(self):
         """Create a state with no messages."""
-        return MeetingMuseBotState(
-            messages=[],
-            meeting_details=MeetingFindings()
-        )
+        return MeetingMuseBotState(messages=[], meeting_details=MeetingFindings())
 
     @pytest.fixture
     def state_with_human_message(self):
         """Create a state with only a human message."""
         return MeetingMuseBotState(
             messages=[HumanMessage(content="Hello, I need help")],
-            meeting_details=MeetingFindings()
+            meeting_details=MeetingFindings(),
         )
 
     @pytest.fixture
@@ -30,7 +27,7 @@ class TestUtils:
         """Create a state with only an AI message."""
         return MeetingMuseBotState(
             messages=[AIMessage(content="How can I help you?")],
-            meeting_details=MeetingFindings()
+            meeting_details=MeetingFindings(),
         )
 
     @pytest.fixture
@@ -41,9 +38,9 @@ class TestUtils:
                 HumanMessage(content="First human message"),
                 AIMessage(content="First AI response"),
                 HumanMessage(content="Second human message"),
-                AIMessage(content="Second AI response")
+                AIMessage(content="Second AI response"),
             ],
-            meeting_details=MeetingFindings()
+            meeting_details=MeetingFindings(),
         )
 
     @pytest.fixture
@@ -52,9 +49,9 @@ class TestUtils:
         return MeetingMuseBotState(
             messages=[
                 AIMessage(content="AI message"),
-                HumanMessage(content="Last human message")
+                HumanMessage(content="Last human message"),
             ],
-            meeting_details=MeetingFindings()
+            meeting_details=MeetingFindings(),
         )
 
     @pytest.fixture
@@ -63,9 +60,9 @@ class TestUtils:
         return MeetingMuseBotState(
             messages=[
                 HumanMessage(content="Human message"),
-                AIMessage(content="Last AI message")
+                AIMessage(content="Last AI message"),
             ],
-            meeting_details=MeetingFindings()
+            meeting_details=MeetingFindings(),
         )
 
 
@@ -76,7 +73,7 @@ class TestIsLastMessageHuman(TestUtils):
         """Test returns True when last message is from human."""
         # Act
         result = Utils.is_last_message_human(state_ending_with_human)
-        
+
         # Assert
         assert result is True
 
@@ -84,15 +81,17 @@ class TestIsLastMessageHuman(TestUtils):
         """Test returns False when last message is from AI."""
         # Act
         result = Utils.is_last_message_human(state_ending_with_ai)
-        
+
         # Assert
         assert result is False
 
-    def test_is_last_message_human_with_single_human_message(self, state_with_human_message):
+    def test_is_last_message_human_with_single_human_message(
+        self, state_with_human_message
+    ):
         """Test returns True when only message is from human."""
         # Act
         result = Utils.is_last_message_human(state_with_human_message)
-        
+
         # Assert
         assert result is True
 
@@ -100,7 +99,7 @@ class TestIsLastMessageHuman(TestUtils):
         """Test returns False when only message is from AI."""
         # Act
         result = Utils.is_last_message_human(state_with_ai_message)
-        
+
         # Assert
         assert result is False
 
@@ -118,7 +117,7 @@ class TestIsLastMessageAI(TestUtils):
         """Test returns True when last message is from AI."""
         # Act
         result = Utils.is_last_message_ai(state_ending_with_ai)
-        
+
         # Assert
         assert result is True
 
@@ -126,7 +125,7 @@ class TestIsLastMessageAI(TestUtils):
         """Test returns False when last message is from human."""
         # Act
         result = Utils.is_last_message_ai(state_ending_with_human)
-        
+
         # Assert
         assert result is False
 
@@ -134,15 +133,17 @@ class TestIsLastMessageAI(TestUtils):
         """Test returns True when only message is from AI."""
         # Act
         result = Utils.is_last_message_ai(state_with_ai_message)
-        
+
         # Assert
         assert result is True
 
-    def test_is_last_message_ai_with_single_human_message(self, state_with_human_message):
+    def test_is_last_message_ai_with_single_human_message(
+        self, state_with_human_message
+    ):
         """Test returns False when only message is from human."""
         # Act
         result = Utils.is_last_message_ai(state_with_human_message)
-        
+
         # Assert
         assert result is False
 
@@ -160,7 +161,7 @@ class TestGetLastMessage(TestUtils):
         """Test gets last human message when type is 'human'."""
         # Act
         result = Utils.get_last_message(state_with_mixed_messages, "human")
-        
+
         # Assert
         assert result == "Second human message"
 
@@ -168,7 +169,7 @@ class TestGetLastMessage(TestUtils):
         """Test gets last AI message when type is 'ai'."""
         # Act
         result = Utils.get_last_message(state_with_mixed_messages, "ai")
-        
+
         # Assert
         assert result == "Second AI response"
 
@@ -176,15 +177,17 @@ class TestGetLastMessage(TestUtils):
         """Test returns None when searching for human message but only AI messages exist."""
         # Act
         result = Utils.get_last_message(state_with_ai_message, "human")
-        
+
         # Assert
         assert result is None
 
-    def test_get_last_message_ai_type_only_human_messages(self, state_with_human_message):
+    def test_get_last_message_ai_type_only_human_messages(
+        self, state_with_human_message
+    ):
         """Test returns None when searching for AI message but only human messages exist."""
         # Act
         result = Utils.get_last_message(state_with_human_message, "ai")
-        
+
         # Assert
         assert result is None
 
@@ -192,7 +195,7 @@ class TestGetLastMessage(TestUtils):
         """Test gets human message when only one human message exists."""
         # Act
         result = Utils.get_last_message(state_with_human_message, "human")
-        
+
         # Assert
         assert result == "Hello, I need help"
 
@@ -200,7 +203,7 @@ class TestGetLastMessage(TestUtils):
         """Test gets AI message when only one AI message exists."""
         # Act
         result = Utils.get_last_message(state_with_ai_message, "ai")
-        
+
         # Assert
         assert result == "How can I help you?"
 
@@ -212,14 +215,14 @@ class TestGetLastMessage(TestUtils):
                 HumanMessage(content="First human"),
                 HumanMessage(content="Second human"),
                 AIMessage(content="AI response"),
-                HumanMessage(content="Third human")
+                HumanMessage(content="Third human"),
             ],
-            meeting_details=MeetingFindings()
+            meeting_details=MeetingFindings(),
         )
-        
+
         # Act
         result = Utils.get_last_message(state, "human")
-        
+
         # Assert
         assert result == "Third human"
 
@@ -233,21 +236,21 @@ class TestGetLastMessageFromEvents(TestUtils):
         events = {
             "node1": MeetingMuseBotState(
                 messages=[HumanMessage(content="First human")],
-                meeting_details=MeetingFindings()
+                meeting_details=MeetingFindings(),
             ),
             "node2": MeetingMuseBotState(
                 messages=[AIMessage(content="AI response")],
-                meeting_details=MeetingFindings()
+                meeting_details=MeetingFindings(),
             ),
             "node3": MeetingMuseBotState(
                 messages=[HumanMessage(content="Last human")],
-                meeting_details=MeetingFindings()
-            )
+                meeting_details=MeetingFindings(),
+            ),
         }
-        
+
         # Act
         result = Utils.get_last_message_from_events(events, "human")
-        
+
         # Assert
         assert result == "Last human"
 
@@ -257,21 +260,21 @@ class TestGetLastMessageFromEvents(TestUtils):
         events = {
             "node1": MeetingMuseBotState(
                 messages=[AIMessage(content="First AI")],
-                meeting_details=MeetingFindings()
+                meeting_details=MeetingFindings(),
             ),
             "node2": MeetingMuseBotState(
                 messages=[HumanMessage(content="Human message")],
-                meeting_details=MeetingFindings()
+                meeting_details=MeetingFindings(),
             ),
             "node3": MeetingMuseBotState(
                 messages=[AIMessage(content="Last AI")],
-                meeting_details=MeetingFindings()
-            )
+                meeting_details=MeetingFindings(),
+            ),
         }
-        
+
         # Act
         result = Utils.get_last_message_from_events(events, "ai")
-        
+
         # Assert
         assert result == "Last AI"
 
@@ -281,13 +284,13 @@ class TestGetLastMessageFromEvents(TestUtils):
         events = {
             "node1": MeetingMuseBotState(
                 messages=[AIMessage(content="Only AI message")],
-                meeting_details=MeetingFindings()
+                meeting_details=MeetingFindings(),
             )
         }
-        
+
         # Act
         result = Utils.get_last_message_from_events(events, "human")
-        
+
         # Assert
         assert result is None
 
@@ -295,10 +298,10 @@ class TestGetLastMessageFromEvents(TestUtils):
         """Test returns None when events dict is empty."""
         # Arrange
         events = {}
-        
+
         # Act
         result = Utils.get_last_message_from_events(events, "human")
-        
+
         # Assert
         assert result is None
 
@@ -307,18 +310,16 @@ class TestGetLastMessageFromEvents(TestUtils):
         # Arrange
         events = {
             "node1": MeetingMuseBotState(
-                messages=[],
-                meeting_details=MeetingFindings()
+                messages=[], meeting_details=MeetingFindings()
             ),
             "node2": MeetingMuseBotState(
-                messages=[],
-                meeting_details=MeetingFindings()
-            )
+                messages=[], meeting_details=MeetingFindings()
+            ),
         }
-        
+
         # Act
         result = Utils.get_last_message_from_events(events, "human")
-        
+
         # Assert
         assert result is None
 
@@ -327,34 +328,32 @@ class TestGetLastMessageFromEvents(TestUtils):
         # Arrange
         events = {
             "node1": MeetingMuseBotState(
-                messages=[],
-                meeting_details=MeetingFindings()
+                messages=[], meeting_details=MeetingFindings()
             ),
             "node2": MeetingMuseBotState(
                 messages=[HumanMessage(content="Found message")],
-                meeting_details=MeetingFindings()
+                meeting_details=MeetingFindings(),
             ),
             "node3": MeetingMuseBotState(
-                messages=[],
-                meeting_details=MeetingFindings()
-            )
+                messages=[], meeting_details=MeetingFindings()
+            ),
         }
-        
+
         # Act
         result = Utils.get_last_message_from_events(events, "human")
-        
+
         # Assert
         assert result == "Found message"
 
     def test_get_last_message_from_events_invalid_state_type(self):
         """Test raises AssertionError when state is not MeetingMuseBotState."""
         # Arrange
-        events = {
-            "node1": "not a state object"
-        }
-        
+        events = {"node1": "not a state object"}
+
         # Act & Assert
-        with pytest.raises(AssertionError, match="State for node node1 is not a MeetingMuseBotState"):
+        with pytest.raises(
+            AssertionError, match="State for node node1 is not a MeetingMuseBotState"
+        ):
             Utils.get_last_message_from_events(events, "human")
 
     def test_get_last_message_from_events_multiple_messages_per_state(self):
@@ -365,21 +364,19 @@ class TestGetLastMessageFromEvents(TestUtils):
                 messages=[
                     HumanMessage(content="First in node1"),
                     AIMessage(content="AI in node1"),
-                    HumanMessage(content="Last in node1")
+                    HumanMessage(content="Last in node1"),
                 ],
-                meeting_details=MeetingFindings()
+                meeting_details=MeetingFindings(),
             ),
             "node2": MeetingMuseBotState(
-                messages=[
-                    HumanMessage(content="Only in node2")
-                ],
-                meeting_details=MeetingFindings()
-            )
+                messages=[HumanMessage(content="Only in node2")],
+                meeting_details=MeetingFindings(),
+            ),
         }
-        
+
         # Act
         result = Utils.get_last_message_from_events(events, "human")
-        
+
         # Assert
         # Should get the last human message from the last processed state
         assert result in ["Last in node1", "Only in node2"]
