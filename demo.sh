@@ -18,7 +18,7 @@ start_server() {
     echo ""
     echo "Press Ctrl+C to stop the server"
     echo ""
-    
+
     python -m meetingmuse_server.main
 }
 
@@ -26,9 +26,9 @@ start_server() {
 run_tests() {
     echo "🧪 Running Integration Tests..."
     echo ""
-    
+
     python tests/websocket/test_integration.py
-    
+
     echo ""
     echo "✅ Tests completed!"
 }

@@ -25,7 +25,7 @@ This implementation integrates the MeetingMuse LangGraph conversation engine wit
 ```
 src/meetingmuse_server/
 ├── langgraph_factory.py       # LangGraph initialization and setup
-├── message_processor.py       # LangGraph message processing logic  
+├── message_processor.py       # LangGraph message processing logic
 ├── conversation_manager.py    # Conversation state and recovery
 ├── streaming_handler.py       # Real-time response streaming
 ├── websocket_routes.py        # Updated with LangGraph processing

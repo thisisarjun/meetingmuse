@@ -16,7 +16,7 @@ This PRD outlines the implementation of a WebSocket server.
 ## Architecture Overview
 
 ```
-Client (Web/Mobile) 
+Client (Web/Mobile)
     ↓ WebSocket Connection
 FastAPI WebSocket Server
     ↓ State Management
@@ -41,7 +41,7 @@ class ConnectionManager:
 
 #### `/ws/{client_id}`
 - **Purpose**: Main chat endpoint for conversation
-- **Parameters**: 
+- **Parameters**:
   - `client_id`: Unique identifier for client session
 - **Flow**:
   1. Accept WebSocket connection
@@ -91,14 +91,14 @@ class ConnectionManager:
 async def process_message(websocket: WebSocket, client_id: str, message: str):
     # ConnectionManager handles WebSocket connections
     # client_id maps directly to LangGraph thread_id
-    
+
     # Process through existing LangGraph workflow
     graph = build_conversation_graph()
     result = await graph.ainvoke(
         {"messages": [HumanMessage(content=message)]},
         config={"configurable": {"thread_id": client_id}}
     )
-    
+
     # Send response via WebSocket
     await send_response(websocket, result)
 ```
@@ -171,7 +171,7 @@ async def process_message(websocket: WebSocket, client_id: str, message: str):
 - test_connection_cleanup()
 - test_message_broadcasting()
 
-# Message Processing Tests  
+# Message Processing Tests
 - test_user_message_processing()
 - test_langgraph_integration()
 - test_state_persistence()
@@ -233,7 +233,7 @@ src/meetingmuse/
 
 ## Security Considerations
 
-1. **Rate Limiting**: Prevent abuse with per-client message limits  
+1. **Rate Limiting**: Prevent abuse with per-client message limits
 2. **Input Validation**: Sanitize all incoming messages
 3. **Connection Limits**: Maximum concurrent connections per client
 4. **CORS**: Configure appropriate CORS policies for WebSocket endpoints

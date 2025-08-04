@@ -5,7 +5,7 @@
 ### Architecture Overview
 
 ```
-Client (Web/Mobile) 
+Client (Web/Mobile)
     ↓ WebSocket Connection
 FastAPI WebSocket Server
     ↓ State Management

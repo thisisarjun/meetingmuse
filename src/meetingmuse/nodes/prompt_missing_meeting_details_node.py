@@ -1,35 +1,55 @@
-from meetingmuse.nodes.base_node import BaseNode
+from typing import List
+
+from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.utils.logger import Logger
-from meetingmuse.models.node import NodeName
-from langgraph.types import Command, interrupt
 
 
 class PromptMissingMeetingDetailsNode(BaseNode):
-    def __init__(self, logger: Logger, meeting_service: MeetingDetailsService):
-          self.meeting_service = meeting_service
-          self.logger = logger
+    meeting_service: MeetingDetailsService
+    logger: Logger
+
+    def __init__(self, logger: Logger, meeting_service: MeetingDetailsService) -> None:
+        self.meeting_service = meeting_service
+        self.logger = logger
 
     def get_next_node(self, state: MeetingMuseBotState) -> NodeName:
         if not state.ai_prompt_input:
             return NodeName.END
         return NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO
-    
+
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         self.logger.info(f"Entering {self.node_name} node...")
 
-        missing_fields = self.meeting_service.get_missing_required_fields(state.meeting_details)
+        missing_fields: List[str] = self.meeting_service.get_missing_required_fields(
+            state.meeting_details
+        )
 
         if not missing_fields:
             # NOTE: this is an error in graph, should not happen!
-            self.logger.error(f"Meeting details are complete, but node {self.node_name} was called")
+            self.logger.error(
+                f"Meeting details are complete, but node {self.node_name} was called"
+            )
             return state
 
         try:
-            response = self.meeting_service.invoke_missing_fields_prompt(state).content
-        except Exception as e:
-            response = "I need some more information, could you provide all the details? I need the following information: " + ", ".join(missing_fields)
+            prompt_response = self.meeting_service.invoke_missing_fields_prompt(state)
+            # Handle both string and complex content types
+            if hasattr(prompt_response, "content"):
+                content = prompt_response.content
+                if isinstance(content, str):
+                    response = content
+                else:
+                    response = str(content)
+            else:
+                response = str(prompt_response)
+        except Exception:  # pylint: disable=broad-exception-caught
+            response = (
+                "I need some more information, could you provide all the details? I need the following information: "
+                + ", ".join(missing_fields)
+            )
 
         state.ai_prompt_input = response
         return state

@@ -1,4 +1,4 @@
-.PHONY: help install dev-install test test-verbose test-coverage clean lint format type-check run build docs poetry-install poetry-update poetry-shell
+.PHONY: help install dev-install test test-verbose test-coverage clean lint format type-check run run-server build docs poetry-install poetry-update poetry-shell
 
 # Colors for output
 RED := \033[31m
@@ -35,6 +35,7 @@ help:
 	@echo ""
 	@echo "$(BOLD)$(GREEN)Running & Building:$(RESET)"
 	@echo "  $(YELLOW)run$(RESET)             - Run the MeetingMuse CLI"
+	@echo "  $(YELLOW)run-server$(RESET)      - Run the WebSocket server locally"
 	@echo "  $(YELLOW)build$(RESET)           - Build the package with Poetry"
 	@echo ""
 	@echo "$(BOLD)$(GREEN)Maintenance:$(RESET)"
@@ -48,7 +49,11 @@ help:
 	@echo "  $(YELLOW)ci-test$(RESET)         - Run CI pipeline (coverage + lint + type-check)"
 	@echo ""
 	@echo "$(BOLD)$(GREEN)Debug & Development:$(RESET)"
-	@echo "  $(YELLOW)build-graph$(RESET)     - Generate graph visualization"	
+	@echo "  $(YELLOW)debug-node$(RESET)      - Run node debugging script"
+	@echo "    $(CYAN)make debug-node NODE_NAME=COLLECTING_INFO MESSAGE=\"I want to schedule a meeting\"$(RESET)"
+	@echo "    $(CYAN)make debug-node NODE_NAME=HUMAN_SCHEDULE_MEETING_MORE_INFO MESSAGE=\"Schedule meeting\" INTERRUPT=1$(RESET)"
+	@echo "  $(YELLOW)debug-chatbot$(RESET)   - Run chatbot debugging script"
+	@echo "    $(CYAN)make debug-chatbot$(RESET) - Interactive chatbot session for testing"
 	@echo ""
 	@echo "$(BOLD)$(GREEN)Information:$(RESET)"
 	@echo "  $(YELLOW)info$(RESET)            - Show project information"
@@ -91,6 +96,12 @@ lint:
 	poetry run pylint src/meetingmuse/
 
 format:
+	# Remove unused imports and variables
+	poetry run autoflake --remove-all-unused-imports --remove-unused-variables --in-place --recursive src/ tests/
+	# Fix trailing whitespace and end-of-file issues
+	poetry run pre-commit run trailing-whitespace --all-files
+	poetry run pre-commit run end-of-file-fixer --all-files
+	# Format code
 	poetry run black src/ tests/
 	poetry run isort src/ tests/
 
@@ -113,6 +124,10 @@ clean:
 # Run application with Poetry
 run:
 	poetry run python src/main.py
+
+# Run WebSocket server locally
+run-server:
+	poetry run python -m src.meetingmuse_server.main
 
 # Build with Poetry
 build: clean
@@ -173,4 +188,4 @@ info:
 # Export requirements (for compatibility)
 requirements:
 	poetry export -f requirements.txt --output requirements.txt --without-hashes
-	poetry export -f requirements.txt --output requirements-dev.txt --with dev --without-hashes 
+	poetry export -f requirements.txt --output requirements-dev.txt --with dev --without-hashes
