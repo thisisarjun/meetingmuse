@@ -7,7 +7,7 @@ import signal
 import sys
 
 from .api.app import app, websocket_connection_service
-from .services.graceful_shutdown import GracefulShutdownManager
+from .services.server_lifecycle_manager import ServerLifecycleManager
 
 logger = logging.getLogger(__name__)
 
@@ -18,20 +18,14 @@ def main() -> None:
 
     logger.info("Starting MeetingMuse WebSocket Server...")
 
-    # Create shutdown manager with dependency injection
-    shutdown_manager = GracefulShutdownManager(websocket_connection_service)
+    server_lifecycle = ServerLifecycleManager(websocket_connection_service)
 
-    # Register signal handlers
-    signal.signal(signal.SIGINT, shutdown_manager.signal_handler)
-    signal.signal(signal.SIGTERM, shutdown_manager.signal_handler)
-
-    # Handle Windows
-    if sys.platform == "win32":
-        signal.signal(signal.SIGBREAK, shutdown_manager.signal_handler)
+    # Register signal handlers for graceful shutdown
+    signal.signal(signal.SIGINT, server_lifecycle.signal_handler)
+    signal.signal(signal.SIGTERM, server_lifecycle.signal_handler)
 
     try:
-        # Run the server
-        asyncio.run(shutdown_manager.run_server(app))
+        asyncio.run(server_lifecycle.run_server(app))
     except KeyboardInterrupt:
         logger.info("KeyboardInterrupt received during startup")
     except Exception as e:

@@ -13,7 +13,7 @@ from .websocket_connection_handler import WebSocketConnectionService
 logger = logging.getLogger(__name__)
 
 
-class GracefulShutdownManager:
+class ServerLifecycleManager:
     """Manages graceful shutdown of the server and cleanup of resources"""
 
     def __init__(self, websocket_service: WebSocketConnectionService) -> None:

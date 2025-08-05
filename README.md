@@ -80,12 +80,15 @@ make quality
 make clean
 ```
 
-### Running the WebSocket Server
+### Start the webserver
+
+```shell
+poetry run python -m src.server.main
+```
+
+### Running the Application
 
 ```bash
-# Using the demo script (recommended)
-./demo.sh
-
 # Using Poetry
 poetry run python src/main.py
 
