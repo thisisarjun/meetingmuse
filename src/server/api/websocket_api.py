@@ -6,7 +6,7 @@ import logging
 
 from fastapi import APIRouter, WebSocket
 
-from ..services.websocket_connection_handler import WebSocketConnectionService
+from ..services.websocket_connection_service import WebSocketConnectionService
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 import uvicorn
 
-from .websocket_connection_handler import WebSocketConnectionService
+from .websocket_connection_service import WebSocketConnectionService
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +21,9 @@ class ServerLifecycleManager:
         self.server: Optional[uvicorn.Server] = None
         self.websocket_service = websocket_service
 
-    def signal_handler(self, signum: int, frame: Any) -> None:
+    def signal_handler(self, signal: int, frame: Any) -> None:
         """Handle shutdown signals"""
-        logger.info(f"Received signal {signum}. Initiating graceful shutdown...")
+        logger.info(f"Received signal {signal}. Initiating graceful shutdown...")
         self.shutdown_event.set()
 
     async def cleanup_resources(self) -> None:
@@ -47,7 +47,7 @@ class ServerLifecycleManager:
             host=host,
             port=port,
             log_level="info",
-            reload=False,  # Disable reload for proper signal handling
+            reload=False,  # False for production | True for development (Hot Reload)
             access_log=True,
         )
 

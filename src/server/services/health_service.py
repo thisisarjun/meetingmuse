@@ -3,7 +3,6 @@ Health Service
 Business logic for system health checks and monitoring
 """
 import logging
-from datetime import datetime
 from typing import Any, Dict
 
 from ..langgraph.message_processor import LangGraphMessageProcessor
@@ -40,24 +39,11 @@ class HealthService:
 
         return {
             "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
             "active_connections": self.connection_manager.get_connection_count(),
             "active_conversations": self.conversation_manager.get_active_conversation_count(),
             "langgraph_processor_ready": processor_ready,
             "streaming_handler_ready": streaming_ready,
         }
-
-    def get_detailed_health_status(self) -> Dict[str, Any]:
-        """Get detailed health status with connection information"""
-        base_status = self.get_health_status()
-
-        # Add detailed information
-        detailed_info = {
-            "active_clients": self.connection_manager.list_active_clients(),
-            "conversation_clients": self.conversation_manager.list_active_conversations(),
-        }
-
-        return {**base_status, **detailed_info}
 
     def get_system_metrics(self) -> Dict[str, Any]:
         """Get comprehensive system metrics"""
@@ -80,7 +66,6 @@ class HealthService:
         avg_messages = total_messages / len(active_clients) if active_clients else 0
 
         return {
-            "timestamp": datetime.now().isoformat(),
             "connections": {
                 "total_active": len(active_clients),
                 "total_messages": total_messages,

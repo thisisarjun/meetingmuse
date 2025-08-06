@@ -8,7 +8,7 @@ from typing import Dict
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 
-from ..services.admin_api_handler import AdminService
+from ..services.admin_service import AdminService
 
 logger = logging.getLogger(__name__)
 
@@ -36,39 +36,6 @@ def create_admin_router(admin_service: AdminService) -> APIRouter:
         """Get information about active connections"""
         connections_info = admin_service.get_connections_info()
         return JSONResponse(connections_info)
-
-    @router.get("/conversations")  # type: ignore
-    async def get_conversations() -> JSONResponse:
-        """Get information about active conversations"""
-        conversations_info = admin_service.get_conversations_info()
-        return JSONResponse(conversations_info)
-
-    @router.delete("/connections/{client_id}")  # type: ignore
-    async def disconnect_client(client_id: str) -> JSONResponse:
-        """Administratively disconnect a specific client"""
-        result = await admin_service.disconnect_client(client_id)
-
-        if result["status"] == "error":
-            raise HTTPException(status_code=404, detail=result["message"])
-
-        return JSONResponse(result)
-
-    @router.post("/connections/{client_id}/message")  # type: ignore
-    async def send_message_to_client(
-        client_id: str, message: Dict[str, str]
-    ) -> JSONResponse:
-        """Send a direct message to a specific client"""
-        if "content" not in message:
-            raise HTTPException(status_code=400, detail="Message content is required")
-
-        result = await admin_service.send_message_to_client(
-            client_id, message["content"]
-        )
-
-        if result["status"] == "error":
-            raise HTTPException(status_code=404, detail=result["message"])
-
-        return JSONResponse(result)
 
     @router.get("/statistics")  # type: ignore
     async def get_system_statistics() -> JSONResponse:

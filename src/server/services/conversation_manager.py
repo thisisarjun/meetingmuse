@@ -61,14 +61,8 @@ class ConversationManager:
             state_info = await self.message_processor.get_conversation_state(client_id)
 
             if state_info and state_info.get("has_conversation"):
-                # Generate conversation summary
-                summary = await self._generate_conversation_summary(
-                    client_id, state_info
-                )
-
                 recovery_info = {
                     "conversation_resumed": True,
-                    "summary": summary,
                     "message_count": state_info.get("message_count", 0),
                     "user_intent": state_info.get("user_intent"),
                     "is_interrupted": state_info.get("is_interrupted", False),
@@ -96,46 +90,6 @@ class ConversationManager:
                 f"Error handling reconnection for client {client_id}: {str(e)}"
             )
             return None
-
-    async def _generate_conversation_summary(
-        self, client_id: str, state_info: Dict[str, Any]
-    ) -> str:
-        """
-        Generate a summary of the current conversation
-
-        Args:
-            client_id: Client identifier
-            state_info: Current conversation state information
-
-        Returns:
-            Human-readable conversation summary
-        """
-        try:
-            user_intent = state_info.get("user_intent")
-            meeting_details = state_info.get("meeting_details", {})
-            message_count = state_info.get("message_count", 0)
-
-            if user_intent == "schedule_meeting":
-                # Create meeting-specific summary
-                title = meeting_details.get("title", "a meeting")
-                date_time = meeting_details.get("date_time")
-
-                if date_time:
-                    return f"We were scheduling {title} for {date_time}. We've exchanged {message_count} messages so far."
-                else:
-                    return f"We were working on scheduling {title}. We've exchanged {message_count} messages so far."
-
-            elif user_intent:
-                return f"We were discussing {user_intent.replace('_', ' ')}. We've exchanged {message_count} messages so far."
-
-            else:
-                return f"We've been chatting. We've exchanged {message_count} messages so far."
-
-        except Exception as e:
-            logger.error(
-                f"Error generating conversation summary for client {client_id}: {str(e)}"
-            )
-            return "Continuing our previous conversation."
 
     async def update_conversation_activity(self, client_id: str) -> None:
         """

@@ -10,11 +10,11 @@ from fastapi import FastAPI
 
 from ..langgraph.message_processor import LangGraphMessageProcessor
 from ..langgraph.streaming_handler import StreamingHandler
-from ..services.admin_api_handler import AdminService
+from ..services.admin_service import AdminService
 from ..services.connection_manager import ConnectionManager
 from ..services.conversation_manager import ConversationManager
-from ..services.health_api_handler import HealthService
-from ..services.websocket_connection_handler import WebSocketConnectionService
+from ..services.health_service import HealthService
+from ..services.websocket_connection_service import WebSocketConnectionService
 from .admin_api import create_admin_router
 from .health_api import create_health_router
 from .websocket_api import create_websocket_router
@@ -88,14 +88,12 @@ def create_app() -> FastAPI:
     app.include_router(create_admin_router(admin_service))
     app.include_router(create_websocket_router(websocket_connection_service))
 
-    logger.info("FastAPI application created with modular architecture")
+    logger.info("FastAPI server initialized with routers")
     return app
 
 
-# Create the FastAPI app instance
 app = create_app()
 
-# Export service instances for use by other modules
 __all__ = [
     "app",
     "connection_manager",

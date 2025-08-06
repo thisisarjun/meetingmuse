@@ -35,7 +35,6 @@ class AdminService:
             "status": "success",
             "message": "Broadcast completed",
             "successful_sends": successful_sends,
-            "timestamp": datetime.now().isoformat(),
         }
 
     def get_connections_info(self) -> Dict[str, Any]:
@@ -49,80 +48,7 @@ class AdminService:
         return {
             "active_connections": self.connection_manager.get_connection_count(),
             "clients": client_info,
-            "timestamp": datetime.now().isoformat(),
         }
-
-    def get_conversations_info(self) -> Dict[str, Any]:
-        """Get detailed information about active conversations"""
-        active_conversations = self.conversation_manager.list_active_conversations()
-
-        return {
-            "active_conversations": self.conversation_manager.get_active_conversation_count(),
-            "conversation_clients": active_conversations,
-            "timestamp": datetime.now().isoformat(),
-        }
-
-    async def disconnect_client(self, client_id: str) -> Dict[str, Any]:
-        """Administratively disconnect a specific client"""
-        logger.info(f"Admin disconnect requested for client: {client_id}")
-
-        if client_id not in self.connection_manager.list_active_clients():
-            return {
-                "status": "error",
-                "message": f"Client {client_id} not found or already disconnected",
-                "timestamp": datetime.now().isoformat(),
-            }
-
-        # Notify client before disconnecting
-        await self.connection_manager.send_system_message(
-            client_id,
-            "admin_disconnect",
-            additional_data={"reason": "Administrative disconnect"},
-        )
-
-        # Disconnect and clean up
-        self.connection_manager.disconnect(client_id)
-        await self.conversation_manager.end_conversation(client_id)
-
-        logger.info(f"Client {client_id} disconnected by admin")
-
-        return {
-            "status": "success",
-            "message": f"Client {client_id} has been disconnected",
-            "timestamp": datetime.now().isoformat(),
-        }
-
-    async def send_message_to_client(
-        self, client_id: str, message: str
-    ) -> Dict[str, Any]:
-        """Send a direct message to a specific client"""
-        logger.info(f"Admin message to {client_id}: {message[:50]}...")
-
-        if client_id not in self.connection_manager.list_active_clients():
-            return {
-                "status": "error",
-                "message": f"Client {client_id} not found or not connected",
-                "timestamp": datetime.now().isoformat(),
-            }
-
-        success = await self.connection_manager.send_personal_message(
-            message, client_id
-        )
-
-        if success:
-            logger.info(f"Admin message sent successfully to {client_id}")
-            return {
-                "status": "success",
-                "message": f"Message sent to client {client_id}",
-                "timestamp": datetime.now().isoformat(),
-            }
-        else:
-            logger.error(f"Failed to send admin message to {client_id}")
-            return {
-                "status": "error",
-                "message": f"Failed to send message to client {client_id}",
-                "timestamp": datetime.now().isoformat(),
-            }
 
     def get_system_statistics(self) -> Dict[str, Any]:
         """Get comprehensive system statistics for admin dashboard"""
@@ -145,6 +71,7 @@ class AdminService:
                 "total_active_connections": len(active_clients),
                 "total_active_conversations": self.conversation_manager.get_active_conversation_count(),
                 "total_messages_processed": total_messages,
+                "conversation_clients": self.conversation_manager.list_active_conversations(),
             },
             "connection_statistics": {
                 "average_messages_per_client": total_messages / len(active_clients)
@@ -187,5 +114,4 @@ class AdminService:
             "status": "success",
             "message": "All connections cleaned up successfully",
             "cleaned_connections": cleaned_count,
-            "timestamp": datetime.now().isoformat(),
         }
