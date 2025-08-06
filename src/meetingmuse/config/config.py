@@ -11,6 +11,7 @@ class Config:
     """Configuration class for MeetingMuse."""
 
     HUGGINGFACE_API_TOKEN: Optional[str] = os.getenv("HUGGINGFACE_API_TOKEN")
+    ENV: Optional[str] = os.getenv("ENV", "dev")
 
     @classmethod
     def validate(cls) -> None:

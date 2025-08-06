@@ -111,9 +111,6 @@ class WebSocketConnectionService:
             message_text = await websocket.receive_text()
             self.connection_manager.increment_message_count(client_id)
 
-            # TODO: Remove in next iteration
-            logger.info(f"Received message from {client_id}: {message_text[:100]}...")
-
             # Parse the incoming message
             user_message = MessageProtocol.parse_user_message(message_text)
 
@@ -126,6 +123,11 @@ class WebSocketConnectionService:
                     retry_suggested=True,
                 )
                 continue
+
+            # TODO: Remove in next iteration
+            logger.info(
+                f"Received message from {client_id}: {user_message.content[:100]}..."
+            )
 
             # Send processing notification
             await self.connection_manager.send_system_message(

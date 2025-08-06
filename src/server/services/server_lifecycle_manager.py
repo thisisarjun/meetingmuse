@@ -8,6 +8,7 @@ from typing import Any, Optional
 
 import uvicorn
 
+from ...meetingmuse.config.config import config as env_config
 from .websocket_connection_service import WebSocketConnectionService
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ class ServerLifecycleManager:
             host=host,
             port=port,
             log_level="info",
-            reload=False,  # False for production | True for development (Hot Reload)
+            reload=env_config.ENV == "dev",
             access_log=True,
         )
 
