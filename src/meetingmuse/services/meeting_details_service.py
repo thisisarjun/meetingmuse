@@ -73,12 +73,20 @@ class MeetingDetailsService:
 
     def update_state_meeting_details(
         self, meeting_details: MeetingFindings, state: MeetingMuseBotState
-    ) -> MeetingMuseBotState:
-        """Update the state with the new meeting details"""
+    ) -> MeetingFindings:
+        """Update the meeting details with new information"""
+        # Create a new MeetingFindings object with updated values
+        current = state.meeting_details
+        updated_data = {}
+
         for key, value in meeting_details.model_dump().items():
             if value is not None:
-                setattr(state.meeting_details, key, value)
-        return state
+                updated_data[key] = value
+            else:
+                # Keep existing value if new value is None
+                updated_data[key] = getattr(current, key)
+
+        return MeetingFindings(**updated_data)
 
     def generate_completion_message(self, meeting_details: MeetingFindings) -> str:
         """Generate a completion message when all meeting details are collected"""

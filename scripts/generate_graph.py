@@ -1,9 +1,12 @@
+from typing import Any
+
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
+from meetingmuse.nodes.end_node import EndNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.human_interrupt_retry_node import HumanInterruptRetryNode
 from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
@@ -21,18 +24,30 @@ from meetingmuse.utils.logger import Logger
 logger = Logger()
 model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
 intent_classifier = IntentClassifier(model)
-classify_intent_node = ClassifyIntentNode(intent_classifier)
-greeting_node = GreetingNode(model)
+classify_intent_node = ClassifyIntentNode(intent_classifier, logger)
+greeting_node = GreetingNode(model, logger)
 collecting_info_node = CollectingInfoNode(model, logger)
-clarify_request_node = ClarifyRequestNode(model)
+clarify_request_node = ClarifyRequestNode(model, logger)
 conversation_router = ConversationRouter(logger)
 meeting_details_service = MeetingDetailsService(model, logger)
 human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
 prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
-    logger, meeting_details_service
+    meeting_details_service, logger
 )
 schedule_meeting_node = ScheduleMeetingNode(model, logger)
 human_interrupt_retry_node = HumanInterruptRetryNode(logger)
+end_node = EndNode(logger)
+
+
+def draw_graph(graph_builder: Any) -> None:
+    try:
+        graph: Any = graph_builder.build()
+        with open("graph.png", "wb") as f:
+            f.write(graph.get_graph().draw_mermaid_png())
+        print("Graph saved as graph.png")
+    except Exception as e:
+        print(f"Could not generate graph: {e}")
+        raise e
 
 
 def create_graph_with_all_nodes() -> GraphBuilder:
@@ -47,13 +62,14 @@ def create_graph_with_all_nodes() -> GraphBuilder:
         prompt_missing_meeting_details_node=prompt_missing_meeting_details_node,
         schedule_meeting_node=schedule_meeting_node,
         human_interrupt_retry_node=human_interrupt_retry_node,
+        end_node=end_node,
     )
     return graph_builder
 
 
-def generate_graph():
+def generate_graph() -> None:
     graph_builder = create_graph_with_all_nodes()
-    graph_builder.draw_graph()
+    draw_graph(graph_builder)
 
 
 if __name__ == "__main__":

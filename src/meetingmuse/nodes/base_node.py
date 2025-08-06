@@ -1,17 +1,22 @@
 from abc import ABC, abstractmethod
+from typing import Union
+
+from langgraph.types import Command
 
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.utils.logger import Logger
 
 
 class BaseNode(ABC):
-    def get_next_node(
-        self, state: MeetingMuseBotState
-    ) -> NodeName:  # pylint: disable=unused-argument
-        return NodeName.END
+    def __init__(self, logger: Logger):
+        self.logger = logger
+        self.logger.set_prefix(self.node_name.value)
 
     @abstractmethod
-    def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
+    def node_action(
+        self, state: MeetingMuseBotState
+    ) -> Union[MeetingMuseBotState, Command]:
         raise NotImplementedError(
             f"Node action not implemented for {self.__class__.__name__}"
         )

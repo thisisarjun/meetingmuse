@@ -105,6 +105,7 @@ When the meeting is successfully scheduled:
     },
     {
       "role": "assistant",
+      "role": "assistant",
       "content": "Great! What's the meeting about?"
     },
     {
@@ -152,6 +153,7 @@ When the meeting scheduling fails:
     },
     {
       "role": "human",
+      "role": "human",
       "content": "Team standup for tomorrow at 2pm"
     },
     {
@@ -192,6 +194,7 @@ When user chooses to retry:
     }
   ],
   "user_intent": "schedule",
+  "user_intent": "schedule",
   "meeting_details": {
     "title": "Team standup",
     "date_time": "tomorrow at 2pm",
@@ -219,6 +222,7 @@ When user chooses to cancel:
   ],
   "user_intent": "schedule",
   "meeting_details": {
+    "title": "Team standup",
     "title": "Team standup",
     "date_time": "tomorrow at 2pm",
     "duration": null,
@@ -291,6 +295,7 @@ The `HumanInterruptRetryNode` includes comprehensive test coverage for:
 
 - **Retry approval**: Tests when user chooses to retry the operation
 - **Cancel approval**: Tests when user chooses to cancel the operation
+- **Cancel approval**: Tests when user chooses to cancel the operation
 - **State preservation**: Ensures existing state is maintained during retry flow
 - **Interrupt parameters**: Validates the structure of interrupt calls
 - **Command routing**: Verifies correct `Command(goto=...)` routing
@@ -314,6 +319,7 @@ def test_retry_approval_true(self, mock_interrupt):
     assert result.goto == "schedule_meeting"
 
 # Test cancel flow
+# Test cancel flow
 @patch('meetingmuse.nodes.human_interrupt_retry_node.interrupt')
 def test_retry_approval_false(self, mock_interrupt):
     mock_interrupt.return_value = False
@@ -335,11 +341,10 @@ def validate_state_transition(current_state, new_state):
         "end": ["greeting"]  # For new conversations
     }
 
-    # Note: Since we removed current_step, this validation would need
-    # to be adapted to use other state indicators like schedule_meeting_status
-    # or the presence of certain fields to determine current stage
+    current_step = current_state.get("current_step")
+    new_step = new_state.get("current_step")
 
-    return True  # Simplified for this example
+    return new_step in valid_transitions.get(current_step, [])
 ```
 
 ---

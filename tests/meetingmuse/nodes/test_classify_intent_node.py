@@ -7,6 +7,7 @@ from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.services.intent_classifier import IntentClassifier
+from meetingmuse.utils.logger import Logger
 
 
 class TestClassifyIntentNode:
@@ -18,9 +19,14 @@ class TestClassifyIntentNode:
         return Mock(spec=IntentClassifier)
 
     @pytest.fixture
-    def node(self, mock_intent_classifier):
+    def mock_logger(self):
+        """Create a mock logger for testing."""
+        return Mock(spec=Logger)
+
+    @pytest.fixture
+    def node(self, mock_intent_classifier, mock_logger):
         """Create a ClassifyIntentNode instance with mocked classifier."""
-        return ClassifyIntentNode(mock_intent_classifier)
+        return ClassifyIntentNode(mock_intent_classifier, mock_logger)
 
     def test_call_updates_state_with_classified_intent_and_step(
         self, node, mock_intent_classifier

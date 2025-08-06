@@ -1,13 +1,13 @@
-from typing import Literal
+from typing import Any
 
 from langchain_core.messages import AIMessage
-from langgraph.graph import END
 from langgraph.types import Command, interrupt
 
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.models.interrupts import InterruptInfo, InterruptType
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.utils.decorators.log_decorator import log_node_entry
 from meetingmuse.utils.logger import Logger
 
 
@@ -17,41 +17,40 @@ class HumanInterruptRetryNode(BaseNode):
     This node uses interrupt() and Command() for proper human-in-the-loop workflow.
     """
 
-    def __init__(self, model: HuggingFaceModel, logger: Logger) -> None:
-        """Initialize the node with optional model and logger."""
-        self.model = model
-        self.logger = logger
+    def __init__(self, logger: Logger) -> None:
+        super().__init__(logger)
 
-    def node_action(
-        self, state: MeetingMuseBotState
-    ) -> Command[Literal["schedule_meeting", "__end__"]]:
-        if self.logger:
-            self.logger.info("Human interrupt requested")
+    @log_node_entry(NodeName.HUMAN_INTERRUPT_RETRY)
+    def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
+        self.logger.info("Human interrupt requested")
 
         # Use LangGraph's interrupt() for human decision
-        approval = interrupt(
-            {
-                "type": "operation_approval",
-                "message": "Meeting scheduling failed. Would you like to retry?",
-                "question": "Would you like to retry this operation?",
-                "options": ["retry", "cancel"],
-            }
+        options = ["retry", "cancel"]
+        interrupt_info = InterruptInfo(
+            type=InterruptType.OPERATION_APPROVAL,
+            message="Meeting scheduling failed.",
+            question="Would you like to retry this operation?",
+            options=options,
         )
+        approval: Any = interrupt(interrupt_info)
 
-        if approval:
+        if approval not in options:
+            self.logger.error(f"Invalid choice, please choose {'/ '.join(options)}")
+            return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
+
+        if approval == "retry":
             # User chose to retry - go back to API call
-            retry_message = "User chose to retry. Attempting again..."
-            if self.logger:
-                self.logger.info("User chose to retry operation")
+            retry_message: str = "User chose to retry. Attempting again..."
+
+            self.logger.info("User chose to retry operation")
             state.messages.append(AIMessage(content=retry_message))
             return Command(goto=NodeName.SCHEDULE_MEETING)
-        else:
-            # User chose to cancel - end the operation
-            cancel_message = "User chose to cancel. Operation ended."
-            if self.logger:
-                self.logger.info("User chose to cancel operation")
-            state.messages.append(AIMessage(content=cancel_message))
-            return Command(goto=END)
+        # User chose to cancel - end the operation
+        cancel_message: str = "User chose to cancel. Operation ended."
+
+        self.logger.info("User chose to cancel operation")
+        state.messages.append(AIMessage(content=cancel_message))
+        return Command(goto=NodeName.END)
 
     @property
     def node_name(self) -> NodeName:

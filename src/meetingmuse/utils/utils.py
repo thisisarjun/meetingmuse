@@ -44,11 +44,9 @@ class Utils:
     ) -> Optional[str]:
         last_message: Optional[str] = None
         for node_name, state in events.items():
-            assert isinstance(
-                state, MeetingMuseBotState
-            ), f"State for node {node_name} is not a MeetingMuseBotState"
-            if state.messages:
-                for message in reversed(state.messages):
+            meeting_muse_bot_state = MeetingMuseBotState.model_validate(state)
+            if meeting_muse_bot_state.messages:
+                for message in reversed(meeting_muse_bot_state.messages):
                     if input_type == "human" and isinstance(message, HumanMessage):
                         # Handle both string and complex content types
                         content = message.content
