@@ -72,8 +72,41 @@ def create_app() -> FastAPI:
     """Create and configure the FastAPI application"""
     app = FastAPI(
         title="MeetingMuse WebSocket Server",
-        description="WebSocket server for MeetingMuse chat application with modular architecture",
+        description="""
+        ## MeetingMuse WebSocket Server API
+
+        WebSocket server for real-time chat communication powered by LangGraph.
+
+        ### API Endpoints
+
+        * **Health**: System health checks and monitoring endpoints
+        * **Admin**: Administrative operations for connection management
+        * **WebSocket**: Real-time communication endpoints
+
+        ### Authentication
+
+        TODO
+        Implement authentication for WebSocket connections and API endpoints.
+        """,
         version="2.0.0",
+        license_info={
+            "name": "MIT License",
+            "url": "https://opensource.org/licenses/MIT",
+        },
+        tags_metadata=[
+            {
+                "name": "health",
+                "description": "Health check and system monitoring endpoints. Use these for service discovery, load balancer health checks, and system observability.",
+            },
+            {
+                "name": "admin",
+                "description": "Administrative operations for managing connections, broadcasting messages, and retrieving system statistics.",
+            },
+            {
+                "name": "websocket",
+                "description": "WebSocket endpoints for real-time chat communication. Clients connect here to send and receive messages through the LangGraph-powered chat system.",
+            },
+        ],
         lifespan=lifespan,
     )
 

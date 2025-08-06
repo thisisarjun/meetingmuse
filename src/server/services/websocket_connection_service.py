@@ -16,7 +16,7 @@ from ..constants import (
 )
 from ..langgraph.message_processor import LangGraphMessageProcessor
 from ..langgraph.streaming_handler import StreamingHandler
-from ..models.message_protocol import MessageProtocol
+from ..models.ws_dtos import MessageProtocol
 from .connection_manager import ConnectionManager
 from .conversation_manager import ConversationManager
 
