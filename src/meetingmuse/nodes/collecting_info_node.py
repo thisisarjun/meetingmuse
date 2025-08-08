@@ -14,6 +14,7 @@ from meetingmuse.prompts.schedule_meeting_collecting_info_prompt import (
     SCHEDULE_MEETING_COLLECTING_INFO_PROMPT,
 )
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
+from meetingmuse.utils.decorators.log_decorator import log_node_entry
 from meetingmuse.utils.logger import Logger
 
 
@@ -28,10 +29,10 @@ class CollectingInfoNode(BaseNode):
     parser: PydanticOutputParser[MeetingFindings]
     prompt: ChatPromptTemplate
     chain: Runnable[Dict[str, Any], MeetingFindings]
-    logger: Logger
     meeting_service: MeetingDetailsService
 
     def __init__(self, model: HuggingFaceModel, logger: Logger) -> None:
+        super().__init__(logger)
         self.model = model
         self.parser = PydanticOutputParser(pydantic_object=MeetingFindings)
         self.prompt = ChatPromptTemplate.from_messages(
@@ -40,15 +41,17 @@ class CollectingInfoNode(BaseNode):
             ]
         )
         self.chain = self.prompt | self.model.chat_model | self.parser
-        self.logger = logger
-        self.meeting_service = MeetingDetailsService(model, logger)
+        self.meeting_service = MeetingDetailsService(model, self.logger)
 
+    @log_node_entry(NodeName.COLLECTING_INFO)
     def get_next_node_name(self, state: MeetingMuseBotState) -> NodeName:
         self.logger.info(f"Getting next node name: {state.meeting_details}")
         if state.meeting_details and self.meeting_service.is_meeting_details_complete(
             state.meeting_details
         ):
-            self.logger.info("Meeting details are complete, returning to END")
+            self.logger.info(
+                "Meeting details are complete, returning to Schedule Meeting Node"
+            )
             return NodeName.SCHEDULE_MEETING
         self.logger.info(
             "Meeting details are not complete, returning to COLLECTING_INFO"
@@ -91,6 +94,10 @@ class CollectingInfoNode(BaseNode):
             f"Entering {self.node_name} node with current state: {state.meeting_details}"
         )
 
+        self.logger.info(
+            f"Entering {self.node_name} node with current state: {state.meeting_details}"
+        )
+
         # TODO: make this a helper method in utils.py
         last_human_message: Optional[str] = None
         for message in reversed(state.messages):
@@ -125,9 +132,10 @@ class CollectingInfoNode(BaseNode):
             new_meeting_details = meeting_details
 
         # Update only non None fields
-        state = self.meeting_service.update_state_meeting_details(
+        updated_meeting_details = self.meeting_service.update_state_meeting_details(
             new_meeting_details, state
         )
+        state.meeting_details = updated_meeting_details
 
         self.logger.info(f"Updated meeting details: {state.meeting_details}")
 
@@ -136,6 +144,7 @@ class CollectingInfoNode(BaseNode):
             str
         ] = self.meeting_service.get_missing_required_fields(state.meeting_details)
 
+        # TODO: refactor this method
         if updated_missing_required:
             try:
                 prompt_response = self.meeting_service.invoke_missing_fields_prompt(

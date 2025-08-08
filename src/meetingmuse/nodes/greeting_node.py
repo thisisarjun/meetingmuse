@@ -10,6 +10,8 @@ from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.prompts.greeting_prompt import GREETING_PROMPT
+from meetingmuse.utils.decorators.log_decorator import log_node_entry
+from meetingmuse.utils.logger import Logger
 
 
 class GreetingNode(BaseNode):
@@ -18,7 +20,8 @@ class GreetingNode(BaseNode):
     prompt: ChatPromptTemplate
     chain: Runnable[Dict[str, Any], str]
 
-    def __init__(self, model: HuggingFaceModel) -> None:
+    def __init__(self, model: HuggingFaceModel, logger: Logger) -> None:
+        super().__init__(logger)
         self.model = model
         self.parser = StrOutputParser()
         self.prompt = ChatPromptTemplate.from_messages(
@@ -29,6 +32,7 @@ class GreetingNode(BaseNode):
         )
         self.chain = self.prompt | self.model.chat_model | self.parser
 
+    @log_node_entry(NodeName.GREETING)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         last_human_message: Optional[HumanMessage] = None
         for message in reversed(state.messages):

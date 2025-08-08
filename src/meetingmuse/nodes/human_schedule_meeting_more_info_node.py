@@ -3,23 +3,28 @@ from typing import Any
 from langchain_core.messages import HumanMessage
 from langgraph.types import interrupt
 
+from meetingmuse.models.interrupts import InterruptInfo, InterruptType
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.utils.decorators.log_decorator import log_node_entry
 from meetingmuse.utils.logger import Logger
 
 
 class HumanScheduleMeetingMoreInfoNode(BaseNode):
-    logger: Logger
-
     def __init__(self, logger: Logger) -> None:
-        self.logger = logger
+        super().__init__(logger)
 
+    @log_node_entry(NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
-        self.logger.info(
-            f"Entering {self.node_name} node with current state: {state.meeting_details}"
+        interrupt_info = InterruptInfo(
+            type=InterruptType.SEEK_MORE_INFO,
+            message="Need more information to schedule the meeting",
+            question=state.operation_status.ai_prompt_input or "",
         )
-        human_input: Any = interrupt(state.ai_prompt_input)
+        human_input: Any = interrupt(interrupt_info)
+        if not isinstance(human_input, str):
+            raise ValueError("Human input must be a string")
 
         self.logger.info(f"Received human input: {human_input}")
 
@@ -32,7 +37,7 @@ class HumanScheduleMeetingMoreInfoNode(BaseNode):
 
         # Parse human input and update meeting details
         state.messages.append(HumanMessage(content=human_input))
-        state.ai_prompt_input = None
+        state.operation_status.ai_prompt_input = None
         self.logger.info("Human input processed, continuing to collecting_info node")
         return state
 

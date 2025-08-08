@@ -4,25 +4,24 @@ from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
+from meetingmuse.utils.decorators.log_decorator import log_node_entry
 from meetingmuse.utils.logger import Logger
 
 
 class PromptMissingMeetingDetailsNode(BaseNode):
     meeting_service: MeetingDetailsService
-    logger: Logger
 
-    def __init__(self, logger: Logger, meeting_service: MeetingDetailsService) -> None:
+    def __init__(self, meeting_service: MeetingDetailsService, logger: Logger) -> None:
+        super().__init__(logger)
         self.meeting_service = meeting_service
-        self.logger = logger
 
     def get_next_node(self, state: MeetingMuseBotState) -> NodeName:
-        if not state.ai_prompt_input:
+        if not state.operation_status.ai_prompt_input:
             return NodeName.END
         return NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO
 
+    @log_node_entry(NodeName.PROMPT_MISSING_MEETING_DETAILS)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
-        self.logger.info(f"Entering {self.node_name} node...")
-
         missing_fields: List[str] = self.meeting_service.get_missing_required_fields(
             state.meeting_details
         )
@@ -37,6 +36,7 @@ class PromptMissingMeetingDetailsNode(BaseNode):
         try:
             prompt_response = self.meeting_service.invoke_missing_fields_prompt(state)
             # Handle both string and complex content types
+
             if hasattr(prompt_response, "content"):
                 content = prompt_response.content
                 if isinstance(content, str):
@@ -51,7 +51,7 @@ class PromptMissingMeetingDetailsNode(BaseNode):
                 + ", ".join(missing_fields)
             )
 
-        state.ai_prompt_input = response
+        state.operation_status.ai_prompt_input = response
         return state
 
     @property

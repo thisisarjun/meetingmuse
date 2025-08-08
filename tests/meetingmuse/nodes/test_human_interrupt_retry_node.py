@@ -1,8 +1,10 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from langchain_core.messages import AIMessage
 from langgraph.types import Command
 
+from meetingmuse.models.interrupts import InterruptInfo, InterruptType
+from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.human_interrupt_retry_node import HumanInterruptRetryNode
@@ -13,11 +15,14 @@ class TestHumanInterruptRetryNode:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.node = HumanInterruptRetryNode()
+        mock_logger = Mock()
+        self.node = HumanInterruptRetryNode(logger=mock_logger)
         self.base_state = MeetingMuseBotState(
             messages=[],
             user_intent="schedule",
-            meeting_details={"title": "Team standup", "date_time": "tomorrow at 2pm"},
+            meeting_details=MeetingFindings(
+                title="Team standup", date_time="tomorrow at 2pm"
+            ),
         )
 
     def test_node_name(self):
@@ -28,24 +33,24 @@ class TestHumanInterruptRetryNode:
     def test_retry_approval_true(self, mock_interrupt):
         """Test when user approves retry."""
         # Mock interrupt to return True (user chose retry)
-        mock_interrupt.return_value = True
+        mock_interrupt.return_value = "retry"
 
         # Execute node action
         result = self.node.node_action(self.base_state)
 
         # Verify interrupt was called with correct parameters
         mock_interrupt.assert_called_once_with(
-            {
-                "type": "operation_approval",
-                "message": "Meeting scheduling failed. Would you like to retry?",
-                "question": "Would you like to retry this operation?",
-                "options": ["retry", "cancel"],
-            }
+            InterruptInfo(
+                type=InterruptType.OPERATION_APPROVAL,
+                message="Meeting scheduling failed.",
+                question="Would you like to retry this operation?",
+                options=["retry", "cancel"],
+            )
         )
 
         # Verify result is Command to go to schedule_meeting
         assert isinstance(result, Command)
-        assert result.goto == "schedule_meeting"
+        assert result.goto == NodeName.SCHEDULE_MEETING
 
         # Verify retry message was added to state
         assert len(self.base_state.messages) == 1
@@ -57,24 +62,24 @@ class TestHumanInterruptRetryNode:
     def test_retry_approval_false(self, mock_interrupt):
         """Test when user declines retry (cancels)."""
         # Mock interrupt to return False (user chose cancel)
-        mock_interrupt.return_value = False
+        mock_interrupt.return_value = "cancel"
 
         # Execute node action
         result = self.node.node_action(self.base_state)
 
         # Verify interrupt was called with correct parameters
         mock_interrupt.assert_called_once_with(
-            {
-                "type": "operation_approval",
-                "message": "Meeting scheduling failed. Would you like to retry?",
-                "question": "Would you like to retry this operation?",
-                "options": ["retry", "cancel"],
-            }
+            InterruptInfo(
+                type=InterruptType.OPERATION_APPROVAL,
+                message="Meeting scheduling failed.",
+                question="Would you like to retry this operation?",
+                options=["retry", "cancel"],
+            )
         )
 
         # Verify result is Command to go to end
         assert isinstance(result, Command)
-        assert result.goto == "end"
+        assert result.goto == NodeName.END
 
         # Verify cancel message was added to state
         assert len(self.base_state.messages) == 1
@@ -90,27 +95,30 @@ class TestHumanInterruptRetryNode:
             messages=[
                 AIMessage(content="Previous interaction"),
                 AIMessage(content="Another message"),
+                AIMessage(content="Another message"),
             ],
             user_intent="schedule",
-            meeting_details={
-                "title": "Important meeting",
-                "participants": ["alice@example.com"],
-            },
+            meeting_details=MeetingFindings(
+                title="Important meeting", participants=["alice@example.com"]
+            ),
         )
 
-        mock_interrupt.return_value = True
+        mock_interrupt.return_value = "retry"
 
         # Execute node action
         self.node.node_action(state_with_history)
 
-        # Verify existing messages are preserved
-        assert len(state_with_history.messages) == 3
+        self.node.node_action(state_with_history)
+
+        # Verify existing messages are preserved and new retry message is added (called twice)
+        assert len(state_with_history.messages) == 5  # 3 original + 2 retry messages
         assert state_with_history.messages[0].content == "Previous interaction"
         assert state_with_history.messages[1].content == "Another message"
+        assert state_with_history.messages[2].content == "Another message"
 
         # Verify meeting details are preserved
-        assert state_with_history.meeting_details["title"] == "Important meeting"
-        assert "alice@example.com" in state_with_history.meeting_details["participants"]
+        assert state_with_history.meeting_details.title == "Important meeting"
+        assert "alice@example.com" in state_with_history.meeting_details.participants
 
         # Verify user intent is preserved
         assert state_with_history.user_intent == "schedule"
@@ -126,16 +134,18 @@ class TestHumanInterruptRetryNode:
         call_args = mock_interrupt.call_args[0][0]
 
         # Verify all required keys are present
-        required_keys = ["type", "message", "question", "options"]
-        for key in required_keys:
-            assert key in call_args, f"Missing required key: {key}"
+        assert call_args.type == InterruptType.OPERATION_APPROVAL
+        assert isinstance(call_args.message, str)
+        assert isinstance(call_args.question, str)
+        assert isinstance(call_args.options, list)
+        assert call_args.options == ["retry", "cancel"]
 
         # Verify types and values
-        assert call_args["type"] == "operation_approval"
-        assert isinstance(call_args["message"], str)
-        assert isinstance(call_args["question"], str)
-        assert isinstance(call_args["options"], list)
-        assert call_args["options"] == ["retry", "cancel"]
+        assert call_args.type == InterruptType.OPERATION_APPROVAL
+        assert isinstance(call_args.message, str)
+        assert isinstance(call_args.question, str)
+        assert isinstance(call_args.options, list)
+        assert call_args.options == ["retry", "cancel"]
 
     def test_inheritance(self):
         """Test that the node properly inherits from BaseNode."""
@@ -144,6 +154,8 @@ class TestHumanInterruptRetryNode:
         assert isinstance(self.node, BaseNode)
 
         # Verify required methods exist
+        assert hasattr(self.node, "node_action")
+        assert hasattr(self.node, "node_name")
         assert hasattr(self.node, "node_action")
         assert hasattr(self.node, "node_name")
         assert callable(self.node.node_action)

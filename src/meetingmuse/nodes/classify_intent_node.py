@@ -4,14 +4,18 @@ from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.services.intent_classifier import IntentClassifier
+from meetingmuse.utils.decorators.log_decorator import log_node_entry
+from meetingmuse.utils.logger import Logger
 
 
 class ClassifyIntentNode(BaseNode):
     intent_classifier: IntentClassifier
 
-    def __init__(self, intent_classifier: IntentClassifier) -> None:
+    def __init__(self, intent_classifier: IntentClassifier, logger: Logger) -> None:
+        super().__init__(logger)
         self.intent_classifier = intent_classifier
 
+    @log_node_entry(NodeName.CLASSIFY_INTENT)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         last_message: BaseMessage = state.messages[-1]
 
@@ -22,7 +26,6 @@ class ClassifyIntentNode(BaseNode):
                 message_text = content
             else:
                 message_text = str(content)
-
             intent: UserIntent = self.intent_classifier.classify(message_text)
             state.user_intent = intent
 

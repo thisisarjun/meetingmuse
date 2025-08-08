@@ -1,4 +1,5 @@
 import argparse
+from typing import Any
 
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
@@ -29,34 +30,29 @@ from meetingmuse.utils.logger import Logger
 logger = Logger()
 model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
 intent_classifier = IntentClassifier(model)
-classify_intent_node = ClassifyIntentNode(intent_classifier)
-greeting_node = GreetingNode(model)
+classify_intent_node = ClassifyIntentNode(intent_classifier, logger)
+greeting_node = GreetingNode(model, logger)
 collecting_info_node = CollectingInfoNode(model, logger)
-clarify_request_node = ClarifyRequestNode(model)
+clarify_request_node = ClarifyRequestNode(model, logger)
 schedule_meeting_node = ScheduleMeetingNode(model, logger)
-human_interrupt_retry_node = HumanInterruptRetryNode(model, logger)
+human_interrupt_retry_node = HumanInterruptRetryNode(logger)
 conversation_router = ConversationRouter(logger)
 meeting_details_service = MeetingDetailsService(model, logger)
 human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
 prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
-    logger, meeting_details_service
+    meeting_details_service, logger
 )
 
 
 def create_initial_state_for_testing(user_message: str) -> MeetingMuseBotState:
     return MeetingMuseBotState(
         messages=[HumanMessage(content=user_message)],
-        user_intent=UserIntent.SCHEDULE_MEETING,
-        meeting_details=MeetingFindings(
-            date_time="2023-10-01T10:00:00Z",
-            duration="60 minutes",
-            title="Test Meeting",
-            participants=["me", "you"],
-        ),
+        user_intent=None,
+        meeting_details=MeetingFindings(),
     )
 
 
-def create_intent_test_graph():
+def create_intent_test_graph() -> StateGraph:
     workflow = StateGraph(MeetingMuseBotState)
 
     # Add only the intent classification node
@@ -68,7 +64,7 @@ def create_intent_test_graph():
     return workflow
 
 
-def create_greeting_test_graph():
+def create_greeting_test_graph() -> StateGraph:
     workflow = StateGraph(MeetingMuseBotState)
     workflow.add_node(NodeName.GREETING, greeting_node.node_action)
     workflow.add_edge(START, NodeName.GREETING)
@@ -76,7 +72,7 @@ def create_greeting_test_graph():
     return workflow
 
 
-def create_collecting_info_test_graph():
+def create_collecting_info_test_graph() -> StateGraph:
     workflow = StateGraph(MeetingMuseBotState)
     workflow.add_node(NodeName.COLLECTING_INFO, collecting_info_node.node_action)
     workflow.add_edge(START, NodeName.COLLECTING_INFO)
@@ -84,7 +80,7 @@ def create_collecting_info_test_graph():
     return workflow
 
 
-def create_clarify_request_test_graph():
+def create_clarify_request_test_graph() -> StateGraph:
     workflow = StateGraph(MeetingMuseBotState)
     workflow.add_node(NodeName.CLARIFY_REQUEST, clarify_request_node.node_action)
     workflow.add_edge(START, NodeName.CLARIFY_REQUEST)
@@ -92,18 +88,7 @@ def create_clarify_request_test_graph():
     return workflow
 
 
-def create_schedule_meeting_test_graph():
-    workflow = StateGraph(MeetingMuseBotState)
-    workflow.add_node(NodeName.SCHEDULE_MEETING, schedule_meeting_node.node_action)
-    workflow.add_node(
-        NodeName.HUMAN_INTERRUPT_RETRY, human_interrupt_retry_node.node_action
-    )
-    workflow.add_edge(START, NodeName.SCHEDULE_MEETING)
-    workflow.add_edge(NodeName.HUMAN_INTERRUPT_RETRY, END)
-    return workflow.compile()
-
-
-def create_human_schedule_meeting_more_info_test_graph():
+def create_human_schedule_meeting_more_info_test_graph() -> StateGraph:
     workflow = StateGraph(MeetingMuseBotState)
     workflow.add_node(
         NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO,
@@ -116,7 +101,7 @@ def create_human_schedule_meeting_more_info_test_graph():
     return workflow
 
 
-def create_prompt_missing_meeting_details_test_graph():
+def create_prompt_missing_meeting_details_test_graph() -> StateGraph:
     workflow = StateGraph(MeetingMuseBotState)
     workflow.add_node(
         NodeName.PROMPT_MISSING_MEETING_DETAILS,
@@ -135,7 +120,25 @@ def create_prompt_missing_meeting_details_test_graph():
     return workflow
 
 
-def test_single_node(node_name: NodeName, user_message: str):
+def create_schedule_meeting_test_graph() -> StateGraph:
+    workflow = StateGraph(MeetingMuseBotState)
+    workflow.add_node(NodeName.SCHEDULE_MEETING, schedule_meeting_node.node_action)
+    workflow.add_edge(START, NodeName.SCHEDULE_MEETING)
+    workflow.add_edge(NodeName.SCHEDULE_MEETING, END)
+    return workflow
+
+
+def create_human_interrupt_retry_test_graph() -> StateGraph:
+    workflow = StateGraph(MeetingMuseBotState)
+    workflow.add_node(
+        NodeName.HUMAN_INTERRUPT_RETRY, human_interrupt_retry_node.node_action
+    )
+    workflow.set_entry_point(NodeName.HUMAN_INTERRUPT_RETRY)
+    # workflow.add_edge(NodeName.HUMAN_INTERRUPT_RETRY, END)
+    return workflow
+
+
+def test_single_node(node_name: NodeName, user_message: str) -> dict[str, Any] | Any:
     initial_state = create_initial_state_for_testing(user_message)
 
     if node_name == NodeName.CLASSIFY_INTENT:
@@ -146,13 +149,13 @@ def test_single_node(node_name: NodeName, user_message: str):
         workflow = create_collecting_info_test_graph()
     elif node_name == NodeName.CLARIFY_REQUEST:
         workflow = create_clarify_request_test_graph()
-    elif node_name == NodeName.SCHEDULE_MEETING:
-        workflow = create_schedule_meeting_test_graph()
     elif node_name == NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO:
         workflow = create_human_schedule_meeting_more_info_test_graph()
     elif node_name == NodeName.PROMPT_MISSING_MEETING_DETAILS:
         workflow = create_prompt_missing_meeting_details_test_graph()
-
+    elif node_name == NodeName.SCHEDULE_MEETING:
+        initial_state.user_intent = UserIntent.SCHEDULE_MEETING
+        workflow = create_schedule_meeting_test_graph()
     graph = workflow.compile(checkpointer=InMemorySaver())
     config = {"configurable": {"thread_id": "test"}}
     result = graph.invoke(initial_state, config=config)
@@ -160,17 +163,20 @@ def test_single_node(node_name: NodeName, user_message: str):
     return result
 
 
-def interrupt_node(node_name: NodeName, user_message: str):
+def interrupt_node(node_name: NodeName, user_message: str) -> None:
     initial_state = create_initial_state_for_testing(user_message)
     if node_name not in [
         NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO,
         NodeName.PROMPT_MISSING_MEETING_DETAILS,
+        NodeName.HUMAN_INTERRUPT_RETRY,
     ]:
         raise ValueError(f"Node {node_name} does not support interruption")
     if node_name == NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO:
         workflow = create_human_schedule_meeting_more_info_test_graph()
     elif node_name == NodeName.PROMPT_MISSING_MEETING_DETAILS:
         workflow = create_prompt_missing_meeting_details_test_graph()
+    elif node_name == NodeName.HUMAN_INTERRUPT_RETRY:
+        workflow = create_human_interrupt_retry_test_graph()
     else:
         raise ValueError(f"Node {node_name} does not support interruption")
 
@@ -181,12 +187,13 @@ def interrupt_node(node_name: NodeName, user_message: str):
         print(f"🤔 chunk: {chunk}")
         if "__interrupt__" in chunk:
             interrupt_info = chunk["__interrupt__"][0]
-            user_input = input(f"{interrupt_info.value} ")
+            logger.info(f"interrupt_info: {interrupt_info}")
+            user_input = input(f"{interrupt_info.value.question} ")
             for resume_chunk in graph.stream(Command(resume=user_input), config):
-                logger.info(f"🆔 resume_chunk: {resume_chunk}")
+                logger.info(f"resume_chunk: {resume_chunk}")
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Debug individual nodes in isolation")
     parser.add_argument(
         "--node",

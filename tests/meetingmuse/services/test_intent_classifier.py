@@ -31,6 +31,7 @@ class TestIntentClassifier:
             ("Cancel my 3pm meeting today", UserIntent.CANCEL_MEETING),
             ("Delete the appointment with Sarah", UserIntent.CANCEL_MEETING),
             ("Remove the team standup from my calendar", UserIntent.CANCEL_MEETING),
+            # Reschedule meeting scenarios
             # General chat scenarios
             ("Hello there!", UserIntent.GENERAL_CHAT),
             ("Thank you for your help", UserIntent.GENERAL_CHAT),

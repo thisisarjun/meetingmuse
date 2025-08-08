@@ -10,11 +10,21 @@ from meetingmuse.models.meeting import MeetingFindings
 
 
 class UserIntent(StrEnum):
-    GENERAL_CHAT = "general_chat"
-    SCHEDULE_MEETING = "schedule_meeting"
-    CANCEL_MEETING = "cancel_meeting"
+    GENERAL_CHAT = "general"
+    SCHEDULE_MEETING = "schedule"
+    CANCEL_MEETING = "cancel"
     CHECK_AVAILABILITY = "check_availability"
     UNKNOWN = "unknown"
+
+
+class OperationName(StrEnum):
+    SCHEDULE_MEETING = "schedule_meeting"
+
+
+class OperationStatus(BaseModel):
+    status: bool = False
+    error_message: Optional[str] = None
+    ai_prompt_input: Optional[str] = None
 
 
 class MeetingMuseBotState(BaseModel):
@@ -30,17 +40,13 @@ class MeetingMuseBotState(BaseModel):
 
     # The conversation history (user + bot messages)
     messages: Annotated[List[BaseMessage], add_messages] = Field(default_factory=list)
-
     # What does the user want? (schedule, cancel, check availability, etc.)
     user_intent: Optional[UserIntent] = None
 
     # Information about the meeting being scheduled
     meeting_details: MeetingFindings = Field(default_factory=MeetingFindings)
 
-    ai_prompt_input: Optional[str] = None
-
-    # Human input
-    human_input: Optional[str] = None
+    operation_status: OperationStatus = Field(default_factory=OperationStatus)
 
     # TODO: revisit this
     # Whether the human input has been processed

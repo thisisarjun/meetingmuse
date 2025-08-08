@@ -12,6 +12,7 @@ from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
+from meetingmuse.nodes.end_node import EndNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.human_interrupt_retry_node import HumanInterruptRetryNode
 from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
@@ -35,8 +36,9 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
     conversation_router: ConversationRouter
     human_schedule_meeting_more_info_node: HumanScheduleMeetingMoreInfoNode
     prompt_missing_meeting_details_node: PromptMissingMeetingDetailsNode
+    end_node: EndNode
 
-    def __init__(  # pylint: disable=too-many-positional-arguments
+    def __init__(  # pylint: disable=too-many-positional-arguments,too-many-arguments
         self,
         state: Type[MeetingMuseBotState],
         greeting_node: GreetingNode,
@@ -48,6 +50,7 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
         conversation_router: ConversationRouter,
         human_schedule_meeting_more_info_node: HumanScheduleMeetingMoreInfoNode,
         prompt_missing_meeting_details_node: PromptMissingMeetingDetailsNode,
+        end_node: EndNode,
     ) -> None:
         self.state = state
         self.greeting_node = greeting_node
@@ -61,6 +64,7 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
             human_schedule_meeting_more_info_node
         )
         self.prompt_missing_meeting_details_node = prompt_missing_meeting_details_node
+        self.end_node = end_node
 
     def build(self) -> Any:
         graph_builder: StateGraph = StateGraph(self.state)
@@ -91,6 +95,9 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
             self.human_interrupt_retry_node.node_name,
             self.human_interrupt_retry_node.node_action,
         )
+        graph_builder.add_node(self.end_node.node_name, self.end_node.node_action)
+
+        # Edges
         graph_builder.add_edge(START, self.classify_intent_node.node_name)
         # add conditional route using the routing service
         graph_builder.add_conditional_edges(
@@ -106,7 +113,8 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
             self.collecting_info_node.node_name,
             self.collecting_info_node.get_next_node_name,
             {
-                NodeName.COLLECTING_INFO: NodeName.COLLECTING_INFO,
+                # TODO: should go to schedule meeting node
+                NodeName.SCHEDULE_MEETING: NodeName.SCHEDULE_MEETING,
                 NodeName.PROMPT_MISSING_MEETING_DETAILS: NodeName.PROMPT_MISSING_MEETING_DETAILS,
             },
         )
@@ -114,7 +122,7 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
             self.prompt_missing_meeting_details_node.node_name,
             self.prompt_missing_meeting_details_node.get_next_node,
             {
-                NodeName.END: END,
+                NodeName.END: NodeName.END,
                 NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO: self.human_schedule_meeting_more_info_node.node_name,
             },
         )
@@ -123,22 +131,10 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
             self.collecting_info_node.node_name,
         )
         # Add edges to END for completion
-        graph_builder.add_edge(self.greeting_node.node_name, END)
-        graph_builder.add_edge(self.clarify_request_node.node_name, END)
-        graph_builder.add_edge(self.schedule_meeting_node.node_name, END)
-        graph_builder.add_edge(self.human_interrupt_retry_node.node_name, END)
-
-        return graph_builder.compile(
-            interrupt_after=[NodeName.HUMAN_INTERRUPT_RETRY],
-            checkpointer=InMemorySaver(),
+        graph_builder.add_edge(self.greeting_node.node_name, self.end_node.node_name)
+        graph_builder.add_edge(
+            self.clarify_request_node.node_name, self.end_node.node_name
         )
+        graph_builder.add_edge(self.end_node.node_name, END)
 
-    def draw_graph(self) -> None:
-        try:
-            graph: Any = self.build()
-            with open("graph.png", "wb") as f:
-                f.write(graph.get_graph().draw_mermaid_png())
-            print("Graph saved as graph.png")
-        except Exception as e:
-            print(f"Could not generate graph: {e}")
-            raise e
+        return graph_builder.compile(checkpointer=InMemorySaver())

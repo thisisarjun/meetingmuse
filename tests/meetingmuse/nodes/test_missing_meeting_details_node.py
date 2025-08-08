@@ -1,12 +1,11 @@
 from unittest.mock import Mock
 
 import pytest
-from langgraph.types import Command
 
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, OperationStatus
 from meetingmuse.nodes.prompt_missing_meeting_details_node import (
     PromptMissingMeetingDetailsNode,
 )
@@ -31,7 +30,7 @@ class TestPromptMissingMeetingDetailsNode:
     @pytest.fixture
     def node(self, mock_logger, meeting_service):
         """Create a PromptMissingMeetingDetailsNode instance with real meeting service."""
-        return PromptMissingMeetingDetailsNode(mock_logger, meeting_service)
+        return PromptMissingMeetingDetailsNode(meeting_service, mock_logger)
 
     @pytest.fixture
     def complete_meeting_state(self):
@@ -43,6 +42,11 @@ class TestPromptMissingMeetingDetailsNode:
                 date_time="2024-01-15 10:00 AM",
                 participants=["john@example.com", "jane@example.com"],
                 duration="30 minutes",
+            ),
+            operation_status=OperationStatus(
+                status=False,
+                error_message=None,
+                ai_prompt_input=None,
             ),
         )
 
@@ -56,6 +60,11 @@ class TestPromptMissingMeetingDetailsNode:
                 date_time=None,
                 participants=["john@example.com"],
                 duration=None,
+            ),
+            operation_status=OperationStatus(
+                status=False,
+                error_message=None,
+                ai_prompt_input=None,
             ),
         )
 
@@ -83,21 +92,26 @@ class TestNodeActionWithCompleteMeetingDetails(TestPromptMissingMeetingDetailsNo
         result = node.node_action(complete_meeting_state)
 
         # Assert
-        assert isinstance(result, Command)
-        assert result.goto == NodeName.END
+        assert isinstance(result, MeetingMuseBotState)
+        assert result == complete_meeting_state
 
     def test_node_action_with_complete_details_does_not_modify_ai_prompt_input(
         self, node, complete_meeting_state
     ):
         """Test that ai_prompt_input is not modified when details are complete."""
         # Arrange
-        original_ai_prompt_input = complete_meeting_state.ai_prompt_input
+        original_ai_prompt_input = (
+            complete_meeting_state.operation_status.ai_prompt_input
+        )
 
         # Act
         node.node_action(complete_meeting_state)
 
         # Assert
-        assert complete_meeting_state.ai_prompt_input == original_ai_prompt_input
+        assert (
+            complete_meeting_state.operation_status.ai_prompt_input
+            == original_ai_prompt_input
+        )
 
 
 class TestNodeActionWithIncompleteMeetingDetails(TestPromptMissingMeetingDetailsNode):
@@ -109,13 +123,20 @@ class TestNodeActionWithIncompleteMeetingDetails(TestPromptMissingMeetingDetails
     ):
         """Test that ai_prompt_input is set with a response when fields are missing."""
         # Arrange
-        original_ai_prompt_input = incomplete_meeting_state.ai_prompt_input
+        original_ai_prompt_input = (
+            incomplete_meeting_state.operation_status.ai_prompt_input
+        )
 
         # Act
         node.node_action(incomplete_meeting_state)
 
         # Assert
-        assert incomplete_meeting_state.ai_prompt_input != original_ai_prompt_input
-        assert incomplete_meeting_state.ai_prompt_input is not None
-        assert isinstance(incomplete_meeting_state.ai_prompt_input, str)
-        assert len(incomplete_meeting_state.ai_prompt_input) > 0
+        assert (
+            incomplete_meeting_state.operation_status.ai_prompt_input
+            != original_ai_prompt_input
+        )
+        assert incomplete_meeting_state.operation_status.ai_prompt_input is not None
+        assert isinstance(
+            incomplete_meeting_state.operation_status.ai_prompt_input, str
+        )
+        assert len(incomplete_meeting_state.operation_status.ai_prompt_input) > 0
