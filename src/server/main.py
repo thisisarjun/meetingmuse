@@ -3,29 +3,34 @@ Main WebSocket Server Application
 Entry point for the MeetingMuse WebSocket server
 """
 import logging
+import signal
+import sys
 
-import uvicorn
-
-from .websocket_routes import app
+from .api.app import app, websocket_connection_service
+from .services.server_lifecycle_manager import ServerLifecycleManager
 
 logger = logging.getLogger(__name__)
 
 
 def main() -> None:
     """Main entry point for the WebSocket server"""
+    import asyncio
+
     logger.info("Starting MeetingMuse WebSocket Server...")
 
-    config = uvicorn.Config(
-        app,
-        host="0.0.0.0",
-        port=8000,
-        log_level="info",
-        reload=True,  # Enable auto-reload for development # TODO: Use environment variable
-        access_log=True,
-    )
+    server_lifecycle = ServerLifecycleManager(websocket_connection_service)
 
-    server = uvicorn.Server(config)
-    server.run()
+    # Register signal handlers for graceful shutdown
+    signal.signal(signal.SIGINT, server_lifecycle.signal_handler)
+    signal.signal(signal.SIGTERM, server_lifecycle.signal_handler)
+
+    try:
+        asyncio.run(server_lifecycle.run_server(app))
+    except KeyboardInterrupt:
+        logger.info("KeyboardInterrupt received during startup")
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

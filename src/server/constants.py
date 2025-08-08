@@ -18,6 +18,7 @@ class ErrorCodes:
 
     INVALID_MESSAGE_FORMAT = "INVALID_MESSAGE_FORMAT"
     INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
+    LLM_PROCESSING_ERROR = "LLM_PROCESSING_ERROR"
 
 
 # Error Messages
@@ -28,6 +29,9 @@ class ErrorMessages:
         "Message format is invalid. Please check the message structure."
     )
     INTERNAL_SERVER_ERROR = "An internal error occurred. Please try reconnecting."
+    LLM_PROCESSING_ERROR = (
+        "I'm having trouble processing your request. Please try again."
+    )
 
 
 # System Message Types
@@ -36,6 +40,9 @@ class SystemMessageTypes:
 
     CONNECTION_ESTABLISHED = "connection_established"
     PROCESSING = "processing"
+    CONVERSATION_RESUMED = "conversation_resumed"
+    WAITING_FOR_INPUT = "waiting_for_input"
+    PROCESSING_STEP = "processing_step"
 
 
 # WebSocket Close Reasons

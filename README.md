@@ -80,6 +80,12 @@ make quality
 make clean
 ```
 
+### Start the webserver
+
+```shell
+poetry run python -m src.server.main
+```
+
 ### Running the Application
 
 ```bash

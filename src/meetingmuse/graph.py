@@ -31,6 +31,8 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
     clarify_request_node: ClarifyRequestNode
     collecting_info_node: CollectingInfoNode
     classify_intent_node: ClassifyIntentNode
+    schedule_meeting_node: ScheduleMeetingNode
+    human_interrupt_retry_node: HumanInterruptRetryNode
     conversation_router: ConversationRouter
     human_schedule_meeting_more_info_node: HumanScheduleMeetingMoreInfoNode
     prompt_missing_meeting_details_node: PromptMissingMeetingDetailsNode

@@ -42,11 +42,14 @@ class SystemMessage(BaseModel):
     type: str = Field(default="system", description="Message type identifier")
     content: str = Field(
         ...,
-        description="System message content (connection_established|processing|error)",
+        description="System message content (connection_established|processing|conversation_resumed|waiting_for_input|processing_step)",
     )
     timestamp: str = Field(
         default_factory=lambda: datetime.now().isoformat(),
         description="Message timestamp",
+    )
+    metadata: Optional[dict] = Field(
+        default=None, description="Optional additional metadata"
     )
 
 
@@ -62,6 +65,9 @@ class ErrorMessage(BaseModel):
     )
     retry_suggested: bool = Field(
         default=True, description="Whether client should retry"
+    )
+    metadata: Optional[dict] = Field(
+        default=None, description="Optional additional metadata"
     )
 
 
