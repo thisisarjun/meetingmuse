@@ -147,27 +147,6 @@ Broadcast a message to all connected clients.
 }
 ```
 
-## Running the Server
-
-### 1. Start the Server
-```bash
-cd src
-python -m meetingmuse_server.main
-```
-
-The server will start on `http://localhost:8000`.
-
-### 2. Verify Health
-```bash
-curl http://localhost:8000/health
-```
-
-### 3. Test WebSocket Connection
-Use the provided test client:
-```bash
-python scripts/test_websocket_client.py
-```
-
 ## Testing
 
 ### Unit Tests

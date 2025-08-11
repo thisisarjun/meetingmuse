@@ -83,7 +83,7 @@ make clean
 ### Start the webserver
 
 ```shell
-poetry run python -m src.server.main
+poetry run python -m src.main
 ```
 
 ### Running the Application
