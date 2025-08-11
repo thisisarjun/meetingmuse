@@ -1,5 +1,6 @@
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
+from pydantic import ValidationError
 
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
@@ -351,9 +352,7 @@ class TestGetLastMessageFromEvents(TestUtils):
         events = {"node1": "not a state object"}
 
         # Act & Assert
-        with pytest.raises(
-            AssertionError, match="State for node node1 is not a MeetingMuseBotState"
-        ):
+        with pytest.raises(ValidationError):
             Utils.get_last_message_from_events(events, "human")
 
     def test_get_last_message_from_events_multiple_messages_per_state(self):
