@@ -11,6 +11,7 @@ from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
+from meetingmuse.nodes.end_node import EndNode
 from meetingmuse.nodes.greeting_node import GreetingNode
 from meetingmuse.nodes.human_interrupt_retry_node import HumanInterruptRetryNode
 from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
@@ -100,20 +101,21 @@ class LangGraphSingletonFactory:
             meeting_details_service = MeetingDetailsService(model, meetingmuse_logger)
 
             # Initialize nodes
-            classify_intent_node = ClassifyIntentNode(intent_classifier)
-            greeting_node = GreetingNode(model)
-            clarify_request_node = ClarifyRequestNode(model)
+            classify_intent_node = ClassifyIntentNode(
+                intent_classifier, meetingmuse_logger
+            )
+            greeting_node = GreetingNode(model, meetingmuse_logger)
+            clarify_request_node = ClarifyRequestNode(model, meetingmuse_logger)
             collecting_info_node = CollectingInfoNode(model, meetingmuse_logger)
             schedule_meeting_node = ScheduleMeetingNode(model, meetingmuse_logger)
-            human_interrupt_retry_node = HumanInterruptRetryNode(
-                model, meetingmuse_logger
-            )
+            human_interrupt_retry_node = HumanInterruptRetryNode(meetingmuse_logger)
             human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(
                 meetingmuse_logger
             )
             prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
-                meetingmuse_logger, meeting_details_service
+                meeting_details_service, meetingmuse_logger
             )
+            end_node = EndNode(meetingmuse_logger)
 
             # Create graph builder with all components
             graph_builder = GraphBuilder(
@@ -127,6 +129,7 @@ class LangGraphSingletonFactory:
                 conversation_router=conversation_router,
                 human_schedule_meeting_more_info_node=human_schedule_meeting_more_info_node,
                 prompt_missing_meeting_details_node=prompt_missing_meeting_details_node,
+                end_node=end_node,
             )
 
             # Build and return the compiled graph
