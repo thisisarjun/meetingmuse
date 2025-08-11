@@ -1,5 +1,6 @@
 from typing import Any
 
+from common.logger import Logger
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.state import MeetingMuseBotState
@@ -19,7 +20,6 @@ from meetingmuse.nodes.schedule_meeting_node import ScheduleMeetingNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
-from meetingmuse.utils.logger import Logger
 
 logger = Logger()
 model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")

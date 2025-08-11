@@ -1,7 +1,7 @@
+from common.decorators.log_decorator import log_node_entry
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
-from meetingmuse.utils.decorators.log_decorator import log_node_entry
 
 
 class EndNode(BaseNode):

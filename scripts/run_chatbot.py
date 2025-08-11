@@ -1,7 +1,7 @@
+from common.logger import Logger
 from meetingmuse.graph import GraphBuilder
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.utils.logger import Logger
 from scripts.chatbot import ChatBot
 from scripts.common import initialize_nodes
 

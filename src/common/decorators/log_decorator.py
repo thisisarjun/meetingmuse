@@ -1,9 +1,9 @@
 import functools
 from typing import Any, Callable
 
+from common.logger import Logger
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.utils.logger import Logger
 
 
 def log_node_entry(prefix: NodeName) -> Callable:

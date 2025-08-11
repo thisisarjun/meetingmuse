@@ -3,9 +3,9 @@ from typing import Any, Optional
 from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 
+from common.logger import Logger
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.utils.logger import Logger
 from meetingmuse.utils.utils import Utils
 
 

@@ -2,12 +2,12 @@ from unittest.mock import Mock
 
 import pytest
 
+from common.logger import Logger
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
-from meetingmuse.utils.logger import Logger
 
 
 class TestCollectingInfoNode:
