@@ -35,6 +35,7 @@ authors = ["Your Name <your.email@example.com>"]
 readme = "README.md"
 packages = [
     {include = "meetingmuse", from = "src"},
+    {include = "common", from = "src"},
     {include = "scripts"}
 ]
 
