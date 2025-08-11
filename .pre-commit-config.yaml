@@ -37,3 +37,14 @@ repos:
     hooks:
       - id: mypy
         exclude: ^tests/
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: poetry run pytest
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+        args: [--tb=short]
