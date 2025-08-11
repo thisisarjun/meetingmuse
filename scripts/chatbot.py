@@ -4,9 +4,9 @@ from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 
 from common.logger import Logger
+from common.utils import Utils
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.utils.utils import Utils
 
 
 class ChatBot:

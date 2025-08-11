@@ -1,4 +1,4 @@
-from common.decorators.log_decorator import log_node_entry
+from common.decorators import log_node_entry
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode

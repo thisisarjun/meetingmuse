@@ -5,7 +5,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 
-from common.decorators.log_decorator import log_node_entry
+from common.decorators import log_node_entry
 from common.logger import Logger
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName

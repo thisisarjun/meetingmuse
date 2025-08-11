@@ -1,6 +1,6 @@
 from typing import List
 
-from common.decorators.log_decorator import log_node_entry
+from common.decorators import log_node_entry
 from common.logger import Logger
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState

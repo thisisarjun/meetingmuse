@@ -4,7 +4,7 @@ from typing import Any
 from langchain_core.messages import AIMessage
 from langgraph.types import Command
 
-from common.decorators.log_decorator import log_node_entry
+from common.decorators import log_node_entry
 from common.logger import Logger
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName
