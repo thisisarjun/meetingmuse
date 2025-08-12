@@ -8,6 +8,27 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 
+from common.logger import Logger
+from meetingmuse.graph import GraphBuilder
+from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
+from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
+from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
+from meetingmuse.nodes.end_node import EndNode
+from meetingmuse.nodes.greeting_node import GreetingNode
+from meetingmuse.nodes.human_interrupt_retry_node import HumanInterruptRetryNode
+from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
+    HumanScheduleMeetingMoreInfoNode,
+)
+from meetingmuse.nodes.prompt_missing_meeting_details_node import (
+    PromptMissingMeetingDetailsNode,
+)
+from meetingmuse.nodes.schedule_meeting_node import ScheduleMeetingNode
+from meetingmuse.services.intent_classifier import IntentClassifier
+from meetingmuse.services.meeting_details_service import MeetingDetailsService
+from meetingmuse.services.routing_service import ConversationRouter
+
 from ..langgraph.message_processor import LangGraphMessageProcessor
 from ..langgraph.streaming_handler import StreamingHandler
 from ..services.admin_service import AdminService
@@ -19,13 +40,43 @@ from .admin_api import create_admin_router
 from .health_api import create_health_router
 from .websocket_api import create_websocket_router
 
-logger = logging.getLogger(__name__)
+logger = Logger()
+
+model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
+intent_classifier = IntentClassifier(model)
+classify_intent_node = ClassifyIntentNode(intent_classifier, logger)
+greeting_node = GreetingNode(model, logger)
+collecting_info_node = CollectingInfoNode(model, logger)
+clarify_request_node = ClarifyRequestNode(model, logger)
+meeting_details_service = MeetingDetailsService(model, logger)
+human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
+prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
+    meeting_details_service, logger
+)
+schedule_meeting_node = ScheduleMeetingNode(model, logger)
+human_interrupt_retry_node = HumanInterruptRetryNode(logger)
+end_node = EndNode(logger)
+conversation_router = ConversationRouter(logger)
+
+graph_builder = GraphBuilder(
+    state=MeetingMuseBotState,
+    greeting_node=greeting_node,
+    clarify_request_node=clarify_request_node,
+    collecting_info_node=collecting_info_node,
+    schedule_meeting_node=schedule_meeting_node,
+    human_interrupt_retry_node=human_interrupt_retry_node,
+    conversation_router=conversation_router,
+    classify_intent_node=classify_intent_node,
+    human_schedule_meeting_more_info_node=human_schedule_meeting_more_info_node,
+    prompt_missing_meeting_details_node=prompt_missing_meeting_details_node,
+    end_node=end_node,
+)
 
 # Global service instances - initialized once
 connection_manager = ConnectionManager()
-conversation_manager = ConversationManager()
-message_processor = LangGraphMessageProcessor()
-streaming_handler = StreamingHandler()
+conversation_manager = ConversationManager(graph_builder=graph_builder)
+message_processor = LangGraphMessageProcessor(graph_builder=graph_builder)
+streaming_handler = StreamingHandler(graph_builder=graph_builder, logger=logger)
 
 # Create specialized services with dependency injection
 health_service = HealthService(

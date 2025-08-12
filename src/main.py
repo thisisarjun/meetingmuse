@@ -2,6 +2,7 @@
 Main WebSocket Server Application
 Entry point for the MeetingMuse WebSocket server
 """
+import asyncio
 import logging
 import signal
 import sys
@@ -14,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     """Main entry point for the WebSocket server"""
-    import asyncio
 
     logger.info("Starting MeetingMuse WebSocket Server...")
 

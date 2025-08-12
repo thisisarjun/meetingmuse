@@ -6,6 +6,8 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from meetingmuse.graph import GraphBuilder
+
 from ..langgraph.message_processor import LangGraphMessageProcessor
 
 logger = logging.getLogger(__name__)
@@ -14,8 +16,8 @@ logger = logging.getLogger(__name__)
 class ConversationManager:
     """Manages conversation state and recovery for WebSocket connections"""
 
-    def __init__(self) -> None:
-        self.message_processor = LangGraphMessageProcessor()
+    def __init__(self, graph_builder: GraphBuilder) -> None:
+        self.message_processor = LangGraphMessageProcessor(graph_builder)
         self.active_conversations: Dict[str, Dict[str, Any]] = {}
 
     async def initialize_conversation(self, client_id: str) -> bool:

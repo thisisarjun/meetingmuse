@@ -2,32 +2,22 @@
 Message Processor for LangGraph Integration
 Handles message processing through the LangGraph workflow
 """
-import logging
 from typing import Any, Dict, Optional
 
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.types import Command
 
-from .langgraph_factory import LangGraphSingletonFactory
+from common.logger import Logger
+from meetingmuse.graph import GraphBuilder
 
-logger = logging.getLogger(__name__)
+logger = Logger()
 
 
 class LangGraphMessageProcessor:
     """Processes user messages through LangGraph workflow"""
 
-    def __init__(self) -> None:
-        self.graph: Optional[Any] = None
-        self._initialize_graph()
-
-    def _initialize_graph(self) -> None:
-        """Initialize the LangGraph instance"""
-        try:
-            self.graph = LangGraphSingletonFactory.get_graph()
-            logger.info("LangGraph message processor initialized successfully")
-        except Exception as e:
-            logger.error(f"Failed to initialize LangGraph processor: {str(e)}")
-            raise e
+    def __init__(self, graph_builder: GraphBuilder) -> None:
+        self.graph = graph_builder.build()
 
     async def process_user_message(self, content: str, client_id: str) -> str:
         """
@@ -202,5 +192,4 @@ class LangGraphMessageProcessor:
 
     def is_ready(self) -> bool:
         """Check if the processor is ready to handle messages"""
-        factory = LangGraphSingletonFactory()
-        return self.graph is not None and factory.is_initialized()
+        return self.graph is not None

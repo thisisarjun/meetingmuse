@@ -3,31 +3,20 @@ Streaming Handler for Real-time Response Processing
 Handles streaming responses and real-time feedback during LangGraph execution
 """
 import asyncio
-import logging
 from typing import Any, AsyncGenerator, Dict, Optional
 
 from langchain_core.messages import AIMessage
 
-from .langgraph_factory import LangGraphSingletonFactory
-
-logger = logging.getLogger(__name__)
+from common.logger import Logger
+from meetingmuse.graph import GraphBuilder
 
 
 class StreamingHandler:
     """Handles streaming responses and real-time processing feedback"""
 
-    def __init__(self) -> None:
-        self.graph: Optional[Any] = None
-        self._initialize_graph()
-
-    def _initialize_graph(self) -> None:
-        """Initialize the LangGraph instance"""
-        try:
-            self.graph = LangGraphSingletonFactory.get_graph()
-            logger.info("Streaming handler initialized successfully")
-        except Exception as e:
-            logger.error(f"Failed to initialize streaming handler: {str(e)}")
-            raise e
+    def __init__(self, graph_builder: GraphBuilder, logger: Logger) -> None:
+        self.graph = graph_builder.build()
+        self.logger = logger
 
     async def stream_response(
         self, input_data: Dict[str, Any], client_id: str
@@ -48,7 +37,7 @@ class StreamingHandler:
 
             config = {"configurable": {"thread_id": client_id}}
 
-            logger.info(f"Starting streaming response for client {client_id}")
+            self.logger.info(f"Starting streaming response for client {client_id}")
 
             # Stream through LangGraph execution
             async for chunk in self.graph.astream(input_data, config=config):
@@ -62,7 +51,9 @@ class StreamingHandler:
                 await asyncio.sleep(0.1)
 
         except Exception as e:
-            logger.error(f"Error streaming response for client {client_id}: {str(e)}")
+            self.logger.error(
+                f"Error streaming response for client {client_id}: {str(e)}"
+            )
             yield {
                 "type": "error",
                 "content": "Error occurred during processing",
@@ -114,7 +105,9 @@ class StreamingHandler:
             return None
 
         except Exception as e:
-            logger.error(f"Error processing chunk for client {client_id}: {str(e)}")
+            self.logger.error(
+                f"Error processing chunk for client {client_id}: {str(e)}"
+            )
             return None
 
     def _get_timestamp(self) -> str:
