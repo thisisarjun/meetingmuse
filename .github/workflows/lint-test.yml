@@ -79,10 +79,3 @@ jobs:
 
     - name: Run tests with coverage
       run: make test-coverage
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        directory: ./htmlcov
-        fail_ci_if_error: true
-        verbose: true
