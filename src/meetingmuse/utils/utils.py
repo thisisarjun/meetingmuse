@@ -44,7 +44,12 @@ class Utils:
     ) -> Optional[str]:
         last_message: Optional[str] = None
         for _, state in events.items():
-            meeting_muse_bot_state = MeetingMuseBotState.model_validate(state)
+            # Handle both dict and MeetingMuseBotState instances
+            if isinstance(state, MeetingMuseBotState):
+                meeting_muse_bot_state = state
+            else:
+                # Let Pydantic handle validation - will raise ValidationError for invalid types
+                meeting_muse_bot_state = MeetingMuseBotState.model_validate(state)
             if meeting_muse_bot_state.messages:
                 for message in reversed(meeting_muse_bot_state.messages):
                     if input_type == "human" and isinstance(message, HumanMessage):
