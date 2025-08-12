@@ -154,7 +154,9 @@ disable = [
     "too-few-public-methods",
     "logging-fstring-interpolation",
     "duplicate-code",
-    "fixme"
+    "fixme",
+    "import-error",
+    "no-name-in-module"
 ]
 
 [tool.pylint.format]
