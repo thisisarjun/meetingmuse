@@ -3,9 +3,12 @@ WebSocket Connection Service
 Core business logic for WebSocket connection handling and message processing
 """
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
+
+from server.models.ws_dtos import UserMessage
+from server.services.message_processor import MessageProtocol
 
 from ..constants import (
     CloseReasons,
@@ -16,7 +19,6 @@ from ..constants import (
 )
 from ..langgraph.message_processor import LangGraphMessageProcessor
 from ..langgraph.streaming_handler import StreamingHandler
-from ..models.ws_dtos import MessageProtocol
 from .connection_manager import ConnectionManager
 from .conversation_manager import ConversationManager
 
@@ -70,13 +72,15 @@ class WebSocketConnectionService:
         logger.info(f"WebSocket connection established for client: {client_id}")
 
         # Initialize conversation
-        await self.conversation_manager.initialize_conversation(client_id)
+        self.conversation_manager.initialize_conversation(client_id)
 
         # Handle potential reconnection and conversation recovery
         recovery_info = await self.conversation_manager.handle_reconnection(client_id)
         if recovery_info and recovery_info.get("conversation_resumed"):
             await self.connection_manager.send_system_message(
-                client_id, "conversation_resumed", additional_data=recovery_info
+                client_id,
+                SystemMessageTypes.CONVERSATION_RESUMED,
+                additional_data=recovery_info,
             )
 
         try:
@@ -112,9 +116,11 @@ class WebSocketConnectionService:
             self.connection_manager.increment_message_count(client_id)
 
             # Parse the incoming message
-            user_message = MessageProtocol.parse_user_message(message_text)
-
-            if user_message is None:
+            user_message: Optional[UserMessage] = None
+            try:
+                user_message = MessageProtocol.parse_user_message(message_text)
+            except Exception as e:
+                logger.error(f"Error parsing user message: {str(e)}")
                 logger.warning(f"Invalid message format from {client_id}")
                 await self.connection_manager.send_error_message(
                     client_id,
@@ -135,7 +141,7 @@ class WebSocketConnectionService:
             )
 
             # Update conversation activity
-            await self.conversation_manager.update_conversation_activity(client_id)
+            self.conversation_manager.update_conversation_activity(client_id)
 
             # Process the message
             try:
@@ -172,7 +178,7 @@ class WebSocketConnectionService:
             )
             await self.connection_manager.send_system_message(
                 client_id,
-                "waiting_for_input",
+                SystemMessageTypes.WAITING_FOR_INPUT,
                 additional_data=interrupt_notification,
             )
 

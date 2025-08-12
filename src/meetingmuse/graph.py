@@ -2,10 +2,11 @@
 MeetingMuse LangGraph Workflow
 """
 
-from typing import Any, Type
+from typing import Type
 
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
@@ -66,7 +67,7 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
         self.prompt_missing_meeting_details_node = prompt_missing_meeting_details_node
         self.end_node = end_node
 
-    def build(self) -> Any:
+    def build(self) -> CompiledStateGraph:
         graph_builder: StateGraph = StateGraph(self.state)
         graph_builder.add_node(
             self.greeting_node.node_name, self.greeting_node.node_action

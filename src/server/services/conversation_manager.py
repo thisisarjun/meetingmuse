@@ -6,7 +6,9 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from meetingmuse.graph import GraphBuilder
+from langgraph.graph.state import CompiledStateGraph
+
+from common.logger.logger import Logger
 
 from ..langgraph.message_processor import LangGraphMessageProcessor
 
@@ -16,11 +18,11 @@ logger = logging.getLogger(__name__)
 class ConversationManager:
     """Manages conversation state and recovery for WebSocket connections"""
 
-    def __init__(self, graph_builder: GraphBuilder) -> None:
-        self.message_processor = LangGraphMessageProcessor(graph_builder)
+    def __init__(self, graph: CompiledStateGraph, logger: Logger) -> None:
+        self.message_processor = LangGraphMessageProcessor(graph, logger)
         self.active_conversations: Dict[str, Dict[str, Any]] = {}
 
-    async def initialize_conversation(self, client_id: str) -> bool:
+    def initialize_conversation(self, client_id: str) -> bool:
         """
         Initialize conversation state for a new client
 
@@ -32,6 +34,7 @@ class ConversationManager:
         """
         try:
             if client_id not in self.active_conversations:
+                # TODO: conversation status has to be pydantic model
                 self.active_conversations[client_id] = {
                     "started_at": datetime.now().isoformat(),
                     "last_activity": datetime.now().isoformat(),
@@ -63,6 +66,7 @@ class ConversationManager:
             state_info = await self.message_processor.get_conversation_state(client_id)
 
             if state_info and state_info.get("has_conversation"):
+                # TODO: recovery info has to be pydantic model
                 recovery_info = {
                     "conversation_resumed": True,
                     "message_count": state_info.get("message_count", 0),
@@ -93,7 +97,7 @@ class ConversationManager:
             )
             return None
 
-    async def update_conversation_activity(self, client_id: str) -> None:
+    def update_conversation_activity(self, client_id: str) -> None:
         """
         Update conversation activity timestamp
 

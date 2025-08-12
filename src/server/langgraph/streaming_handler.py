@@ -6,16 +6,16 @@ import asyncio
 from typing import Any, AsyncGenerator, Dict, Optional
 
 from langchain_core.messages import AIMessage
+from langgraph.graph.state import CompiledStateGraph
 
 from common.logger import Logger
-from meetingmuse.graph import GraphBuilder
 
 
 class StreamingHandler:
     """Handles streaming responses and real-time processing feedback"""
 
-    def __init__(self, graph_builder: GraphBuilder, logger: Logger) -> None:
-        self.graph = graph_builder.build()
+    def __init__(self, graph: CompiledStateGraph, logger: Logger) -> None:
+        self.graph = graph
         self.logger = logger
 
     async def stream_response(

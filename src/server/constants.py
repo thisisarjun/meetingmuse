@@ -2,10 +2,10 @@
 WebSocket Server Constants
 Defines error codes, message types, and other constants for the MeetingMuse WebSocket server
 """
+from enum import IntEnum, StrEnum
 
 
-# WebSocket Close Codes
-class WebSocketCloseCodes:
+class WebSocketCloseCodes(IntEnum):
     """Standard WebSocket close codes"""
 
     POLICY_VIOLATION = 1008
@@ -13,7 +13,7 @@ class WebSocketCloseCodes:
 
 
 # Error Codes for Error Messages
-class ErrorCodes:
+class ErrorCodes(StrEnum):
     """Error codes sent in error messages to clients"""
 
     INVALID_MESSAGE_FORMAT = "INVALID_MESSAGE_FORMAT"
@@ -22,7 +22,7 @@ class ErrorCodes:
 
 
 # Error Messages
-class ErrorMessages:
+class ErrorMessages(StrEnum):
     """Human-readable error messages corresponding to error codes"""
 
     INVALID_MESSAGE_FORMAT = (
@@ -35,7 +35,7 @@ class ErrorMessages:
 
 
 # System Message Types
-class SystemMessageTypes:
+class SystemMessageTypes(StrEnum):
     """Types of system messages sent to clients"""
 
     CONNECTION_ESTABLISHED = "connection_established"
@@ -46,7 +46,7 @@ class SystemMessageTypes:
 
 
 # WebSocket Close Reasons
-class CloseReasons:
+class CloseReasons(StrEnum):
     """Human-readable reasons for WebSocket connection closures"""
 
     INVALID_CLIENT_ID = "Invalid client ID format"

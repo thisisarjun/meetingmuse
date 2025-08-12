@@ -5,19 +5,19 @@ Handles message processing through the LangGraph workflow
 from typing import Any, Dict, Optional
 
 from langchain_core.messages import AIMessage, HumanMessage
+from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
 from common.logger import Logger
-from meetingmuse.graph import GraphBuilder
-
-logger = Logger()
 
 
 class LangGraphMessageProcessor:
     """Processes user messages through LangGraph workflow"""
 
-    def __init__(self, graph_builder: GraphBuilder) -> None:
-        self.graph = graph_builder.build()
+    def __init__(self, graph: CompiledStateGraph, logger: Logger) -> None:
+        # pass built graph to this class
+        self.graph = graph
+        self.logger = logger
 
     async def process_user_message(self, content: str, client_id: str) -> str:
         """
@@ -34,11 +34,14 @@ class LangGraphMessageProcessor:
             if not self.graph:
                 raise Exception("LangGraph not initialized")
 
-            # Prepare input data
+            # TODO: first time meetingmuse state creation
             input_data = {"messages": [HumanMessage(content=content)]}
+
             config = {"configurable": {"thread_id": client_id}}
 
-            logger.info(f"Processing message for client {client_id}: {content[:50]}...")
+            self.logger.info(
+                f"Processing message for client {client_id}: {content[:50]}..."
+            )
 
             # Process through LangGraph workflow
             result = await self.graph.ainvoke(input_data, config=config)
@@ -48,21 +51,23 @@ class LangGraphMessageProcessor:
                 ai_message = result["messages"][-1]
                 if isinstance(ai_message, AIMessage):
                     response_content = ai_message.content
-                    logger.info(
+                    self.logger.info(
                         f"Generated response for client {client_id}: {response_content[:50]}..."
                     )
                     return str(response_content)
                 else:
-                    logger.warning(
+                    self.logger.warning(
                         f"Last message is not an AI message for client {client_id}"
                     )
                     return "I'm processing your request. Please wait a moment."
             else:
-                logger.warning(f"No messages in result for client {client_id}")
+                self.logger.warning(f"No messages in result for client {client_id}")
                 return "I'm having trouble processing your request. Please try again."
 
         except Exception as e:
-            logger.error(f"Error processing message for client {client_id}: {str(e)}")
+            self.logger.error(
+                f"Error processing message for client {client_id}: {str(e)}"
+            )
             return "I encountered an error processing your request. Please try again."
 
     async def handle_interrupts(self, client_id: str) -> Optional[Dict[str, Any]]:
@@ -90,7 +95,7 @@ class LangGraphMessageProcessor:
                     "prompt": self._generate_interrupt_prompt(current_state),
                 }
 
-                logger.info(
+                self.logger.info(
                     f"Client {client_id} has pending interrupt: {interrupt_info}"
                 )
                 return interrupt_info
@@ -98,7 +103,9 @@ class LangGraphMessageProcessor:
             return None
 
         except Exception as e:
-            logger.error(f"Error handling interrupts for client {client_id}: {str(e)}")
+            self.logger.error(
+                f"Error handling interrupts for client {client_id}: {str(e)}"
+            )
             return None
 
     def _generate_interrupt_prompt(self, state: Any) -> str:
@@ -145,7 +152,7 @@ class LangGraphMessageProcessor:
             return {"has_conversation": False}
 
         except Exception as e:
-            logger.error(
+            self.logger.error(
                 f"Error getting conversation state for client {client_id}: {str(e)}"
             )
             return None
@@ -183,7 +190,7 @@ class LangGraphMessageProcessor:
             return "Thank you for the additional information. Let me continue processing your request."
 
         except Exception as e:
-            logger.error(
+            self.logger.error(
                 f"Error resuming conversation for client {client_id}: {str(e)}"
             )
             return (

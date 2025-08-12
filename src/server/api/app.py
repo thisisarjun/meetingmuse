@@ -58,7 +58,7 @@ human_interrupt_retry_node = HumanInterruptRetryNode(logger)
 end_node = EndNode(logger)
 conversation_router = ConversationRouter(logger)
 
-graph_builder = GraphBuilder(
+graph = GraphBuilder(
     state=MeetingMuseBotState,
     greeting_node=greeting_node,
     clarify_request_node=clarify_request_node,
@@ -70,13 +70,13 @@ graph_builder = GraphBuilder(
     human_schedule_meeting_more_info_node=human_schedule_meeting_more_info_node,
     prompt_missing_meeting_details_node=prompt_missing_meeting_details_node,
     end_node=end_node,
-)
+).build()
 
 # Global service instances - initialized once
 connection_manager = ConnectionManager()
-conversation_manager = ConversationManager(graph_builder=graph_builder)
-message_processor = LangGraphMessageProcessor(graph_builder=graph_builder)
-streaming_handler = StreamingHandler(graph_builder=graph_builder, logger=logger)
+conversation_manager = ConversationManager(graph=graph, logger=logger)
+message_processor = LangGraphMessageProcessor(graph=graph, logger=logger)
+streaming_handler = StreamingHandler(graph=graph, logger=logger)
 
 # Create specialized services with dependency injection
 health_service = HealthService(

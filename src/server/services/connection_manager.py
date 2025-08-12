@@ -36,6 +36,7 @@ class ConnectionManager:
         """
         try:
             await websocket.accept()
+            # TODO: connection has to be pydantic model
             self.active_connections[client_id] = websocket
             self.connection_metadata[client_id] = {
                 "connected_at": datetime.now().isoformat(),
@@ -119,7 +120,7 @@ class ConnectionManager:
     async def send_system_message(
         self,
         client_id: str,
-        system_type: str,
+        system_type: SystemMessageTypes,
         additional_data: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """
@@ -139,6 +140,7 @@ class ConnectionManager:
         try:
             websocket = self.active_connections[client_id]
 
+            # TODO: system message has to be pydantic model
             system_message: Dict[str, Any] = {
                 "type": "system",
                 "content": system_type,
