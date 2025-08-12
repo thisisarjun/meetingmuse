@@ -8,13 +8,9 @@ from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.utils.decorators.log_decorator import log_node_entry
-from meetingmuse.utils.logger import Logger
 
 
 class HumanScheduleMeetingMoreInfoNode(BaseNode):
-    def __init__(self, logger: Logger) -> None:
-        super().__init__(logger)
-
     @log_node_entry(NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         interrupt_info = InterruptInfo(
