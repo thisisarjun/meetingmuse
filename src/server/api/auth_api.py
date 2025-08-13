@@ -5,14 +5,14 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 
-from meetingmuse.services.oauth_service import oauth_service
-from meetingmuse.services.token_storage import token_storage
 from server.models.auth import (
     AuthUrlResponse,
     CallbackResponse,
     LogoutResponse,
     RefreshResponse,
 )
+from server.services.oauth_service import oauth_service
+from server.services.token_storage import token_storage
 
 logger = logging.getLogger(__name__)
 

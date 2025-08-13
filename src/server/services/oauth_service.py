@@ -10,8 +10,8 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 
 from meetingmuse.config.config import config
-from meetingmuse.services.token_storage import token_storage
 from server.models.session import TokenInfo, UserSession
+from server.services.token_storage import token_storage
 
 
 class OAuthService:
