@@ -18,12 +18,15 @@ class ConversationManager:
         self.message_processor = LangGraphMessageProcessor()
         self.active_conversations: Dict[str, Dict[str, Any]] = {}
 
-    async def initialize_conversation(self, client_id: str) -> bool:
+    async def initialize_conversation(
+        self, client_id: str, session_id: Optional[str] = None
+    ) -> bool:
         """
         Initialize conversation state for a new client
 
         Args:
             client_id: Client identifier
+            session_id: Optional OAuth session ID for authenticated conversations
 
         Returns:
             True if initialization successful, False otherwise
@@ -35,6 +38,8 @@ class ConversationManager:
                     "last_activity": datetime.now().isoformat(),
                     "message_count": 0,
                     "status": "active",
+                    "session_id": session_id,
+                    "authenticated": session_id is not None,
                 }
                 logger.info(f"Initialized conversation for client {client_id}")
 

@@ -4,14 +4,6 @@ Defines error codes, message types, and other constants for the MeetingMuse WebS
 """
 
 
-# WebSocket Close Codes
-class WebSocketCloseCodes:
-    """Standard WebSocket close codes"""
-
-    POLICY_VIOLATION = 1008
-    INTERNAL_ERROR = 1011
-
-
 # Error Codes for Error Messages
 class ErrorCodes:
     """Error codes sent in error messages to clients"""
@@ -49,5 +41,4 @@ class SystemMessageTypes:
 class CloseReasons:
     """Human-readable reasons for WebSocket connection closures"""
 
-    INVALID_CLIENT_ID = "Invalid client ID format"
     CONNECTION_ESTABLISHMENT_FAILED = "Failed to establish connection"

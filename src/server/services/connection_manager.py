@@ -23,13 +23,16 @@ class ConnectionManager:
         # Store connection metadata
         self.connection_metadata: Dict[str, dict] = {}
 
-    async def connect(self, websocket: WebSocket, client_id: str) -> bool:
+    async def connect(
+        self, websocket: WebSocket, client_id: str, session_id: Optional[str] = None
+    ) -> bool:
         """
         Accept a new WebSocket connection and add it to active connections
 
         Args:
             websocket: The WebSocket connection object
             client_id: Unique identifier for the client
+            session_id: Optional OAuth session ID for authenticated connections
 
         Returns:
             bool: True if connection was successful, False otherwise
@@ -40,6 +43,8 @@ class ConnectionManager:
             self.connection_metadata[client_id] = {
                 "connected_at": datetime.now().isoformat(),
                 "message_count": 0,
+                "session_id": session_id,
+                "authenticated": session_id is not None,
             }
 
             logger.info(f"Client {client_id} connected successfully")
