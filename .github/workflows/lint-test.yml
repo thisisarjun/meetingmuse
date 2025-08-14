@@ -1,4 +1,4 @@
-name: Github CI Action
+name: Lint & Test
 
 on:
   push:

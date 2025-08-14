@@ -44,8 +44,6 @@ def create_health_router(health_service: HealthService) -> APIRouter:
             return HealthStatus(
                 status=health_status.get("status", "unknown"),
                 timestamp=datetime.now(),
-                version=health_status.get("version", "unknown"),
-                uptime_seconds=health_status.get("uptime_seconds", 0.0),
             )
         except Exception as e:
             logger.error(f"Health check failed: {e}")

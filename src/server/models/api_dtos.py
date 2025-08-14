@@ -85,8 +85,6 @@ class HealthStatus(BaseModel):
 
     status: str = Field(..., description="Overall health status", examples=["healthy"])
     timestamp: datetime = Field(..., description="Health check timestamp")
-    version: str = Field(..., description="Application version")
-    uptime_seconds: float = Field(..., description="Server uptime in seconds")
 
 
 class SystemMetrics(BaseModel):
