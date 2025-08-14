@@ -56,14 +56,11 @@ class AdminService:
 
         # Collect client statistics
         total_messages = 0
-        connection_times = []
 
         for client_id in active_clients:
             client_info = self.connection_manager.get_client_info(client_id)
             if client_info:
-                total_messages += client_info.get("message_count", 0)
-                if "connected_at" in client_info:
-                    connection_times.append(client_info["connected_at"])
+                total_messages += client_info.message_count
 
         return {
             "timestamp": datetime.now().isoformat(),
@@ -72,14 +69,6 @@ class AdminService:
                 "total_active_conversations": self.conversation_manager.get_active_conversation_count(),
                 "total_messages_processed": total_messages,
                 "conversation_clients": self.conversation_manager.list_active_conversations(),
-            },
-            "connection_statistics": {
-                "average_messages_per_client": total_messages / len(active_clients)
-                if active_clients
-                else 0,
-                "recent_connections": connection_times[-10:]
-                if connection_times
-                else [],
             },
         }
 

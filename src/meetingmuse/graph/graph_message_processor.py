@@ -5,6 +5,7 @@ Handles message processing through the graph workflow
 from typing import Any, Dict, Optional
 
 from langchain_core.messages import HumanMessage
+from langchain_core.runnables import RunnableConfig
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
@@ -39,7 +40,7 @@ class GraphMessageProcessor:
             # TODO: first time meetingmuse state creation
             input_data = {"messages": [HumanMessage(content=content)]}
 
-            config = {"configurable": {"thread_id": client_id}}
+            config = RunnableConfig(configurable={"thread_id": client_id})
 
             self.logger.info(
                 f"Processing message for client {client_id}: {content[:50]}..."
@@ -77,7 +78,7 @@ class GraphMessageProcessor:
             if not self.graph:
                 return None
 
-            config = {"configurable": {"thread_id": client_id}}
+            config = RunnableConfig(configurable={"thread_id": client_id})
             current_state = self.graph.get_state(config)
 
             if current_state and current_state.next:
@@ -114,7 +115,7 @@ class GraphMessageProcessor:
         # Default prompt - can be enhanced based on state analysis
         return "Please provide additional meeting details to continue."
 
-    async def get_conversation_state(self, client_id: str) -> Optional[Dict[str, Any]]:
+    async def get_conversation_state(self, client_id: str) -> bool:
         """
         Get current conversation state for a client
 
@@ -122,33 +123,25 @@ class GraphMessageProcessor:
             client_id: Client identifier (maps to thread_id)
 
         Returns:
-            Dictionary with conversation state information
+            True if there is a conversation, False otherwise
         """
         try:
             if not self.graph:
-                return None
+                return False
 
-            config = {"configurable": {"thread_id": client_id}}
+            config = RunnableConfig(configurable={"thread_id": client_id})
             current_state = self.graph.get_state(config)
 
             if current_state and current_state.values:
-                state_info = {
-                    "has_conversation": True,
-                    "message_count": len(current_state.values.get("messages", [])),
-                    "user_intent": current_state.values.get("user_intent"),
-                    "meeting_details": current_state.values.get("meeting_details", {}),
-                    "is_interrupted": bool(current_state.next),
-                }
+                return True
 
-                return state_info
-
-            return {"has_conversation": False}
+            return False
 
         except Exception as e:
             self.logger.error(
                 f"Error getting conversation state for client {client_id}: {str(e)}"
             )
-            return None
+            return False
 
     async def resume_conversation(self, client_id: str, user_input: str) -> str:
         """
@@ -165,7 +158,7 @@ class GraphMessageProcessor:
             if not self.graph:
                 raise Exception("graph not initialized")
 
-            config = {"configurable": {"thread_id": client_id}}
+            config = RunnableConfig(configurable={"thread_id": client_id})
 
             # Resume the conversation with user input
             result = None

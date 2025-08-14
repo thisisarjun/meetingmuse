@@ -2,14 +2,16 @@
 WebSocket Connection Manager
 Handles WebSocket connections, client management, and message broadcasting
 """
-import json
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
+from server.models.ws_dtos import BotResponse, ErrorMessage, SystemMessage
+
 from ..constants import SystemMessageTypes
+from ..models.connections import ConnectionMetadataDto
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +21,9 @@ class ConnectionManager:
 
     def __init__(self) -> None:
         # Dictionary to store active WebSocket connections
-        self.active_connections: Dict[str, WebSocket] = {}
+        self.active_connections: Dict[str, WebSocket]
         # Store connection metadata
-        self.connection_metadata: Dict[str, dict] = {}
+        self.connection_metadata: Dict[str, ConnectionMetadataDto]
 
     async def connect(self, websocket: WebSocket, client_id: str) -> bool:
         """
@@ -38,10 +40,10 @@ class ConnectionManager:
             await websocket.accept()
             # TODO: connection has to be pydantic model
             self.active_connections[client_id] = websocket
-            self.connection_metadata[client_id] = {
-                "connected_at": datetime.now().isoformat(),
-                "message_count": 0,
-            }
+            self.connection_metadata[client_id] = ConnectionMetadataDto(
+                connected_at=datetime.now().isoformat(),
+                message_count=0,
+            )
 
             logger.info(f"Client {client_id} connected successfully")
 
@@ -72,7 +74,7 @@ class ConnectionManager:
                 metadata = self.connection_metadata.pop(client_id)
                 logger.info(
                     f"Client {client_id} disconnected. "
-                    f"Messages processed: {metadata.get('message_count', 0)}"
+                    f"Messages processed: {metadata.message_count}"
                 )
 
             return True
@@ -99,13 +101,12 @@ class ConnectionManager:
             websocket = self.active_connections[client_id]
 
             # Format message according to protocol
-            response = {
-                "content": message,
-                "timestamp": datetime.now().isoformat(),
-                "session_id": client_id,
-            }
+            response = BotResponse(
+                content=message,
+                session_id=client_id,
+            )
 
-            await websocket.send_text(json.dumps(response))
+            await websocket.send_text(response.model_dump_json())
             logger.debug(f"Message sent to client {client_id}: {message[:50]}...")
             return True
 
@@ -141,17 +142,15 @@ class ConnectionManager:
             websocket = self.active_connections[client_id]
 
             # TODO: system message has to be pydantic model
-            system_message: Dict[str, Any] = {
-                "type": "system",
-                "content": system_type,
-                "timestamp": datetime.now().isoformat(),
-            }
+            system_message = SystemMessage(
+                content=system_type,
+            )
 
             # Add additional data if provided
             if additional_data:
-                system_message["metadata"] = additional_data
+                system_message.metadata = additional_data
 
-            await websocket.send_text(json.dumps(system_message))
+            await websocket.send_text(system_message.model_dump_json())
             return True
 
         except Exception as e:
@@ -187,19 +186,17 @@ class ConnectionManager:
         try:
             websocket = self.active_connections[client_id]
 
-            error_response: Dict[str, Any] = {
-                "type": "error",
-                "error_code": error_code,
-                "message": message,
-                "timestamp": datetime.now().isoformat(),
-                "retry_suggested": retry_suggested,
-            }
+            error_response = ErrorMessage(
+                error_code=error_code,
+                message=message,
+                retry_suggested=retry_suggested,
+            )
 
             # Add additional metadata if provided
             if additional_metadata:
-                error_response["metadata"] = additional_metadata
+                error_response.metadata = additional_metadata
 
-            await websocket.send_text(json.dumps(error_response))
+            await websocket.send_text(error_response.model_dump_json())
             return True
 
         except Exception as e:
@@ -241,7 +238,7 @@ class ConnectionManager:
         """Get the number of active connections"""
         return len(self.active_connections)
 
-    def get_client_info(self, client_id: str) -> Optional[dict]:
+    def get_client_info(self, client_id: str) -> Optional[ConnectionMetadataDto]:
         """Get metadata for a specific client"""
         return self.connection_metadata.get(client_id)
 
@@ -252,4 +249,4 @@ class ConnectionManager:
     def increment_message_count(self, client_id: str) -> None:
         """Increment message count for a client"""
         if client_id in self.connection_metadata:
-            self.connection_metadata[client_id]["message_count"] += 1
+            self.connection_metadata[client_id].message_count += 1

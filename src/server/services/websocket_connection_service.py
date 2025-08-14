@@ -72,12 +72,13 @@ class WebSocketConnectionService:
         self.conversation_manager.initialize_conversation(client_id)
 
         # Handle potential reconnection and conversation recovery
-        recovery_info = await self.conversation_manager.handle_reconnection(client_id)
-        if recovery_info and recovery_info.get("conversation_resumed"):
+        conversation_resumed = await self.conversation_manager.handle_reconnection(
+            client_id
+        )
+        if conversation_resumed:
             await self.connection_manager.send_system_message(
                 client_id,
                 SystemMessageTypes.CONVERSATION_RESUMED,
-                additional_data=recovery_info,
             )
 
         try:
@@ -226,7 +227,7 @@ class WebSocketConnectionService:
         for client_id in active_clients:
             client_info = self.connection_manager.get_client_info(client_id)
             if client_info:
-                total_messages += client_info.get("message_count", 0)
+                total_messages += client_info.message_count
 
         return {
             "active_connections": len(active_clients),

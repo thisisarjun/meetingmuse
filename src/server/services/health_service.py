@@ -45,17 +45,12 @@ class HealthService:
 
         # Calculate average messages per client
         total_messages = 0
-        client_details = {}
 
         for client_id in active_clients:
             client_info = self.connection_manager.get_client_info(client_id)
             if client_info:
-                message_count = client_info.get("message_count", 0)
+                message_count = client_info.message_count
                 total_messages += message_count
-                client_details[client_id] = {
-                    "message_count": message_count,
-                    "connected_at": client_info.get("connected_at"),
-                }
 
         avg_messages = total_messages / len(active_clients) if active_clients else 0
 
@@ -75,5 +70,5 @@ class HealthService:
                     else False
                 ),
             },
-            "client_details": client_details,
+            "client_details": client_info,
         }

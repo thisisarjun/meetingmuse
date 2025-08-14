@@ -106,7 +106,7 @@ format:
 	poetry run isort src/ tests/
 
 type-check:
-	poetry run mypy src/meetingmuse/
+	poetry run mypy src/meetingmuse/ src/server/
 
 # Cleanup
 clean:
@@ -189,6 +189,3 @@ info:
 requirements:
 	poetry export -f requirements.txt --output requirements.txt --without-hashes
 	poetry export -f requirements.txt --output requirements-dev.txt --with dev --without-hashes
-
-run-server:
-	poetry run python -m src.main
