@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional
 from fastapi import WebSocket, WebSocketDisconnect
 
 from common.logger.logger import Logger
+from meetingmuse.graph.message_processor import LangGraphMessageProcessor
 from server.models.ws_dtos import UserMessage
 from server.services.message_processor import MessageProtocol
 
@@ -17,7 +18,6 @@ from ..constants import (
     SystemMessageTypes,
     WebSocketCloseCodes,
 )
-from ..langgraph.message_processor import LangGraphMessageProcessor
 from .connection_manager import ConnectionManager
 from .conversation_manager import ConversationManager
 

@@ -1,5 +1,5 @@
 from common.logger import Logger
-from meetingmuse.graph import GraphBuilder
+from meetingmuse.graph.graph import GraphBuilder
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from scripts.chatbot import ChatBot

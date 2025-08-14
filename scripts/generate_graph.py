@@ -1,7 +1,7 @@
 from typing import Any
 
 from common.logger import Logger
-from meetingmuse.graph import GraphBuilder
+from meetingmuse.graph.graph import GraphBuilder
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode

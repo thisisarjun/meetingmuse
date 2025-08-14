@@ -9,7 +9,8 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 
 from common.logger import Logger
-from meetingmuse.graph import GraphBuilder
+from meetingmuse.graph.graph import GraphBuilder
+from meetingmuse.graph.message_processor import LangGraphMessageProcessor
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
@@ -29,7 +30,6 @@ from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
 
-from ..langgraph.message_processor import LangGraphMessageProcessor
 from ..services.admin_service import AdminService
 from ..services.connection_manager import ConnectionManager
 from ..services.conversation_manager import ConversationManager

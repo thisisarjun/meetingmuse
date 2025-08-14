@@ -5,7 +5,8 @@ Business logic for system health checks and monitoring
 import logging
 from typing import Any, Dict
 
-from ..langgraph.message_processor import LangGraphMessageProcessor
+from meetingmuse.graph.message_processor import LangGraphMessageProcessor
+
 from .connection_manager import ConnectionManager
 from .conversation_manager import ConversationManager
 

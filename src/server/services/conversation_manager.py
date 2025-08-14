@@ -9,8 +9,7 @@ from typing import Any, Dict, List, Optional
 from langgraph.graph.state import CompiledStateGraph
 
 from common.logger.logger import Logger
-
-from ..langgraph.message_processor import LangGraphMessageProcessor
+from meetingmuse.graph.message_processor import LangGraphMessageProcessor
 
 logger = logging.getLogger(__name__)
 
