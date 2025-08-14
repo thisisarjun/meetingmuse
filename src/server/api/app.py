@@ -10,7 +10,7 @@ from fastapi import FastAPI
 
 from common.logger import Logger
 from meetingmuse.graph.graph import GraphBuilder
-from meetingmuse.graph.message_processor import LangGraphMessageProcessor
+from meetingmuse.graph.message_processor import MessageProcessor
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
@@ -74,7 +74,7 @@ graph = GraphBuilder(
 # Global service instances - initialized once
 connection_manager = ConnectionManager()
 conversation_manager = ConversationManager(graph=graph, logger=logger)
-message_processor = LangGraphMessageProcessor(graph=graph, logger=logger)
+message_processor = MessageProcessor(graph=graph, logger=logger)
 
 # Create specialized services with dependency injection
 health_service = HealthService(

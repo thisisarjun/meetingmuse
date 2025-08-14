@@ -1,18 +1,20 @@
 """
-Message Processor for LangGraph Integration
-Handles message processing through the LangGraph workflow
+Message Processor for graph Integration
+Handles message processing through the graph workflow
 """
 from typing import Any, Dict, Optional
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import HumanMessage
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
 from common.logger import Logger
+from common.utils.utils import Utils
+from meetingmuse.models.state import MeetingMuseBotState
 
 
-class LangGraphMessageProcessor:
-    """Processes user messages through LangGraph workflow"""
+class MessageProcessor:
+    """Processes user messages through graph workflow"""
 
     def __init__(self, graph: CompiledStateGraph, logger: Logger) -> None:
         # pass built graph to this class
@@ -21,7 +23,7 @@ class LangGraphMessageProcessor:
 
     async def process_user_message(self, content: str, client_id: str) -> str:
         """
-        Process user message through LangGraph workflow
+        Process user message through graph workflow
 
         Args:
             content: User message content
@@ -32,7 +34,7 @@ class LangGraphMessageProcessor:
         """
         try:
             if not self.graph:
-                raise Exception("LangGraph not initialized")
+                raise Exception("graph not initialized")
 
             # TODO: first time meetingmuse state creation
             input_data = {"messages": [HumanMessage(content=content)]}
@@ -43,23 +45,14 @@ class LangGraphMessageProcessor:
                 f"Processing message for client {client_id}: {content[:50]}..."
             )
 
-            # Process through LangGraph workflow
+            # Process through graph workflow
             result = await self.graph.ainvoke(input_data, config=config)
 
+            meeting_muse_state = MeetingMuseBotState.model_validate(result)
+            last_message = Utils.get_last_message(meeting_muse_state, "ai")
             # Extract AI response
-            if result and "messages" in result and result["messages"]:
-                ai_message = result["messages"][-1]
-                if isinstance(ai_message, AIMessage):
-                    response_content = ai_message.content
-                    self.logger.info(
-                        f"Generated response for client {client_id}: {response_content[:50]}..."
-                    )
-                    return str(response_content)
-                else:
-                    self.logger.warning(
-                        f"Last message is not an AI message for client {client_id}"
-                    )
-                    return "I'm processing your request. Please wait a moment."
+            if last_message:
+                return last_message
             else:
                 self.logger.warning(f"No messages in result for client {client_id}")
                 return "I'm having trouble processing your request. Please try again."
@@ -72,7 +65,7 @@ class LangGraphMessageProcessor:
 
     async def handle_interrupts(self, client_id: str) -> Optional[Dict[str, Any]]:
         """
-        Handle LangGraph interrupts for user input collection
+        Handle graph interrupts for user input collection
 
         Args:
             client_id: Client identifier (maps to thread_id)
@@ -170,7 +163,7 @@ class LangGraphMessageProcessor:
         """
         try:
             if not self.graph:
-                raise Exception("LangGraph not initialized")
+                raise Exception("graph not initialized")
 
             config = {"configurable": {"thread_id": client_id}}
 
@@ -182,10 +175,10 @@ class LangGraphMessageProcessor:
                 result = chunk
 
             # Extract the latest AI response
-            if result and "messages" in result and result["messages"]:
-                ai_message = result["messages"][-1]
-                if isinstance(ai_message, AIMessage):
-                    return str(ai_message.content)
+            meeting_muse_state = MeetingMuseBotState.model_validate(result)
+            last_message = Utils.get_last_message(meeting_muse_state, "ai")
+            if last_message:
+                return last_message
 
             return "Thank you for the additional information. Let me continue processing your request."
 

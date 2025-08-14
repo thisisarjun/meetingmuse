@@ -20,7 +20,7 @@ class Utils:
     ) -> Optional[str]:
         last_message: Optional[str] = None
         for message in reversed(state.messages):
-            if input_type == "human" and isinstance(message, HumanMessage):
+            if input_type == "human" and message.type == "human":
                 # Handle both string and complex content types
                 content = message.content
                 if isinstance(content, str):
@@ -28,7 +28,7 @@ class Utils:
                 else:
                     last_message = str(content)
                 break
-            if input_type == "ai" and isinstance(message, AIMessage):
+            if input_type == "ai" and message.type == "ai":
                 # Handle both string and complex content types
                 content = message.content
                 if isinstance(content, str):
@@ -47,7 +47,7 @@ class Utils:
             meeting_muse_bot_state = MeetingMuseBotState.model_validate(state)
             if meeting_muse_bot_state.messages:
                 for message in reversed(meeting_muse_bot_state.messages):
-                    if input_type == "human" and isinstance(message, HumanMessage):
+                    if input_type == "human" and message.type == "human":
                         # Handle both string and complex content types
                         content = message.content
                         if isinstance(content, str):
@@ -55,7 +55,7 @@ class Utils:
                         else:
                             last_message = str(content)
                         break
-                    if input_type == "ai" and isinstance(message, AIMessage):
+                    if input_type == "ai" and message.type == "ai":
                         # Handle both string and complex content types
                         content = message.content
                         if isinstance(content, str):

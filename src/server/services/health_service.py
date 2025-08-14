@@ -5,7 +5,7 @@ Business logic for system health checks and monitoring
 import logging
 from typing import Any, Dict
 
-from meetingmuse.graph.message_processor import LangGraphMessageProcessor
+from meetingmuse.graph.message_processor import MessageProcessor
 
 from .connection_manager import ConnectionManager
 from .conversation_manager import ConversationManager
@@ -20,7 +20,7 @@ class HealthService:
         self,
         connection_manager: ConnectionManager,
         conversation_manager: ConversationManager,
-        message_processor: LangGraphMessageProcessor,
+        message_processor: MessageProcessor,
     ) -> None:
         self.connection_manager = connection_manager
         self.conversation_manager = conversation_manager
