@@ -5,8 +5,6 @@ Business logic for system health checks and monitoring
 import logging
 from typing import Any, Dict
 
-from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
-
 from .connection_manager import ConnectionManager
 from .conversation_manager import ConversationManager
 
@@ -20,23 +18,16 @@ class HealthService:
         self,
         connection_manager: ConnectionManager,
         conversation_manager: ConversationManager,
-        message_processor: GraphMessageProcessor,
     ) -> None:
         self.connection_manager = connection_manager
         self.conversation_manager = conversation_manager
-        self.message_processor = message_processor
 
     def get_health_status(self) -> Dict[str, Any]:
         """Get the basic health status of the system"""
-        processor_ready = (
-            self.message_processor.is_ready() if self.message_processor else False
-        )
-
         return {
             "status": "healthy",
             "active_connections": self.connection_manager.get_connection_count(),
             "active_conversations": self.conversation_manager.get_active_conversation_count(),
-            "langgraph_processor_ready": processor_ready,
         }
 
     def get_system_metrics(self) -> Dict[str, Any]:
@@ -62,13 +53,6 @@ class HealthService:
             },
             "conversations": {
                 "total_active": self.conversation_manager.get_active_conversation_count(),
-            },
-            "services": {
-                "langgraph_processor_ready": (
-                    self.message_processor.is_ready()
-                    if self.message_processor
-                    else False
-                ),
             },
             "client_details": client_info,
         }

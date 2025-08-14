@@ -167,9 +167,9 @@ class WebSocketConnectionService:
     async def _process_user_message(self, client_id: str, message_content: str) -> str:
         """Process a user message and return the response"""
         # Check for any pending interrupts first
-        interrupt_info = await self.message_processor.handle_interrupts(client_id)
-        self.logger.info(f"Interrupt info: {interrupt_info}")
-        if interrupt_info and interrupt_info.get("waiting_for_input"):
+        interrupt_info = await self.message_processor.check_for_interrupts(client_id)
+        self.logger.info(f"Interrupt detected: {interrupt_info}")
+        if interrupt_info:
             self.logger.info("waiting for input")
             # Handle interrupt - ask for user input
 

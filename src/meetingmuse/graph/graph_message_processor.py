@@ -2,7 +2,7 @@
 Message Processor for graph Integration
 Handles message processing through the graph workflow
 """
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
@@ -11,6 +11,7 @@ from langgraph.types import Command
 
 from common.logger import Logger
 from common.utils.utils import Utils
+from meetingmuse.models.interrupts import InterruptInfo
 from meetingmuse.models.state import MeetingMuseBotState
 
 
@@ -34,10 +35,6 @@ class GraphMessageProcessor:
             AI response content
         """
         try:
-            if not self.graph:
-                raise Exception("graph not initialized")
-
-            # TODO: first time meetingmuse state creation
             input_data = {"messages": [HumanMessage(content=content)]}
 
             config = RunnableConfig(configurable={"thread_id": client_id})
@@ -64,7 +61,7 @@ class GraphMessageProcessor:
             )
             return "I encountered an error processing your request. Please try again."
 
-    async def handle_interrupts(self, client_id: str) -> Optional[Dict[str, Any]]:
+    async def check_for_interrupts(self, client_id: str) -> Optional[InterruptInfo]:
         """
         Handle graph interrupts for user input collection
 
@@ -75,23 +72,13 @@ class GraphMessageProcessor:
             Dictionary with interrupt information or None if no interrupts
         """
         try:
-            if not self.graph:
-                return None
-
             config = RunnableConfig(configurable={"thread_id": client_id})
             current_state = self.graph.get_state(config)
 
             if current_state and current_state.next:
                 # Graph is interrupted and waiting for user input
-                interrupt_info = {
-                    "waiting_for_input": True,
-                    "next_step": current_state.next[0] if current_state.next else None,
-                    "prompt": self._generate_interrupt_prompt(current_state),
-                }
-
-                self.logger.info(
-                    f"Client {client_id} has pending interrupt: {interrupt_info}"
-                )
+                interrupt_info = current_state.interrupts[0]
+                assert isinstance(interrupt_info, InterruptInfo)
                 return interrupt_info
 
             return None
@@ -101,19 +88,6 @@ class GraphMessageProcessor:
                 f"Error handling interrupts for client {client_id}: {str(e)}"
             )
             return None
-
-    def _generate_interrupt_prompt(self, state: Any) -> str:
-        """
-        Generate a user-friendly prompt for interrupt situations
-
-        Args:
-            state: Current conversation state
-
-        Returns:
-            User-friendly prompt message
-        """
-        # Default prompt - can be enhanced based on state analysis
-        return "Please provide additional meeting details to continue."
 
     async def get_conversation_state(self, client_id: str) -> bool:
         """
@@ -126,9 +100,6 @@ class GraphMessageProcessor:
             True if there is a conversation, False otherwise
         """
         try:
-            if not self.graph:
-                return False
-
             config = RunnableConfig(configurable={"thread_id": client_id})
             current_state = self.graph.get_state(config)
 
@@ -155,9 +126,6 @@ class GraphMessageProcessor:
             AI response after resuming
         """
         try:
-            if not self.graph:
-                raise Exception("graph not initialized")
-
             config = RunnableConfig(configurable={"thread_id": client_id})
 
             # Resume the conversation with user input
@@ -182,7 +150,3 @@ class GraphMessageProcessor:
             return (
                 "I encountered an error while processing your input. Please try again."
             )
-
-    def is_ready(self) -> bool:
-        """Check if the processor is ready to handle messages"""
-        return self.graph is not None

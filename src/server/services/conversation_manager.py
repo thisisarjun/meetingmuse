@@ -152,7 +152,3 @@ class ConversationManager:
             for client_id, conv in self.active_conversations.items()
             if conv.status == ConversationStatus.ACTIVE
         ]
-
-    def is_processor_ready(self) -> bool:
-        """Check if the message processor is ready"""
-        return self.message_processor.is_ready()

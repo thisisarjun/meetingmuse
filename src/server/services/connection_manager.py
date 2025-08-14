@@ -21,9 +21,9 @@ class ConnectionManager:
 
     def __init__(self) -> None:
         # Dictionary to store active WebSocket connections
-        self.active_connections: Dict[str, WebSocket]
+        self.active_connections: Dict[str, WebSocket] = {}
         # Store connection metadata
-        self.connection_metadata: Dict[str, ConnectionMetadataDto]
+        self.connection_metadata: Dict[str, ConnectionMetadataDto] = {}
 
     async def connect(self, websocket: WebSocket, client_id: str) -> bool:
         """

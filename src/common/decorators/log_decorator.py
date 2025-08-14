@@ -30,7 +30,7 @@ def log_node_entry(prefix: NodeName) -> Callable:
 
             # Get node name for logging
             # FIXME: this is not working
-            node_name = getattr(self, "node_name", self.__class__.__name__)
+            node_name = getattr(self, "node_name", self.node_name)
 
             # Determine prefix
             log_prefix = f"[{prefix}]"

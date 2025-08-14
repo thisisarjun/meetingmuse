@@ -77,13 +77,11 @@ connection_manager = ConnectionManager()
 conversation_manager = ConversationManager(
     logger=logger, message_processor=message_processor
 )
-message_processor = GraphMessageProcessor(graph=graph, logger=logger)
 
 # Create specialized services with dependency injection
 health_service = HealthService(
     connection_manager=connection_manager,
     conversation_manager=conversation_manager,
-    message_processor=message_processor,
 )
 
 admin_service = AdminService(
