@@ -238,7 +238,7 @@ def create_auth_router() -> APIRouter:
         "/callback",
         oauth_callback,
         methods=["GET"],
-        response_model=RedirectResponse,
+        response_model=None,
     )
     router.add_api_route(
         "/refresh",
