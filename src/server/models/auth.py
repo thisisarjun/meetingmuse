@@ -33,3 +33,14 @@ class LogoutResponse(BaseModel):
     """Response model for logout."""
 
     message: str
+
+
+class StatusResponse(BaseModel):
+    """Response model for authentication status."""
+
+    client_id: str
+    authenticated: bool
+    session_id: Optional[str] = None
+    scopes: Optional[List[str]] = None
+    token_expires_at: Optional[str] = None
+    message: str

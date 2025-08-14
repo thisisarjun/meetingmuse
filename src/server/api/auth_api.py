@@ -10,6 +10,7 @@ from server.models.auth import (
     CallbackResponse,
     LogoutResponse,
     RefreshResponse,
+    StatusResponse,
 )
 from server.services.oauth_service import oauth_service
 from server.services.token_storage import token_storage
@@ -161,6 +162,68 @@ async def logout(client_id: str) -> LogoutResponse:
         raise HTTPException(status_code=500, detail="Logout failed")
 
 
+async def get_auth_status(client_id: str) -> StatusResponse:
+    """
+    Get authentication status for a client.
+
+    Args:
+        client_id: Client identifier
+
+    Returns:
+        Dictionary with authentication status
+    """
+    try:
+        if not client_id or not client_id.strip():
+            raise HTTPException(status_code=400, detail="Invalid client_id")
+
+        session = await token_storage.get_session_by_client_id(client_id)
+
+        if not session:
+            logger.info(f"No session found for client: {client_id}")
+            return StatusResponse(
+                client_id=client_id, authenticated=False, message="Not authenticated"
+            )
+
+        is_valid = await oauth_service.validate_token(session.session_id)
+
+        if not is_valid:
+            logger.warning(f"Invalid/expired token for client: {client_id}")
+            return StatusResponse(
+                client_id=client_id,
+                authenticated=False,
+                message="Authentication expired",
+            )
+
+        updated_session = await token_storage.get_session_by_client_id(client_id)
+        if not updated_session:
+            return StatusResponse(
+                client_id=client_id,
+                authenticated=False,
+                message="Session not found after validation",
+            )
+
+        logger.info(f"Authentication status checked for client: {client_id}")
+
+        return StatusResponse(
+            client_id=client_id,
+            authenticated=True,
+            session_id=updated_session.session_id,
+            scopes=updated_session.tokens.scopes,
+            token_expires_at=updated_session.tokens.token_expiry.isoformat()
+            if updated_session.tokens.token_expiry
+            else None,
+            message="Authenticated",
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to check auth status: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Failed to check authentication status"
+        )
+
+
 def create_auth_router() -> APIRouter:
     """Create and configure authentication API router."""
     router: APIRouter = APIRouter(prefix="/auth", tags=["authentication"])
@@ -189,6 +252,12 @@ def create_auth_router() -> APIRouter:
         logout,
         methods=["POST"],
         response_model=LogoutResponse,
+    )
+    router.add_api_route(
+        "/status/{client_id}",
+        get_auth_status,
+        methods=["GET"],
+        response_model=StatusResponse,
     )
 
     return router
