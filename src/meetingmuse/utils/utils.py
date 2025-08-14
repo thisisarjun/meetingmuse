@@ -43,7 +43,7 @@ class Utils:
         events: Dict[str, Any], input_type: Literal["human", "ai"]
     ) -> Optional[str]:
         last_message: Optional[str] = None
-        for node_name, state in events.items():
+        for _, state in events.items():
             meeting_muse_bot_state = MeetingMuseBotState.model_validate(state)
             if meeting_muse_bot_state.messages:
                 for message in reversed(meeting_muse_bot_state.messages):

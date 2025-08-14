@@ -8,7 +8,6 @@ from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.utils.decorators.log_decorator import log_node_entry
-from meetingmuse.utils.logger import Logger
 
 
 class HumanInterruptRetryNode(BaseNode):
@@ -16,9 +15,6 @@ class HumanInterruptRetryNode(BaseNode):
     Dedicated node for handling human interruption and retry decisions using LangGraph's native interrupt pattern.
     This node uses interrupt() and Command() for proper human-in-the-loop workflow.
     """
-
-    def __init__(self, logger: Logger) -> None:
-        super().__init__(logger)
 
     @log_node_entry(NodeName.HUMAN_INTERRUPT_RETRY)
     def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
