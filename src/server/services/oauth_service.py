@@ -1,7 +1,7 @@
 """Google OAuth 2.0 authentication service."""
 
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import requests
@@ -95,11 +95,15 @@ class OAuthService:
 
             credentials = flow.credentials
 
-            # Create token info
+            expiry = credentials.expiry
+            if expiry and expiry.tzinfo is None:
+                # Convert to UTC
+                expiry = expiry.replace(tzinfo=timezone.utc)
+
             token_info = TokenInfo(
                 access_token=credentials.token,
                 refresh_token=credentials.refresh_token,
-                token_expiry=credentials.expiry,
+                token_expiry=expiry,
                 scopes=list(credentials.scopes or []),
             )
 
@@ -148,11 +152,15 @@ class OAuthService:
             # Refresh the credentials
             credentials.refresh(Request())
 
-            # Create new token info
+            expiry = credentials.expiry
+            if expiry and expiry.tzinfo is None:
+                # Convert to UTC
+                expiry = expiry.replace(tzinfo=timezone.utc)
+
             new_token_info = TokenInfo(
                 access_token=str(credentials.token),
                 refresh_token=credentials.refresh_token or session.tokens.refresh_token,
-                token_expiry=credentials.expiry,
+                token_expiry=expiry,
                 scopes=list(credentials.scopes or session.tokens.scopes),
             )
 
@@ -179,9 +187,8 @@ class OAuthService:
             return False
 
         # Check if token is expired
-        if (
-            session.tokens.token_expiry
-            and session.tokens.token_expiry <= datetime.now()
+        if session.tokens.token_expiry and session.tokens.token_expiry <= datetime.now(
+            timezone.utc
         ):
             # Try to refresh
             refreshed = await self.refresh_token(session_id)

@@ -1,7 +1,7 @@
 """In-memory token storage service for OAuth sessions."""
 
 import base64
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Optional
 
 from cryptography.fernet import Fernet
@@ -62,7 +62,7 @@ class InMemoryTokenStorage:
         # Check if session is expired
         if (
             encrypted_session.tokens.token_expiry
-            and encrypted_session.tokens.token_expiry <= datetime.now()
+            and encrypted_session.tokens.token_expiry <= datetime.now(timezone.utc)
         ):
             await self.delete_session(session_id)
             return None
