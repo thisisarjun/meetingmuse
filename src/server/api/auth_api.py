@@ -4,10 +4,11 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import RedirectResponse
 
+from meetingmuse.config.config import config
 from server.models.auth import (
     AuthUrlResponse,
-    CallbackResponse,
     LogoutResponse,
     RefreshResponse,
     StatusResponse,
@@ -51,7 +52,7 @@ async def oauth_callback(
     code: Optional[str] = Query(None, description="Authorization code from Google"),
     state: Optional[str] = Query(None, description="State parameter for security"),
     error: Optional[str] = Query(None, description="Error from OAuth provider"),
-) -> CallbackResponse:
+) -> RedirectResponse:
     """
     Handle OAuth callback from Google.
 
@@ -66,35 +67,33 @@ async def oauth_callback(
     try:
         if error:
             logger.error(f"OAuth error: {error}")
-            return CallbackResponse(
-                message=f"OAuth error: {error}",
-                error=error,
-                success=False,
+            return RedirectResponse(
+                url=f"{config.FRONTEND_CALLBACK_URL}?auth_error={error}"
             )
 
         if not code or not state:
-            raise HTTPException(
-                status_code=400, detail="Missing code or state parameter"
+            logger.error("Missing code or state parameter")
+            return RedirectResponse(
+                url=f"{config.FRONTEND_CALLBACK_URL}?auth_error=missing_parameters"
             )
 
-        # Process callback
         session = await oauth_service.handle_callback(code, state)
 
         logger.info(f"OAuth callback successful for client: {session.client_id}")
 
-        return CallbackResponse(
-            message="Authentication successful",
-            session_id=session.session_id,
-            client_id=session.client_id,
-            scopes=session.tokens.scopes,
-        )
+        # Redirect to frontend with success
+        return RedirectResponse(url=f"{config.FRONTEND_CALLBACK_URL}?auth_success=true")
 
     except ValueError as e:
         logger.error(f"OAuth callback validation error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+        return RedirectResponse(
+            url=f"{config.FRONTEND_CALLBACK_URL}?auth_error=validation_failed"
+        )
     except Exception as e:
         logger.error(f"OAuth callback failed: {str(e)}")
-        raise HTTPException(status_code=500, detail="Authentication failed")
+        return RedirectResponse(
+            url=f"{config.FRONTEND_CALLBACK_URL}?auth_error=callback_failed"
+        )
 
 
 async def refresh_access_token(
@@ -239,7 +238,7 @@ def create_auth_router() -> APIRouter:
         "/callback",
         oauth_callback,
         methods=["GET"],
-        response_model=CallbackResponse,
+        response_model=RedirectResponse,
     )
     router.add_api_route(
         "/refresh",

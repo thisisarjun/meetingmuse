@@ -7,7 +7,9 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from ...meetingmuse.config.config import config as env_config
 from ..langgraph.message_processor import LangGraphMessageProcessor
 from ..langgraph.streaming_handler import StreamingHandler
 from ..services.admin_service import AdminService
@@ -115,6 +117,15 @@ def create_app() -> FastAPI:
         ],
         lifespan=lifespan,
     )
+
+    if env_config.ENV == "dev":
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     # Configure logging
     logging.basicConfig(

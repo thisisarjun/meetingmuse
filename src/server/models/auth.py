@@ -11,17 +11,6 @@ class AuthUrlResponse(BaseModel):
     client_id: str
 
 
-class CallbackResponse(BaseModel):
-    """Response model for OAuth callback."""
-
-    message: str
-    session_id: Optional[str] = None
-    client_id: Optional[str] = None
-    scopes: Optional[List[str]] = None
-    success: Optional[bool] = None
-    error: Optional[str] = None
-
-
 class RefreshResponse(BaseModel):
     """Response model for token refresh."""
 

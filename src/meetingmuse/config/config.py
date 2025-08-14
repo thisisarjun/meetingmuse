@@ -19,6 +19,9 @@ class Config:
     GOOGLE_REDIRECT_URI: str = os.getenv(
         "GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/callback"
     )
+    FRONTEND_CALLBACK_URL: str = os.getenv(
+        "FRONTEND_CALLBACK_URL", "http://localhost:3000/"
+    )
     GOOGLE_SCOPES: List[str] = [
         "https://www.googleapis.com/auth/calendar.readonly",
         "https://www.googleapis.com/auth/calendar.events",
