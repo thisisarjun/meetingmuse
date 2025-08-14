@@ -101,7 +101,6 @@ class SystemMetrics(BaseModel):
     cpu_usage: float = Field(..., description="CPU usage percentage")
     uptime_seconds: float = Field(..., description="Server uptime in seconds")
     langgraph_status: str = Field(..., description="LangGraph processor status")
-    streaming_handler_status: str = Field(..., description="Streaming handler status")
     timestamp: datetime = Field(..., description="When the metrics were collected")
 
 

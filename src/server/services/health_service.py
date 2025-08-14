@@ -6,7 +6,6 @@ import logging
 from typing import Any, Dict
 
 from ..langgraph.message_processor import LangGraphMessageProcessor
-from ..langgraph.streaming_handler import StreamingHandler
 from .connection_manager import ConnectionManager
 from .conversation_manager import ConversationManager
 
@@ -21,20 +20,15 @@ class HealthService:
         connection_manager: ConnectionManager,
         conversation_manager: ConversationManager,
         message_processor: LangGraphMessageProcessor,
-        streaming_handler: StreamingHandler,
     ) -> None:
         self.connection_manager = connection_manager
         self.conversation_manager = conversation_manager
         self.message_processor = message_processor
-        self.streaming_handler = streaming_handler
 
     def get_health_status(self) -> Dict[str, Any]:
         """Get the basic health status of the system"""
         processor_ready = (
             self.message_processor.is_ready() if self.message_processor else False
-        )
-        streaming_ready = (
-            self.streaming_handler.is_ready() if self.streaming_handler else False
         )
 
         return {
@@ -42,7 +36,6 @@ class HealthService:
             "active_connections": self.connection_manager.get_connection_count(),
             "active_conversations": self.conversation_manager.get_active_conversation_count(),
             "langgraph_processor_ready": processor_ready,
-            "streaming_handler_ready": streaming_ready,
         }
 
     def get_system_metrics(self) -> Dict[str, Any]:
@@ -78,11 +71,6 @@ class HealthService:
                 "langgraph_processor_ready": (
                     self.message_processor.is_ready()
                     if self.message_processor
-                    else False
-                ),
-                "streaming_handler_ready": (
-                    self.streaming_handler.is_ready()
-                    if self.streaming_handler
                     else False
                 ),
             },

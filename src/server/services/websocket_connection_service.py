@@ -18,7 +18,6 @@ from ..constants import (
     WebSocketCloseCodes,
 )
 from ..langgraph.message_processor import LangGraphMessageProcessor
-from ..langgraph.streaming_handler import StreamingHandler
 from .connection_manager import ConnectionManager
 from .conversation_manager import ConversationManager
 
@@ -31,13 +30,11 @@ class WebSocketConnectionService:
         connection_manager: ConnectionManager,
         conversation_manager: ConversationManager,
         message_processor: LangGraphMessageProcessor,
-        streaming_handler: StreamingHandler,
         logger: Logger,
     ) -> None:
         self.connection_manager = connection_manager
         self.conversation_manager = conversation_manager
         self.message_processor = message_processor
-        self.streaming_handler = streaming_handler
         self.logger = logger
 
     async def handle_websocket_connection(

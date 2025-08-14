@@ -86,9 +86,6 @@ def create_health_router(health_service: HealthService) -> APIRouter:
                 cpu_usage=metrics.get("cpu_usage", 0.0),
                 uptime_seconds=metrics.get("uptime_seconds", 0.0),
                 langgraph_status=metrics.get("langgraph_status", "unknown"),
-                streaming_handler_status=metrics.get(
-                    "streaming_handler_status", "unknown"
-                ),
                 timestamp=datetime.now(),
             )
         except Exception as e:

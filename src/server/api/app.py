@@ -30,7 +30,6 @@ from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
 
 from ..langgraph.message_processor import LangGraphMessageProcessor
-from ..langgraph.streaming_handler import StreamingHandler
 from ..services.admin_service import AdminService
 from ..services.connection_manager import ConnectionManager
 from ..services.conversation_manager import ConversationManager
@@ -76,14 +75,12 @@ graph = GraphBuilder(
 connection_manager = ConnectionManager()
 conversation_manager = ConversationManager(graph=graph, logger=logger)
 message_processor = LangGraphMessageProcessor(graph=graph, logger=logger)
-streaming_handler = StreamingHandler(graph=graph, logger=logger)
 
 # Create specialized services with dependency injection
 health_service = HealthService(
     connection_manager=connection_manager,
     conversation_manager=conversation_manager,
     message_processor=message_processor,
-    streaming_handler=streaming_handler,
 )
 
 admin_service = AdminService(
@@ -95,7 +92,6 @@ websocket_connection_service = WebSocketConnectionService(
     connection_manager=connection_manager,
     conversation_manager=conversation_manager,
     message_processor=message_processor,
-    streaming_handler=streaming_handler,
     logger=logger,
 )
 
