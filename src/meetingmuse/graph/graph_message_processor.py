@@ -13,7 +13,7 @@ from common.utils.utils import Utils
 from meetingmuse.models.state import MeetingMuseBotState
 
 
-class MessageProcessor:
+class GraphMessageProcessor:
     """Processes user messages through graph workflow"""
 
     def __init__(self, graph: CompiledStateGraph, logger: Logger) -> None:

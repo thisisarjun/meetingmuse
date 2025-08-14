@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 from fastapi import WebSocket, WebSocketDisconnect
 
 from common.logger.logger import Logger
-from meetingmuse.graph.message_processor import MessageProcessor
+from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
 from server.models.ws_dtos import UserMessage
 from server.services.message_processor import MessageProtocol
 
@@ -29,7 +29,7 @@ class WebSocketConnectionService:
         self,
         connection_manager: ConnectionManager,
         conversation_manager: ConversationManager,
-        message_processor: MessageProcessor,
+        message_processor: GraphMessageProcessor,
         logger: Logger,
     ) -> None:
         self.connection_manager = connection_manager

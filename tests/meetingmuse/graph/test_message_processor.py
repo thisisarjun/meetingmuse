@@ -1,20 +1,20 @@
 """
-Test suite for MessageProcessor.process_user_message method.
+Test suite for GraphMessageProcessor.process_user_message method.
 """
 
 import pytest
 from langchain_core.messages import HumanMessage
 
-from meetingmuse.graph.message_processor import MessageProcessor
+from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
 
 
 class TestMessageProcessorProcessUserMessage:
-    """Test suite for MessageProcessor.process_user_message method."""
+    """Test suite for GraphMessageProcessor.process_user_message method."""
 
     @pytest.fixture
     def message_processor(self, mock_graph, mock_logger):
-        """Create a MessageProcessor instance with mocked dependencies."""
-        return MessageProcessor(mock_graph, mock_logger)
+        """Create a GraphMessageProcessor instance with mocked dependencies."""
+        return GraphMessageProcessor(mock_graph, mock_logger)
 
     @pytest.mark.asyncio
     async def test_process_user_message_success_with_ai_response(
@@ -90,7 +90,7 @@ class TestMessageProcessorProcessUserMessage:
     async def test_process_user_message_graph_not_initialized(self, mock_logger):
         """Test when graph is not initialized."""
         # Arrange
-        message_processor = MessageProcessor(None, mock_logger)
+        message_processor = GraphMessageProcessor(None, mock_logger)
         user_content = "Hello"
         client_id = "test_client_123"
         expected_error_response = (

@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from langgraph.graph.state import CompiledStateGraph
 
 from common.logger.logger import Logger
-from meetingmuse.graph.message_processor import MessageProcessor
+from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class ConversationManager:
     """Manages conversation state and recovery for WebSocket connections"""
 
     def __init__(self, graph: CompiledStateGraph, logger: Logger) -> None:
-        self.message_processor = MessageProcessor(graph, logger)
+        self.message_processor = GraphMessageProcessor(graph, logger)
         self.active_conversations: Dict[str, Dict[str, Any]] = {}
 
     def initialize_conversation(self, client_id: str) -> bool:
