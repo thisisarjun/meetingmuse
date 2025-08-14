@@ -25,6 +25,7 @@ class HumanInterruptRetryNode(BaseNode):
         self.logger.info("Human interrupt requested")
 
         # Use LangGraph's interrupt() for human decision
+
         options = ["retry", "cancel"]
         interrupt_info = InterruptInfo(
             type=InterruptType.OPERATION_APPROVAL,
@@ -32,7 +33,7 @@ class HumanInterruptRetryNode(BaseNode):
             question="Would you like to retry this operation?",
             options=options,
         )
-        approval: Any = interrupt(interrupt_info)
+        approval: str = interrupt(interrupt_info)
 
         if approval not in options:
             self.logger.error(f"Invalid choice, please choose {'/ '.join(options)}")

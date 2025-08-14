@@ -29,6 +29,7 @@ def log_node_entry(prefix: NodeName) -> Callable:
             logger = getattr(self, "logger", None) or Logger()
 
             # Get node name for logging
+            # FIXME: this is not working
             node_name = getattr(self, "node_name", self.__class__.__name__)
 
             # Determine prefix
@@ -36,7 +37,9 @@ def log_node_entry(prefix: NodeName) -> Callable:
 
             # Log entry with useful debug info
             logger.info(
-                f"{log_prefix} Entering {node_name} | Messages: {len(state.messages)} | State: {state}"
+                f"{log_prefix} Entering {node_name} | Messages: {len(state.messages)} \
+                    | last Message: {state.messages[-1] if state.messages else 'None'} \
+                        | State: {state.meeting_details}"
             )
 
             # Call the original method

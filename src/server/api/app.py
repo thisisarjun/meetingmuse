@@ -96,6 +96,7 @@ websocket_connection_service = WebSocketConnectionService(
     conversation_manager=conversation_manager,
     message_processor=message_processor,
     streaming_handler=streaming_handler,
+    logger=logger,
 )
 
 

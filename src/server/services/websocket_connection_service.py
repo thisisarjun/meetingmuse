@@ -2,11 +2,11 @@
 WebSocket Connection Service
 Core business logic for WebSocket connection handling and message processing
 """
-import logging
 from typing import Any, Dict, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
+from common.logger.logger import Logger
 from server.models.ws_dtos import UserMessage
 from server.services.message_processor import MessageProtocol
 
@@ -22,8 +22,6 @@ from ..langgraph.streaming_handler import StreamingHandler
 from .connection_manager import ConnectionManager
 from .conversation_manager import ConversationManager
 
-logger = logging.getLogger(__name__)
-
 
 class WebSocketConnectionService:
     """Service for handling WebSocket connections and message processing"""
@@ -34,11 +32,13 @@ class WebSocketConnectionService:
         conversation_manager: ConversationManager,
         message_processor: LangGraphMessageProcessor,
         streaming_handler: StreamingHandler,
+        logger: Logger,
     ) -> None:
         self.connection_manager = connection_manager
         self.conversation_manager = conversation_manager
         self.message_processor = message_processor
         self.streaming_handler = streaming_handler
+        self.logger = logger
 
     async def handle_websocket_connection(
         self, websocket: WebSocket, client_id: str
@@ -52,7 +52,7 @@ class WebSocketConnectionService:
         """
         # Validate client ID TODO: Use JWT validation
         if not MessageProtocol.validate_client_id(client_id):
-            logger.warning(f"Invalid client ID: {client_id}")
+            self.logger.warning(f"Invalid client ID: {client_id}")
             await websocket.close(
                 code=WebSocketCloseCodes.POLICY_VIOLATION,
                 reason=CloseReasons.INVALID_CLIENT_ID,
@@ -62,14 +62,14 @@ class WebSocketConnectionService:
         # Attempt to establish connection
         connection_success = await self.connection_manager.connect(websocket, client_id)
         if not connection_success:
-            logger.error(f"Failed to establish connection for client: {client_id}")
+            self.logger.error(f"Failed to establish connection for client: {client_id}")
             await websocket.close(
                 code=WebSocketCloseCodes.INTERNAL_ERROR,
                 reason=CloseReasons.CONNECTION_ESTABLISHMENT_FAILED,
             )
             return
 
-        logger.info(f"WebSocket connection established for client: {client_id}")
+        self.logger.info(f"WebSocket connection established for client: {client_id}")
 
         # Initialize conversation
         self.conversation_manager.initialize_conversation(client_id)
@@ -86,9 +86,9 @@ class WebSocketConnectionService:
         try:
             await self._handle_message_loop(websocket, client_id)
         except WebSocketDisconnect:
-            logger.info(f"Client {client_id} disconnected normally")
+            self.logger.info(f"Client {client_id} disconnected normally")
         except Exception as e:
-            logger.error(
+            self.logger.error(
                 f"Error handling WebSocket connection for {client_id}: {str(e)}"
             )
             # Attempt to send error message before closing
@@ -100,7 +100,7 @@ class WebSocketConnectionService:
                     retry_suggested=True,
                 )
             except Exception:
-                logger.warning(
+                self.logger.warning(
                     f"Could not send error message to {client_id} before cleanup"
                 )
         finally:
@@ -109,7 +109,7 @@ class WebSocketConnectionService:
 
     async def _handle_message_loop(self, websocket: WebSocket, client_id: str) -> None:
         """Handle the message processing loop for a client"""
-        logger.debug(f"Starting message loop for client: {client_id}")
+        self.logger.debug(f"Starting message loop for client: {client_id}")
 
         while True:
             message_text = await websocket.receive_text()
@@ -120,8 +120,8 @@ class WebSocketConnectionService:
             try:
                 user_message = MessageProtocol.parse_user_message(message_text)
             except Exception as e:
-                logger.error(f"Error parsing user message: {str(e)}")
-                logger.warning(f"Invalid message format from {client_id}")
+                self.logger.error(f"Error parsing user message: {str(e)}")
+                self.logger.warning(f"Invalid message format from {client_id}")
                 await self.connection_manager.send_error_message(
                     client_id,
                     ErrorCodes.INVALID_MESSAGE_FORMAT,
@@ -131,7 +131,7 @@ class WebSocketConnectionService:
                 continue
 
             # TODO: Remove in next iteration
-            logger.info(
+            self.logger.info(
                 f"Received message from {client_id}: {user_message.content[:100]}..."
             )
 
@@ -155,11 +155,13 @@ class WebSocketConnectionService:
                 )
 
                 if not success:
-                    logger.warning(f"Failed to send response to client {client_id}")
+                    self.logger.warning(
+                        f"Failed to send response to client {client_id}"
+                    )
                     break
 
             except Exception as llm_error:
-                logger.error(
+                self.logger.error(
                     f"LLM processing error for client {client_id}: {str(llm_error)}"
                 )
                 await self._handle_processing_error(client_id, llm_error)
@@ -168,19 +170,10 @@ class WebSocketConnectionService:
         """Process a user message and return the response"""
         # Check for any pending interrupts first
         interrupt_info = await self.message_processor.handle_interrupts(client_id)
-
+        self.logger.info(f"Interrupt info: {interrupt_info}")
         if interrupt_info and interrupt_info.get("waiting_for_input"):
+            self.logger.info("waiting for input")
             # Handle interrupt - ask for user input
-            interrupt_notification = (
-                await self.streaming_handler.create_interrupt_notification(
-                    interrupt_info, client_id
-                )
-            )
-            await self.connection_manager.send_system_message(
-                client_id,
-                SystemMessageTypes.WAITING_FOR_INPUT,
-                additional_data=interrupt_notification,
-            )
 
             # Resume conversation with user input
             response_content = await self.message_processor.resume_conversation(
@@ -191,7 +184,7 @@ class WebSocketConnectionService:
             response_content = await self.message_processor.process_user_message(
                 message_content, client_id
             )
-
+        self.logger.info(f"Response content: {response_content}")
         return response_content
 
     async def _handle_processing_error(self, client_id: str, error: Exception) -> None:
@@ -210,7 +203,7 @@ class WebSocketConnectionService:
 
     async def _cleanup_client_connection(self, client_id: str) -> None:
         """Clean up a client's connection and conversation"""
-        logger.info(f"Cleaning up connection for client: {client_id}")
+        self.logger.info(f"Cleaning up connection for client: {client_id}")
 
         # Disconnect from connection manager
         self.connection_manager.disconnect(client_id)
@@ -218,13 +211,13 @@ class WebSocketConnectionService:
         # End conversation
         await self.conversation_manager.end_conversation(client_id)
 
-        logger.info(f"Connection cleanup completed for client: {client_id}")
+        self.logger.info(f"Connection cleanup completed for client: {client_id}")
 
     async def cleanup_all_connections(self) -> None:
         """Clean up all active connections during shutdown"""
         active_clients = self.connection_manager.list_active_clients()
         if active_clients:
-            logger.info(f"Cleaning up {len(active_clients)} active connections")
+            self.logger.info(f"Cleaning up {len(active_clients)} active connections")
             for client_id in active_clients.copy():
                 await self._cleanup_client_connection(client_id)
 

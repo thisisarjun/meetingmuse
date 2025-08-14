@@ -17,6 +17,7 @@ class HumanScheduleMeetingMoreInfoNode(BaseNode):
 
     @log_node_entry(NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
+        # TODO: use this instead of always gettingh the last message
         interrupt_info = InterruptInfo(
             type=InterruptType.SEEK_MORE_INFO,
             message="Need more information to schedule the meeting",

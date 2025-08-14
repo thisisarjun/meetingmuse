@@ -147,7 +147,7 @@ class StreamingHandler:
             "timestamp": self._get_timestamp(),
         }
 
-    async def create_interrupt_notification(
+    def create_interrupt_notification(
         self, interrupt_info: Dict[str, Any], client_id: str
     ) -> Dict[str, Any]:
         """
