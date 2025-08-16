@@ -35,6 +35,7 @@ authors = ["Your Name <your.email@example.com>"]
 readme = "README.md"
 packages = [
     {include = "meetingmuse", from = "src"},
+    {include = "common", from = "src"},
     {include = "scripts"}
 ]
 
@@ -62,6 +63,10 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+pythonpath = [
+    "src",
+    "."
+]
 addopts = [
     "-v",
     "--tb=short",

@@ -1,6 +1,6 @@
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 
-from ..config.config import config
+from common.config import config
 
 
 class HuggingFaceModel:

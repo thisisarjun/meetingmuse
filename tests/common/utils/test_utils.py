@@ -1,9 +1,9 @@
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 
+from common.utils import Utils
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.utils.utils import Utils
 
 
 class TestUtils:

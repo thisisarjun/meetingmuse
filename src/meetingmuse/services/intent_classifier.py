@@ -5,10 +5,10 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 
+from common.logger import Logger
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.state import UserIntent
 from meetingmuse.prompts import intent_classifier_prompt
-from meetingmuse.utils import Logger
 
 
 class IntentClassifier:

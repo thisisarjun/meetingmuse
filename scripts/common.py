@@ -1,5 +1,6 @@
 from typing import Any
 
+from common.logger import Logger
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
@@ -18,7 +19,6 @@ from meetingmuse.nodes.schedule_meeting_node import ScheduleMeetingNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
-from meetingmuse.utils.logger import Logger
 
 
 def initialize_nodes() -> dict[str, Any]:

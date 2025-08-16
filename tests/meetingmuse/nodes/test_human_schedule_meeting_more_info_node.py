@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from langchain_core.messages import HumanMessage
 
+from common.logger import Logger
 from meetingmuse.models.interrupts import InterruptInfo, InterruptType
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
@@ -10,7 +11,6 @@ from meetingmuse.models.state import MeetingMuseBotState, OperationStatus
 from meetingmuse.nodes.human_schedule_meeting_more_info_node import (
     HumanScheduleMeetingMoreInfoNode,
 )
-from meetingmuse.utils.logger import Logger
 
 
 class TestHumanScheduleMeetingMoreInfoNode:

@@ -1,11 +1,11 @@
 from typing import List
 
+from common.decorators import log_node_entry
+from common.logger import Logger
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
-from meetingmuse.utils.decorators.log_decorator import log_node_entry
-from meetingmuse.utils.logger import Logger
 
 
 class PromptMissingMeetingDetailsNode(BaseNode):

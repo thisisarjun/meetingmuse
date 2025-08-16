@@ -1,8 +1,8 @@
 from typing import Optional
 
+from common.logger import Logger
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
-from meetingmuse.utils import Logger
 
 
 class ConversationRouter:

@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from common.logger import Logger
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
@@ -10,7 +11,6 @@ from meetingmuse.nodes.prompt_missing_meeting_details_node import (
     PromptMissingMeetingDetailsNode,
 )
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
-from meetingmuse.utils.logger import Logger
 
 
 class TestPromptMissingMeetingDetailsNode:

@@ -4,12 +4,12 @@ from typing import Any
 from langchain_core.messages import AIMessage
 from langgraph.types import Command
 
+from common.decorators import log_node_entry
+from common.logger import Logger
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.base_node import BaseNode
-from meetingmuse.utils.decorators.log_decorator import log_node_entry
-from meetingmuse.utils.logger import Logger
 
 
 class ScheduleMeetingNode(BaseNode):
@@ -42,7 +42,7 @@ class ScheduleMeetingNode(BaseNode):
         try:
             # Simulate API call (30% success rate for demo purposes)
             success_probability: float = random.random()
-            if success_probability < 0.3:
+            if success_probability > 1:
                 # Success case
                 meeting_id = f"MTG_{random.randint(1000, 9999)}"
                 success_message = (
