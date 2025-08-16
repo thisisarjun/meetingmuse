@@ -145,7 +145,7 @@ docs:
 
 # Development workflow
 dev-setup: dev-install
-	cp .env.example .env
+	cp -n .env.example .env
 	@echo "Development environment set up with Poetry!"
 	@echo "Please edit .env with your actual values"
 	@echo "Run 'make poetry-shell' to activate the virtual environment"
