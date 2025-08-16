@@ -36,7 +36,7 @@ jobs:
           venv-${{ runner.os }}-py3.13-
 
     - name: Install dependencies
-      # if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       run: make dev-install
 
     - name: Run linting
@@ -74,7 +74,7 @@ jobs:
           venv-${{ runner.os }}-py3.13-
 
     - name: Install dependencies
-      # if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       run: make dev-install
 
     - name: Run tests with coverage
