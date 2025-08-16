@@ -7,10 +7,9 @@ on:
     branches: [ main ]
 
 jobs:
-  setup:
+  lint-and-test:
     runs-on: ubuntu-latest
-    outputs:
-      cache-hit: ${{ steps.cached-poetry-dependencies.outputs.cache-hit }}
+
     steps:
     - uses: actions/checkout@v4
 
@@ -18,7 +17,6 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.13"
-        cache: 'pip'
 
     - name: Install Poetry
       uses: snok/install-poetry@v1
@@ -26,90 +24,20 @@ jobs:
         version: latest
         virtualenvs-create: true
         virtualenvs-in-project: true
+        virtualenvs-path: ~/.cache/pypoetry/virtualenvs
 
-    - name: Load cached venv
-      id: cached-poetry-dependencies
+    - name: Cache Poetry dependencies
       uses: actions/cache@v4
       with:
-        path: .venv
-        key: venv-${{ runner.os }}-py3.13-${{ hashFiles('**/poetry.lock') }}
+        path: |
+          ~/.cache/pypoetry
+          ~/.cache/pip
+        key: poetry-${{ runner.os }}-py3.13-${{ hashFiles('**/poetry.lock') }}
         restore-keys: |
-          venv-${{ runner.os }}-py3.13-
+          poetry-${{ runner.os }}-py3.13-
 
     - name: Install dependencies
       run: make dev-install
 
-  lint:
-    needs: setup
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.13"
-        cache: 'pip'
-
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-
-    - name: Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-py3.13-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: |
-          venv-${{ runner.os }}-py3.13-
-
-    - name: Install dependencies if cache miss
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: make dev-install
-
-    - name: Run linting
-      run: make lint
-
-    - name: Run type checking
-      run: make type-check
-
-  test:
-    needs: setup
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.13"
-        cache: 'pip'
-
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-
-    - name: Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-py3.13-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: |
-          venv-${{ runner.os }}-py3.13-
-
-    - name: Install dependencies if cache miss
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: make dev-install
-
-    - name: Run tests with coverage
-      run: make test-coverage
+    - name: Run QA checks
+      run: make qa type-check
