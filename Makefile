@@ -105,6 +105,9 @@ format:
 	poetry run black src/ tests/
 	poetry run isort src/ tests/
 
+pre-commit:
+	poetry run pre-commit run --all-files
+
 type-check:
 	poetry run mypy src/meetingmuse/ src/server/
 

@@ -15,7 +15,7 @@ def create_websocket_router(websocket_service: WebSocketConnectionService) -> AP
     """Create and configure WebSocket API router"""
     router = APIRouter(tags=["websocket"])
 
-    @router.websocket("/ws/{client_id}")  # type: ignore[misc]
+    @router.websocket("/ws/{client_id}")
     async def websocket_endpoint(websocket: WebSocket, client_id: str) -> None:
         """
         Main WebSocket endpoint for chat conversations

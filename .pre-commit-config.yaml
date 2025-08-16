@@ -32,19 +32,22 @@ repos:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+  - repo: local
     hooks:
       - id: mypy
+        name: mypy
+        entry: poetry run mypy
+        language: system
+        always_run: true
         exclude: ^tests/
+        types: [python]
+
 
   - repo: local
     hooks:
       - id: pytest
         name: pytest
-        entry: poetry run pytest
+        entry: poetry run pytest tests/ -x --tb=short
         language: system
-        types: [python]
         pass_filenames: false
         always_run: true
-        args: [--tb=short]

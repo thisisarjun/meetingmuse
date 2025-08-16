@@ -57,7 +57,7 @@ class ScheduleMeetingNode(BaseNode):
                 state.messages.append(AIMessage(content=success_message))
                 return Command(goto=NodeName.END)
             # Failure case
-            raise Exception("Meeting scheduling failed")
+            raise RuntimeError("Meeting scheduling failed")
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             # Exception handling

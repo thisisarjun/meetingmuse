@@ -12,7 +12,7 @@ class HuggingFaceModel:
         self.llm = HuggingFaceEndpoint(
             repo_id=self.model_name,
             huggingfacehub_api_token=config.HUGGINGFACE_API_TOKEN,
-        )
+        )  # type: ignore[call-arg]
 
     @property
     def chat_model(self) -> ChatHuggingFace:
