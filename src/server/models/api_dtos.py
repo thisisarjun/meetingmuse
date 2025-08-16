@@ -28,3 +28,10 @@ class ErrorResponse(BaseModel):
     details: Optional[Dict[str, Any]] = Field(
         None, description="Additional error details"
     )
+
+
+class HealthStatus(BaseModel):
+    """Health status model"""
+
+    status: str = Field(..., description="Overall health status", examples=["healthy"])
+    active_connections: int = Field()

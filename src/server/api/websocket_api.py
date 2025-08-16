@@ -2,16 +2,15 @@
 WebSocket API
 WebSocket endpoints for real-time chat communication
 """
-import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketException, status
 
 from ..services.websocket_connection_service import WebSocketConnectionService
 
-logger = logging.getLogger(__name__)
 
-
-def create_websocket_router(websocket_service: WebSocketConnectionService) -> APIRouter:
+def create_websocket_router(
+    websocket_service: WebSocketConnectionService,
+) -> APIRouter:
     """Create and configure WebSocket API router"""
     router = APIRouter(tags=["websocket"])
 

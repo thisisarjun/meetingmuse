@@ -246,3 +246,8 @@ class ConnectionManager:
         """Increment message count for a client"""
         if client_id in self.connection_metadata:
             self.connection_metadata[client_id].message_count += 1
+
+    def get_active_connections(self) -> int:
+        """Get statistics about WebSocket connections"""
+        active_connections = self.active_connections.keys()
+        return len(active_connections)

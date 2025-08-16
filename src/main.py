@@ -3,14 +3,14 @@ Main WebSocket Server Application
 Entry point for the MeetingMuse WebSocket server
 """
 import asyncio
-import logging
 import signal
 import sys
 
+from common.logger import Logger
 from server.api.app import app, websocket_connection_service
 from server.services.server_lifecycle_manager import ServerLifecycleManager
 
-logger = logging.getLogger(__name__)
+logger = Logger()
 
 
 def main() -> None:

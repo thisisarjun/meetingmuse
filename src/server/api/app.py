@@ -32,11 +32,15 @@ from meetingmuse.services.routing_service import ConversationRouter
 
 from ..services.connection_manager import ConnectionManager
 from ..services.conversation_manager import ConversationManager
+from ..services.health_service import HealthService
 from ..services.websocket_connection_service import WebSocketConnectionService
+from .health_api import create_health_router
 from .websocket_api import create_websocket_router
 
 logger = Logger()
 
+# Node creation and graph creation
+# TODO: move to separate method
 model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
 intent_classifier = IntentClassifier(model)
 classify_intent_node = ClassifyIntentNode(intent_classifier, logger)
@@ -76,6 +80,7 @@ conversation_manager = ConversationManager(
 
 # Create specialized services with dependency injection
 
+health_service = HealthService(connection_manager=connection_manager)
 websocket_connection_service = WebSocketConnectionService(
     connection_manager=connection_manager,
     conversation_manager=conversation_manager,
@@ -142,6 +147,7 @@ def create_app() -> FastAPI:
 
     # Include API routers
     app.include_router(create_websocket_router(websocket_connection_service))
+    app.include_router(create_health_router(health_service, logger))
 
     logger.info("FastAPI server initialized with routers")
     return app

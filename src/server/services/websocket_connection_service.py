@@ -2,7 +2,7 @@
 WebSocket Connection Service
 Core business logic for WebSocket connection handling and message processing
 """
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -225,21 +225,3 @@ class WebSocketConnectionService:
             self.logger.info(f"Cleaning up {len(active_clients)} active connections")
             for client_id in active_clients.copy():
                 await self._cleanup_client_connection(client_id)
-
-    def get_connection_stats(self) -> Dict[str, Any]:
-        """Get statistics about WebSocket connections"""
-        active_clients = self.connection_manager.list_active_clients()
-        total_messages = 0
-
-        for client_id in active_clients:
-            client_info = self.connection_manager.get_client_info(client_id)
-            if client_info:
-                total_messages += client_info.message_count
-
-        return {
-            "active_connections": len(active_clients),
-            "total_messages_processed": total_messages,
-            "average_messages_per_connection": (
-                total_messages / len(active_clients) if active_clients else 0
-            ),
-        }
