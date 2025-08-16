@@ -2,7 +2,6 @@
 Message Processor for graph Integration
 Handles message processing through the graph workflow
 """
-from typing import Optional
 
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
@@ -11,7 +10,6 @@ from langgraph.types import Command
 
 from common.logger import Logger
 from common.utils.utils import Utils
-from meetingmuse.models.interrupts import InterruptInfo
 from meetingmuse.models.state import MeetingMuseBotState
 
 
@@ -46,6 +44,10 @@ class GraphMessageProcessor:
             # Process through graph workflow
             result = await self.graph.ainvoke(input_data, config=config)
 
+            interrupt_info = Utils.get_interrupt_info_from_events(result)
+            if interrupt_info:
+                return interrupt_info.question
+
             meeting_muse_state = MeetingMuseBotState.model_validate(result)
             last_message = Utils.get_last_message(meeting_muse_state, "ai")
             # Extract AI response
@@ -61,7 +63,7 @@ class GraphMessageProcessor:
             )
             return "I encountered an error processing your request. Please try again."
 
-    async def check_for_interrupts(self, client_id: str) -> Optional[InterruptInfo]:
+    async def check_if_interrupt_exists(self, client_id: str) -> bool:
         """
         Handle graph interrupts for user input collection
 
@@ -77,17 +79,15 @@ class GraphMessageProcessor:
 
             if current_state and current_state.next:
                 # Graph is interrupted and waiting for user input
-                interrupt_info = current_state.interrupts[0]
-                assert isinstance(interrupt_info, InterruptInfo)
-                return interrupt_info
+                return True
 
-            return None
+            return False
 
         except Exception as e:
             self.logger.error(
                 f"Error handling interrupts for client {client_id}: {str(e)}"
             )
-            return None
+            raise e
 
     async def get_conversation_state(self, client_id: str) -> bool:
         """
@@ -114,7 +114,9 @@ class GraphMessageProcessor:
             )
             return False
 
-    async def resume_conversation(self, client_id: str, user_input: str) -> str:
+    async def resume_interrupt_conversation(
+        self, client_id: str, user_input: str
+    ) -> str:
         """
         Resume an interrupted conversation with user input
 
@@ -130,10 +132,27 @@ class GraphMessageProcessor:
 
             # Resume the conversation with user input
             result = None
-            async for chunk in self.graph.astream(
-                Command(resume=user_input), config, stream_mode="values"
+            new_interrupt_detected = False
+
+            async for event in self.graph.astream(
+                Command(resume=user_input), config, stream_mode="updates"
             ):
-                result = chunk
+                if "__interrupt__" in event:
+                    new_interrupt_detected = True
+                    self.logger.info(
+                        f"New interrupt detected after resume for client {client_id}"
+                    )
+                result = event
+
+            # If a new interrupt was detected, get the interrupt info from final state
+            if new_interrupt_detected:
+                current_state = self.graph.get_state(config)
+                interrupt_info = Utils.get_interrupt_info_from_state_snapshot(
+                    current_state
+                )
+                if interrupt_info:
+                    return interrupt_info.question
+                return "I need additional information to continue."
 
             # Extract the latest AI response
             meeting_muse_state = MeetingMuseBotState.model_validate(result)

@@ -143,7 +143,7 @@ class WebSocketConnectionService:
 
             # Process the message
             try:
-                response_content = await self._process_user_message(
+                response_content = await self._process_input_user_message(
                     client_id, user_message.content
                 )
 
@@ -164,24 +164,31 @@ class WebSocketConnectionService:
                 )
                 await self._handle_processing_error(client_id, llm_error)
 
-    async def _process_user_message(self, client_id: str, message_content: str) -> str:
+    async def _process_input_user_message(
+        self, client_id: str, message_content: str
+    ) -> str:
         """Process a user message and return the response"""
         # Check for any pending interrupts first
-        interrupt_info = await self.message_processor.check_for_interrupts(client_id)
+        interrupt_info = await self.message_processor.check_if_interrupt_exists(
+            client_id
+        )
         self.logger.info(f"Interrupt detected: {interrupt_info}")
         if interrupt_info:
             self.logger.info("waiting for input")
             # Handle interrupt - ask for user input
 
             # Resume conversation with user input
-            response_content = await self.message_processor.resume_conversation(
-                client_id, message_content
+            response_content = (
+                await self.message_processor.resume_interrupt_conversation(
+                    client_id, message_content
+                )
             )
         else:
             # Process normal message
             response_content = await self.message_processor.process_user_message(
                 message_content, client_id
             )
+
         self.logger.info(f"Response content: {response_content}")
         return response_content
 

@@ -42,7 +42,7 @@ class ScheduleMeetingNode(BaseNode):
         try:
             # Simulate API call (30% success rate for demo purposes)
             success_probability: float = random.random()
-            if success_probability < 0.3:
+            if success_probability > 1:
                 # Success case
                 meeting_id = f"MTG_{random.randint(1000, 9999)}"
                 success_message = (

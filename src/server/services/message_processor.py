@@ -1,7 +1,7 @@
 import json
 import uuid
 
-from server.models.ws_dtos import BotResponse, ErrorMessage, SystemMessage, UserMessage
+from server.models.ws_dtos import UserMessage
 
 
 class MessageProtocol:
@@ -27,55 +27,6 @@ class MessageProtocol:
             raise ValueError("Invalid message data") from e
         except Exception as e:
             raise Exception("Unexpected error parsing message") from e
-
-    @staticmethod
-    def create_bot_response(content: str, session_id: str) -> str:
-        """
-        Create a formatted bot response
-
-        Args:
-            content: Response content
-            session_id: Session identifier
-
-        Returns:
-            JSON string of the bot response
-        """
-        response = BotResponse(content=content, session_id=session_id)
-        return str(response.model_dump_json())
-
-    @staticmethod
-    def create_system_message(content: str) -> str:
-        """
-        Create a formatted system message
-
-        Args:
-            content: System message content
-
-        Returns:
-            JSON string of the system message
-        """
-        message = SystemMessage(content=content)
-        return str(message.model_dump_json())
-
-    @staticmethod
-    def create_error_message(
-        error_code: str, message: str, retry_suggested: bool = True
-    ) -> str:
-        """
-        Create a formatted error message
-
-        Args:
-            error_code: Error code identifier
-            message: Human-readable error message
-            retry_suggested: Whether client should retry
-
-        Returns:
-            JSON string of the error message
-        """
-        error_msg = ErrorMessage(
-            error_code=error_code, message=message, retry_suggested=retry_suggested
-        )
-        return str(error_msg.model_dump_json())
 
     @staticmethod
     def validate_client_id(client_id: str) -> bool:

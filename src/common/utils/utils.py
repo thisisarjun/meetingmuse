@@ -1,7 +1,9 @@
 from typing import Any, Dict, Literal, Optional
 
 from langchain_core.messages import AIMessage, HumanMessage
+from langgraph.types import StateSnapshot
 
+from meetingmuse.models.interrupts import InterruptInfo
 from meetingmuse.models.state import MeetingMuseBotState
 
 
@@ -64,3 +66,24 @@ class Utils:
                             last_message = str(content)
                         break
         return last_message
+
+    @staticmethod
+    def get_interrupt_info_from_events(
+        events: Dict[str, Any]
+    ) -> Optional[InterruptInfo]:
+        if "__interrupt__" in events:
+            interrupt_info = events["__interrupt__"][0].value
+
+            assert isinstance(interrupt_info, InterruptInfo)
+            return interrupt_info
+        return None
+
+    @staticmethod
+    def get_interrupt_info_from_state_snapshot(
+        state: StateSnapshot,
+    ) -> Optional[InterruptInfo]:
+        if state.interrupts:
+            interrupt_info = state.interrupts[0].value
+            assert isinstance(interrupt_info, InterruptInfo)
+            return interrupt_info
+        return None
