@@ -1,6 +1,7 @@
 from common.decorators import log_node_entry
+from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, OperationStatus
 from meetingmuse.nodes.base_node import BaseNode
 
 
@@ -11,8 +12,11 @@ class EndNode(BaseNode):
 
     @log_node_entry(NodeName.END)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
-        # revert the state to initial state
-        state = MeetingMuseBotState()
+        # revert the meeting details to original state
+        state.meeting_details = MeetingFindings()
+        state.user_intent = None
+        state.operation_status = OperationStatus()
+        state.setup_human_input = False
         return state
 
     @property

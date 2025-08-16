@@ -45,13 +45,15 @@ class HumanInterruptRetryNode(BaseNode):
 
             self.logger.info("User chose to retry operation")
             state.messages.append(AIMessage(content=retry_message))
-            return Command(goto=NodeName.SCHEDULE_MEETING)
+            return Command(
+                goto=NodeName.SCHEDULE_MEETING, update={"messages": state.messages}
+            )
         # User chose to cancel - end the operation
         cancel_message: str = "User chose to cancel. Operation ended."
 
         self.logger.info("User chose to cancel operation")
         state.messages.append(AIMessage(content=cancel_message))
-        return Command(goto=NodeName.END)
+        return Command(goto=NodeName.END, update={"messages": state.messages})
 
     @property
     def node_name(self) -> NodeName:
