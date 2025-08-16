@@ -127,7 +127,7 @@ run:
 
 # Run WebSocket server locally
 run-server:
-	poetry run python -m src.meetingmuse_server.main
+	poetry run python src/main.py
 
 # Build with Poetry
 build: clean

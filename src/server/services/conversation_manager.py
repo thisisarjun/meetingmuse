@@ -3,7 +3,7 @@ Conversation Manager for WebSocket Server
 Handles conversation state and recovery for WebSocket connections
 """
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict
 
 from common.logger.logger import Logger
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
@@ -122,33 +122,3 @@ class ConversationManager:
             self.logger.error(
                 f"Error ending conversation for client {client_id}: {str(e)}"
             )
-
-    def get_conversation_info(self, client_id: str) -> Optional[ActiveConversation]:
-        """
-        Get conversation metadata
-
-        Args:
-            client_id: Client identifier
-
-        Returns:
-            Dictionary with conversation metadata
-        """
-        return self.active_conversations.get(client_id)
-
-    def get_active_conversation_count(self) -> int:
-        """Get count of active conversations"""
-        return len(
-            [
-                conv
-                for conv in self.active_conversations.values()
-                if conv.status == ConversationStatus.ACTIVE
-            ]
-        )
-
-    def list_active_conversations(self) -> List[str]:
-        """Get list of active conversation client IDs"""
-        return [
-            client_id
-            for client_id, conv in self.active_conversations.items()
-            if conv.status == ConversationStatus.ACTIVE
-        ]

@@ -1,5 +1,4 @@
 import json
-import uuid
 
 from server.models.ws_dtos import UserMessage
 
@@ -52,8 +51,3 @@ class MessageProtocol:
             return False
 
         return True
-
-    @staticmethod
-    def generate_client_id() -> str:
-        """Generate a new unique client ID"""
-        return str(uuid.uuid4())

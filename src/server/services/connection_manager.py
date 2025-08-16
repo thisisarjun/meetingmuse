@@ -234,10 +234,6 @@ class ConnectionManager:
         )
         return successful_sends
 
-    def get_connection_count(self) -> int:
-        """Get the number of active connections"""
-        return len(self.active_connections)
-
     def get_client_info(self, client_id: str) -> Optional[ConnectionMetadataDto]:
         """Get metadata for a specific client"""
         return self.connection_metadata.get(client_id)

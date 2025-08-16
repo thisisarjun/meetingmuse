@@ -30,13 +30,9 @@ from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
 
-from ..services.admin_service import AdminService
 from ..services.connection_manager import ConnectionManager
 from ..services.conversation_manager import ConversationManager
-from ..services.health_service import HealthService
 from ..services.websocket_connection_service import WebSocketConnectionService
-from .admin_api import create_admin_router
-from .health_api import create_health_router
 from .websocket_api import create_websocket_router
 
 logger = Logger()
@@ -79,15 +75,6 @@ conversation_manager = ConversationManager(
 )
 
 # Create specialized services with dependency injection
-health_service = HealthService(
-    connection_manager=connection_manager,
-    conversation_manager=conversation_manager,
-)
-
-admin_service = AdminService(
-    connection_manager=connection_manager,
-    conversation_manager=conversation_manager,
-)
 
 websocket_connection_service = WebSocketConnectionService(
     connection_manager=connection_manager,
@@ -102,9 +89,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager"""
     # Startup
     logger.info("MeetingMuse WebSocket Server starting up...")
-    logger.info(
-        f"Connection manager initialized: {connection_manager.get_connection_count()} connections"
-    )
+    logger.info("Connection manager initialized")
 
     yield
 
@@ -128,8 +113,6 @@ def create_app() -> FastAPI:
 
         ### API Endpoints
 
-        * **Health**: System health checks and monitoring endpoints
-        * **Admin**: Administrative operations for connection management
         * **WebSocket**: Real-time communication endpoints
 
         ### Authentication
@@ -143,14 +126,6 @@ def create_app() -> FastAPI:
             "url": "https://opensource.org/licenses/MIT",
         },
         tags_metadata=[
-            {
-                "name": "health",
-                "description": "Health check and system monitoring endpoints. Use these for service discovery, load balancer health checks, and system observability.",
-            },
-            {
-                "name": "admin",
-                "description": "Administrative operations for managing connections, broadcasting messages, and retrieving system statistics.",
-            },
             {
                 "name": "websocket",
                 "description": "WebSocket endpoints for real-time chat communication. Clients connect here to send and receive messages through the LangGraph-powered chat system.",
@@ -166,8 +141,6 @@ def create_app() -> FastAPI:
     )
 
     # Include API routers
-    app.include_router(create_health_router(health_service))
-    app.include_router(create_admin_router(admin_service))
     app.include_router(create_websocket_router(websocket_connection_service))
 
     logger.info("FastAPI server initialized with routers")
@@ -180,7 +153,5 @@ __all__ = [
     "app",
     "connection_manager",
     "conversation_manager",
-    "health_service",
-    "admin_service",
     "websocket_connection_service",
 ]
