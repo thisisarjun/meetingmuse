@@ -53,11 +53,11 @@ class GraphMessageProcessor:
             # Extract AI response
             if last_message:
                 return last_message
-            else:
-                self.logger.warning(f"No messages in result for client {client_id}")
-                return "I'm having trouble processing your request. Please try again."
 
-        except Exception as e:
+            self.logger.warning(f"No messages in result for client {client_id}")
+            return "I'm having trouble processing your request. Please try again."
+
+        except Exception as e:  # pylint: disable=broad-exception-caught
             self.logger.error(
                 f"Error processing message for client {client_id}: {str(e)}"
             )
@@ -108,7 +108,7 @@ class GraphMessageProcessor:
 
             return False
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             self.logger.error(
                 f"Error getting conversation state for client {client_id}: {str(e)}"
             )
@@ -162,7 +162,7 @@ class GraphMessageProcessor:
 
             return "Thank you for the additional information. Let me continue processing your request."
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             self.logger.error(
                 f"Error resuming conversation for client {client_id}: {str(e)}"
             )
