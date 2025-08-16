@@ -1,8 +1,9 @@
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, Optional
 
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.types import StateSnapshot
 
+from meetingmuse.models.graph import MessageType
 from meetingmuse.models.interrupts import InterruptInfo
 from meetingmuse.models.state import MeetingMuseBotState
 
@@ -18,11 +19,11 @@ class Utils:
 
     @staticmethod
     def get_last_message(
-        state: MeetingMuseBotState, input_type: Literal["human", "ai"]
+        state: MeetingMuseBotState, input_type: MessageType
     ) -> Optional[str]:
         last_message: Optional[str] = None
         for message in reversed(state.messages):
-            if input_type == "human" and message.type == "human":
+            if input_type == MessageType.HUMAN and message.type == MessageType.HUMAN:
                 # Handle both string and complex content types
                 content = message.content
                 if isinstance(content, str):
@@ -30,7 +31,7 @@ class Utils:
                 else:
                     last_message = str(content)
                 break
-            if input_type == "ai" and message.type == "ai":
+            if input_type == MessageType.AI and message.type == MessageType.AI:
                 # Handle both string and complex content types
                 content = message.content
                 if isinstance(content, str):
@@ -42,14 +43,17 @@ class Utils:
 
     @staticmethod
     def get_last_message_from_events(
-        events: Dict[str, Any], input_type: Literal["human", "ai"]
+        events: Dict[str, Any], input_type: MessageType
     ) -> Optional[str]:
         last_message: Optional[str] = None
         for _, state in events.items():
             meeting_muse_bot_state = MeetingMuseBotState.model_validate(state)
             if meeting_muse_bot_state.messages:
                 for message in reversed(meeting_muse_bot_state.messages):
-                    if input_type == "human" and message.type == "human":
+                    if (
+                        input_type == MessageType.HUMAN
+                        and message.type == MessageType.HUMAN
+                    ):
                         # Handle both string and complex content types
                         content = message.content
                         if isinstance(content, str):
@@ -57,7 +61,7 @@ class Utils:
                         else:
                             last_message = str(content)
                         break
-                    if input_type == "ai" and message.type == "ai":
+                    if input_type == MessageType.AI and message.type == MessageType.AI:
                         # Handle both string and complex content types
                         content = message.content
                         if isinstance(content, str):

@@ -4,7 +4,8 @@ from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 
 from common.logger import Logger
-from common.utils import Utils
+from meetingmuse.graph.graph_utils import Utils
+from meetingmuse.models.graph import MessageType
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
 
@@ -25,7 +26,7 @@ class ChatBot:
             return None
 
         # Get the state from the node result
-        return Utils.get_last_message_from_events(events, "ai")
+        return Utils.get_last_message_from_events(events, MessageType.AI)
 
     def process_input(self, user_input: str) -> None:
         # Always add the user message and process

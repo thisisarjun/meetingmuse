@@ -9,7 +9,8 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
 from common.logger import Logger
-from common.utils.utils import Utils
+from meetingmuse.graph.graph_utils import Utils
+from meetingmuse.models.graph import MessageType
 from meetingmuse.models.state import MeetingMuseBotState
 
 
@@ -49,7 +50,7 @@ class GraphMessageProcessor:
                 return interrupt_info.question
 
             meeting_muse_state = MeetingMuseBotState.model_validate(result)
-            last_message = Utils.get_last_message(meeting_muse_state, "ai")
+            last_message = Utils.get_last_message(meeting_muse_state, MessageType.AI)
             # Extract AI response
             if last_message:
                 return last_message
@@ -156,7 +157,7 @@ class GraphMessageProcessor:
 
             # Extract the latest AI response
             meeting_muse_state = MeetingMuseBotState.model_validate(result)
-            last_message = Utils.get_last_message(meeting_muse_state, "ai")
+            last_message = Utils.get_last_message(meeting_muse_state, MessageType.AI)
             if last_message:
                 return last_message
 
