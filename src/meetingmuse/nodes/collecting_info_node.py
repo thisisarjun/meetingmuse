@@ -5,6 +5,8 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 
+from common.decorators import log_node_entry
+from common.logger import Logger
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
@@ -14,8 +16,6 @@ from meetingmuse.prompts.schedule_meeting_collecting_info_prompt import (
     SCHEDULE_MEETING_COLLECTING_INFO_PROMPT,
 )
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
-from meetingmuse.utils.decorators.log_decorator import log_node_entry
-from meetingmuse.utils.logger import Logger
 
 
 class CollectingInfoNode(BaseNode):
