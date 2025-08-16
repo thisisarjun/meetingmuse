@@ -1,11 +1,11 @@
 from langchain_core.messages import BaseMessage, HumanMessage
 
+from common.decorators import log_node_entry
+from common.logger import Logger
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.services.intent_classifier import IntentClassifier
-from meetingmuse.utils.decorators.log_decorator import log_node_entry
-from meetingmuse.utils.logger import Logger
 
 
 class ClassifyIntentNode(BaseNode):

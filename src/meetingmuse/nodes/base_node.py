@@ -3,9 +3,9 @@ from typing import Union
 
 from langgraph.types import Command
 
+from common.logger import Logger
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.utils.logger import Logger
 
 
 class BaseNode(ABC):

@@ -6,7 +6,7 @@ from typing import Dict, Optional
 
 from cryptography.fernet import Fernet
 
-from meetingmuse.config.config import config
+from common.config.config import config
 from server.models.session import TokenInfo, UserSession
 
 

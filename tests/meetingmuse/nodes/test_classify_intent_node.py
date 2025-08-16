@@ -3,11 +3,11 @@ from unittest.mock import Mock
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 
+from common.logger import Logger
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
 from meetingmuse.services.intent_classifier import IntentClassifier
-from meetingmuse.utils.logger import Logger
 
 
 class TestClassifyIntentNode:

@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import RedirectResponse
 
-from meetingmuse.config.config import config
+from common.config.config import config
 from server.models.auth import (
     AuthUrlResponse,
     LogoutResponse,

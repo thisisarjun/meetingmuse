@@ -1,9 +1,9 @@
 import functools
 from typing import Any, Callable
 
+from common.logger import Logger
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.utils.logger import Logger
 
 
 def log_node_entry(prefix: NodeName) -> Callable:
@@ -29,14 +29,17 @@ def log_node_entry(prefix: NodeName) -> Callable:
             logger = getattr(self, "logger", None) or Logger()
 
             # Get node name for logging
-            node_name = getattr(self, "node_name", self.__class__.__name__)
+            # FIXME: this is not working
+            node_name = getattr(self, "node_name", self.node_name)
 
             # Determine prefix
             log_prefix = f"[{prefix}]"
 
             # Log entry with useful debug info
             logger.info(
-                f"{log_prefix} Entering {node_name} | Messages: {len(state.messages)} | State: {state}"
+                f"{log_prefix} Entering {node_name} | Messages: {len(state.messages)} \
+                    | last Message: {state.messages[-1] if state.messages else 'None'} \
+                        | State: {state.meeting_details}"
             )
 
             # Call the original method

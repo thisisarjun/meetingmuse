@@ -8,7 +8,8 @@ from typing import Any, Optional
 
 import uvicorn
 
-from ...meetingmuse.config.config import config as env_config
+from common.config import config as env_config
+
 from .websocket_connection_service import WebSocketConnectionService
 
 logger = logging.getLogger(__name__)

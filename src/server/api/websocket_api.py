@@ -2,22 +2,22 @@
 WebSocket API
 WebSocket endpoints for real-time chat communication with OAuth authentication
 """
-import logging
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketException, status
 
+from common.logger import Logger
 from server.services.oauth_service import oauth_service
 
 from ..services.websocket_connection_service import WebSocketConnectionService
 
-logger = logging.getLogger(__name__)
 
-
-def create_websocket_router(websocket_service: WebSocketConnectionService) -> APIRouter:
+def create_websocket_router(
+    websocket_service: WebSocketConnectionService, logger: Logger
+) -> APIRouter:
     """Create and configure WebSocket API router"""
     router = APIRouter(tags=["websocket"])
 
-    @router.websocket("/ws/{client_id}")  # type: ignore[misc]
+    @router.websocket("/ws/{client_id}")
     async def websocket_endpoint(
         websocket: WebSocket,
         client_id: str,

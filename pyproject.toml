@@ -38,7 +38,9 @@ description = "Your favourite calendar bot!"
 authors = ["Your Name <your.email@example.com>"]
 readme = "README.md"
 packages = [
-    {include = "meetingmuse", from = "src"},
+    {include ="meetingmuse", from = "src"},
+    {include ="server", from = "src"},
+    {include ="common", from = "src"},
     {include = "scripts"}
 ]
 
@@ -67,6 +69,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+
 addopts = [
     "-v",
     "--tb=short",
@@ -143,6 +146,8 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+mypy_path = "src"
+explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 module = [

@@ -36,10 +36,12 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: poetry run mypy src/meetingmuse/
+        entry: poetry run mypy
         language: system
-        pass_filenames: false
         always_run: true
+        exclude: ^tests/
+        types: [python]
+
 
   - repo: local
     hooks:

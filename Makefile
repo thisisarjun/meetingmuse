@@ -105,8 +105,11 @@ format:
 	poetry run black src/ tests/
 	poetry run isort src/ tests/
 
+pre-commit:
+	poetry run pre-commit run --all-files
+
 type-check:
-	poetry run mypy src/meetingmuse/
+	poetry run mypy src/
 
 # Cleanup
 clean:
@@ -127,7 +130,7 @@ run:
 
 # Run WebSocket server locally
 run-server:
-	poetry run python -m src.meetingmuse_server.main
+	poetry run python src/main.py
 
 # Build with Poetry
 build: clean
@@ -142,7 +145,7 @@ docs:
 
 # Development workflow
 dev-setup: dev-install
-	cp .env.example .env
+	cp -n .env.example .env
 	@echo "Development environment set up with Poetry!"
 	@echo "Please edit .env with your actual values"
 	@echo "Run 'make poetry-shell' to activate the virtual environment"
