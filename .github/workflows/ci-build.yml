@@ -5,7 +5,7 @@ on:
     workflows: ["Lint & Test"]
     types:
       - completed
-    branches: [main]
+    branches: [main, 25-build-pipeline]
 
 jobs:
   build:
