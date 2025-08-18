@@ -10,6 +10,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 
 from common.config.config import config
+from server.models.oauth import ClientConfig, WebClientConfig
 from server.models.session import TokenInfo, UserSession
 from server.services.token_storage import token_storage
 
@@ -19,20 +20,20 @@ class OAuthService:
 
     def __init__(self) -> None:
         """Initialize OAuth service with Google configuration."""
-        self._client_config = {
-            "web": {
-                "client_id": config.GOOGLE_CLIENT_ID,
-                "client_secret": config.GOOGLE_CLIENT_SECRET,
-                "redirect_uris": [config.GOOGLE_REDIRECT_URI],
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token",
-            }
-        }
+        self._client_config = ClientConfig(
+            web=WebClientConfig(
+                client_id=config.GOOGLE_CLIENT_ID,
+                client_secret=config.GOOGLE_CLIENT_SECRET,
+                redirect_uris=[config.GOOGLE_REDIRECT_URI],
+                auth_uri="https://accounts.google.com/o/oauth2/auth",
+                token_uri="https://oauth2.googleapis.com/token",
+            )
+        )
 
     def _create_flow(self, state: Optional[str] = None) -> Flow:
         """Create OAuth flow."""
         flow = Flow.from_client_config(
-            client_config=self._client_config,
+            client_config=self._client_config.model_dump(),
             scopes=config.GOOGLE_SCOPES,
         )
         flow.redirect_uri = config.GOOGLE_REDIRECT_URI

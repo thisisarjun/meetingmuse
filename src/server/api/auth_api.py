@@ -1,13 +1,14 @@
 """Authentication API endpoints for OAuth flow."""
 
-import logging
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import RedirectResponse
 
 from common.config.config import config
-from server.models.auth import (
+from common.logger.logger import Logger
+from server.api.dependencies import get_logger
+from server.models.auth_api import (
     AuthUrlResponse,
     LogoutResponse,
     RefreshResponse,
@@ -16,10 +17,10 @@ from server.models.auth import (
 from server.services.oauth_service import oauth_service
 from server.services.token_storage import token_storage
 
-logger = logging.getLogger(__name__)
 
-
-async def start_oauth_flow(client_id: str) -> AuthUrlResponse:
+async def start_oauth_flow(
+    client_id: str, logger: Logger = Depends(get_logger)
+) -> AuthUrlResponse:
     """
     Start OAuth flow for a client.
 
@@ -52,6 +53,7 @@ async def oauth_callback(
     code: Optional[str] = Query(None, description="Authorization code from Google"),
     state: Optional[str] = Query(None, description="State parameter for security"),
     error: Optional[str] = Query(None, description="Error from OAuth provider"),
+    logger: Logger = Depends(get_logger),
 ) -> RedirectResponse:
     """
     Handle OAuth callback from Google.
@@ -97,7 +99,8 @@ async def oauth_callback(
 
 
 async def refresh_access_token(
-    session_id: str = Query(..., description="Session ID")
+    session_id: str = Query(..., description="Session ID"),
+    logger: Logger = Depends(get_logger),
 ) -> RefreshResponse:
     """
     Refresh access token using refresh token.
@@ -130,7 +133,9 @@ async def refresh_access_token(
         raise HTTPException(status_code=500, detail="Token refresh failed")
 
 
-async def logout(client_id: str) -> LogoutResponse:
+async def logout(
+    client_id: str, logger: Logger = Depends(get_logger)
+) -> LogoutResponse:
     """
     Logout and revoke tokens for a client.
 
@@ -161,7 +166,9 @@ async def logout(client_id: str) -> LogoutResponse:
         raise HTTPException(status_code=500, detail="Logout failed")
 
 
-async def get_auth_status(client_id: str) -> StatusResponse:
+async def get_auth_status(
+    client_id: str, logger: Logger = Depends(get_logger)
+) -> StatusResponse:
     """
     Get authentication status for a client.
 
