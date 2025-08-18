@@ -4,22 +4,23 @@ import secrets
 from datetime import datetime, timezone
 from typing import Optional
 
-import requests
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 
 from common.config.config import config
+from common.http_client import http_client
 from server.models.oauth import ClientConfig, WebClientConfig
 from server.models.session import TokenInfo, UserSession
-from server.services.token_storage import token_storage
+from server.services.token_storage import InMemoryTokenStorage
 
 
 class OAuthService:
     """Handles Google OAuth 2.0 authentication flow."""
 
-    def __init__(self) -> None:
+    def __init__(self, token_storage: InMemoryTokenStorage) -> None:
         """Initialize OAuth service with Google configuration."""
+        self._token_storage = token_storage
         self._client_config = ClientConfig(
             web=WebClientConfig(
                 client_id=config.GOOGLE_CLIENT_ID,
@@ -119,7 +120,7 @@ class OAuthService:
             )
 
             # Store session
-            await token_storage.store_session(session)
+            await self._token_storage.store_session(session)
 
             return session
 
@@ -136,7 +137,7 @@ class OAuthService:
         Returns:
             Updated TokenInfo or None if refresh failed
         """
-        session = await token_storage.get_session(session_id)
+        session = await self._token_storage.get_session(session_id)
         if not session or not session.tokens.refresh_token:
             return None
 
@@ -166,7 +167,7 @@ class OAuthService:
             )
 
             # Update session
-            await token_storage.update_tokens(session_id, new_token_info)
+            await self._token_storage.update_tokens(session_id, new_token_info)
 
             return new_token_info
 
@@ -183,7 +184,7 @@ class OAuthService:
         Returns:
             True if token is valid, False otherwise
         """
-        session = await token_storage.get_session(session_id)
+        session = await self._token_storage.get_session(session_id)
         if not session:
             return False
 
@@ -207,23 +208,22 @@ class OAuthService:
         Returns:
             True if successful, False otherwise
         """
-        session = await token_storage.get_session(session_id)
+        session = await self._token_storage.get_session(session_id)
         if not session:
             return False
 
         try:
-            response = requests.post(
+            await http_client.post(
                 "https://oauth2.googleapis.com/revoke",
                 params={"token": session.tokens.access_token},
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
-            response.raise_for_status()
 
         except Exception:
             pass  # Continue even if revocation fails
 
         # Remove session
-        return await token_storage.delete_session(session_id)
+        return await self._token_storage.delete_session(session_id)
 
     # TODO: Use this method to make Calendar API calls
     async def get_credentials(self, session_id: str) -> Optional[Credentials]:
@@ -236,7 +236,7 @@ class OAuthService:
         Returns:
             Google credentials or None if invalid
         """
-        session = await token_storage.get_session(session_id)
+        session = await self._token_storage.get_session(session_id)
         if not session:
             return None
 
@@ -245,7 +245,7 @@ class OAuthService:
             return None
 
         # Get updated session after potential refresh
-        session = await token_storage.get_session(session_id)
+        session = await self._token_storage.get_session(session_id)
         if not session:
             return None
 
@@ -257,6 +257,3 @@ class OAuthService:
             client_secret=config.GOOGLE_CLIENT_SECRET,
             scopes=session.tokens.scopes,
         )
-
-
-oauth_service = OAuthService()

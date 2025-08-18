@@ -114,6 +114,3 @@ class InMemoryTokenStorage:
             del self._sessions[session_id]
             return True
         return False
-
-
-token_storage = InMemoryTokenStorage()

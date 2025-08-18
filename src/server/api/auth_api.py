@@ -7,19 +7,21 @@ from fastapi.responses import RedirectResponse
 
 from common.config.config import config
 from common.logger.logger import Logger
-from server.api.dependencies import get_logger
+from server.api.dependencies import get_logger, get_oauth_service, get_token_storage
 from server.models.auth_api import (
     AuthUrlResponse,
     LogoutResponse,
     RefreshResponse,
     StatusResponse,
 )
-from server.services.oauth_service import oauth_service
-from server.services.token_storage import token_storage
+from server.services.oauth_service import OAuthService
+from server.services.token_storage import InMemoryTokenStorage
 
 
 async def start_oauth_flow(
-    client_id: str, logger: Logger = Depends(get_logger)
+    client_id: str,
+    oauth_service: OAuthService = Depends(get_oauth_service),
+    logger: Logger = Depends(get_logger),
 ) -> AuthUrlResponse:
     """
     Start OAuth flow for a client.
@@ -53,6 +55,7 @@ async def oauth_callback(
     code: Optional[str] = Query(None, description="Authorization code from Google"),
     state: Optional[str] = Query(None, description="State parameter for security"),
     error: Optional[str] = Query(None, description="Error from OAuth provider"),
+    oauth_service: OAuthService = Depends(get_oauth_service),
     logger: Logger = Depends(get_logger),
 ) -> RedirectResponse:
     """
@@ -100,6 +103,7 @@ async def oauth_callback(
 
 async def refresh_access_token(
     session_id: str = Query(..., description="Session ID"),
+    oauth_service: OAuthService = Depends(get_oauth_service),
     logger: Logger = Depends(get_logger),
 ) -> RefreshResponse:
     """
@@ -134,7 +138,10 @@ async def refresh_access_token(
 
 
 async def logout(
-    client_id: str, logger: Logger = Depends(get_logger)
+    client_id: str,
+    token_storage: InMemoryTokenStorage = Depends(get_token_storage),
+    oauth_service: OAuthService = Depends(get_oauth_service),
+    logger: Logger = Depends(get_logger),
 ) -> LogoutResponse:
     """
     Logout and revoke tokens for a client.
@@ -167,7 +174,10 @@ async def logout(
 
 
 async def get_auth_status(
-    client_id: str, logger: Logger = Depends(get_logger)
+    client_id: str,
+    token_storage: InMemoryTokenStorage = Depends(get_token_storage),
+    oauth_service: OAuthService = Depends(get_oauth_service),
+    logger: Logger = Depends(get_logger),
 ) -> StatusResponse:
     """
     Get authentication status for a client.

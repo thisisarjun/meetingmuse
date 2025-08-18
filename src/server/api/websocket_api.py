@@ -3,10 +3,11 @@ WebSocket API
 WebSocket endpoints for real-time chat communication with OAuth authentication
 """
 
-from fastapi import APIRouter, Query, WebSocket, WebSocketException, status
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketException, status
 
 from common.logger import Logger
-from server.services.oauth_service import oauth_service
+from server.api.dependencies import get_oauth_service
+from server.services.oauth_service import OAuthService
 
 from ..services.websocket_connection_service import WebSocketConnectionService
 
@@ -22,6 +23,7 @@ def create_websocket_router(
         websocket: WebSocket,
         client_id: str,
         session_id: str = Query(..., description="OAuth session ID for authentication"),
+        oauth_service: OAuthService = Depends(get_oauth_service),
     ) -> None:
         """
         Main WebSocket endpoint for authenticated chat conversations
