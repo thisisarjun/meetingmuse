@@ -39,7 +39,7 @@ repos:
         entry: poetry run mypy
         language: system
         always_run: true
-        exclude: ^tests/
+        exclude: ^(tests/|scripts/)
         types: [python]
 
 

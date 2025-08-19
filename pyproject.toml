@@ -135,6 +135,8 @@ known_first_party = ["meetingmuse"]
 
 [tool.mypy]
 python_version = "3.13"
+files = ["src"]
+exclude = ["scripts/"]
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -149,6 +151,7 @@ warn_unreachable = true
 strict_equality = true
 mypy_path = "src"
 explicit_package_bases = true
+namespace_packages = true
 
 [[tool.mypy.overrides]]
 module = [
