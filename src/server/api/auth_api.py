@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse
 from common.config.config import config
 from common.logger.logger import Logger
 from server.api.dependencies import get_logger, get_oauth_service, get_session_manager
-from server.models.auth_api import (
+from server.models.api.auth import (
     AuthUrlResponse,
     LogoutResponse,
     RefreshResponse,

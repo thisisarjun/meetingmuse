@@ -1,6 +1,6 @@
 import json
 
-from server.models.ws_dtos import UserMessage
+from server.models.api.ws import UserMessage
 
 
 class MessageProtocol:

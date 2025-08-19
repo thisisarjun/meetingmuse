@@ -8,7 +8,7 @@ from fastapi import WebSocket, WebSocketDisconnect, status
 
 from common.logger.logger import Logger
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
-from server.models.ws_dtos import UserMessage
+from server.models.api.ws import UserMessage
 from server.services.message_processor import MessageProtocol
 
 from ..constants import CloseReasons, ErrorCodes, ErrorMessages, SystemMessageTypes
