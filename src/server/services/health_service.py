@@ -1,4 +1,4 @@
-from server.models.api_dtos import HealthStatus
+from server.models.api.health import HealthStatus
 from server.services.connection_manager import ConnectionManager
 
 

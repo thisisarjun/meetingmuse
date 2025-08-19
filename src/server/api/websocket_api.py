@@ -1,34 +1,42 @@
 """
 WebSocket API
-WebSocket endpoints for real-time chat communication
+WebSocket endpoints for real-time chat communication with OAuth authentication
 """
 
-from fastapi import APIRouter, WebSocket, WebSocketException, status
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketException, status
+
+from common.logger import Logger
+from server.api.dependencies import get_oauth_service
+from server.services.oauth_service import OAuthService
 
 from ..services.websocket_connection_service import WebSocketConnectionService
 
 
 def create_websocket_router(
-    websocket_service: WebSocketConnectionService,
+    websocket_service: WebSocketConnectionService, logger: Logger
 ) -> APIRouter:
     """Create and configure WebSocket API router"""
     router = APIRouter(tags=["websocket"])
 
     @router.websocket("/ws/{client_id}")
-    async def websocket_endpoint(websocket: WebSocket, client_id: str) -> None:
+    async def websocket_endpoint(
+        websocket: WebSocket,
+        client_id: str,
+        session_id: str = Query(..., description="OAuth session ID for authentication"),
+        oauth_service: OAuthService = Depends(get_oauth_service),
+    ) -> None:
         """
-        Main WebSocket endpoint for chat conversations
+        Main WebSocket endpoint for authenticated chat conversations
 
         This endpoint establishes a persistent WebSocket connection for real-time chat
-        communication. Each client must provide a unique client_id to maintain
-        separate conversation contexts.
+        communication. Each client must provide a unique client_id and valid session_id
+        from OAuth authentication to maintain separate conversation contexts.
 
-        ## Connection Flow
+        ## Authentication
 
-        1. **Connection Establishment**: Client connects with unique client_id
-        2. **Message Processing**: Messages are processed through LangGraph pipeline
-        3. **Real-time Responses**: AI responses are streamed back to the client
-        4. **Connection Management**: Connection state is maintained until disconnect
+        - **session_id**: Valid OAuth session ID obtained from `/auth/login/{client_id}` flow
+        - Connection will be rejected if session_id is invalid or expired
+        - Tokens are automatically refreshed during the connection lifetime
 
         ## Message Format
 
@@ -89,30 +97,40 @@ def create_websocket_router(
           - Must be a non-empty string
           - Used to maintain conversation context
           - Should be unique per user session
+        - **session_id**: OAuth session ID for authentication (query parameter)
+          - Must be a valid session ID from successful OAuth flow
+          - Used to validate user authentication and access tokens
 
-        ## Connection Management
-
-        - Connections are automatically cleaned up on disconnect
-        - Conversation history is maintained per client_id
-        - Server handles connection failures gracefully
-        - Admin endpoints can monitor and manage all connections
-
-        ## Error Handling
-
-        - Invalid message formats result in error responses
-        - Connection errors are logged and handled gracefully
-        - Clients receive error messages with suggested retry actions
-
-        Args:
-            websocket: WebSocket connection object
-            client_id: Unique identifier for the client session
         """
+        # Validate authentication first
+        if not session_id or not session_id.strip():
+            logger.warning(f"Missing session_id for client: {client_id}")
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            raise WebSocketException(
+                code=status.WS_1008_POLICY_VIOLATION, reason="Missing session_id"
+            )
+
+        # Validate the OAuth session
+        is_valid = await oauth_service.validate_token(session_id)
+        if not is_valid:
+            logger.warning(f"Invalid or expired session_id for client: {client_id}")
+            await websocket.close(code=status.WS_1003_UNSUPPORTED_DATA)
+            raise WebSocketException(
+                code=status.WS_1003_UNSUPPORTED_DATA,
+                reason="Invalid or expired session",
+            )
+
+        # Validate client ID
         if not client_id or not client_id.strip():
+            logger.warning(f"Invalid client_id: {client_id}")
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             raise WebSocketException(
                 code=status.WS_1008_POLICY_VIOLATION, reason="Invalid client_id"
             )
 
-        await websocket_service.handle_websocket_connection(websocket, client_id)
+        logger.info(f"Authenticated WebSocket connection for client: {client_id}")
+        await websocket_service.handle_websocket_connection(
+            websocket, client_id, session_id
+        )
 
     return router

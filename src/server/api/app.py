@@ -7,7 +7,9 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from common.config.config import config
 from common.logger import Logger
 from meetingmuse.graph.graph import GraphBuilder
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
@@ -34,6 +36,7 @@ from ..services.connection_manager import ConnectionManager
 from ..services.conversation_manager import ConversationManager
 from ..services.health_service import HealthService
 from ..services.websocket_connection_service import WebSocketConnectionService
+from .auth_api import create_auth_router
 from .health_api import create_health_router
 from .websocket_api import create_websocket_router
 
@@ -119,6 +122,7 @@ def create_app() -> FastAPI:
         ### API Endpoints
 
         * **WebSocket**: Real-time communication endpoints
+        * **Authentication**: OAuth flow for user authentication
 
         ### Authentication
 
@@ -135,9 +139,22 @@ def create_app() -> FastAPI:
                 "name": "websocket",
                 "description": "WebSocket endpoints for real-time chat communication. Clients connect here to send and receive messages through the LangGraph-powered chat system.",
             },
+            {
+                "name": "authentication",
+                "description": "OAuth flow for user authentication.",
+            },
         ],
         lifespan=lifespan,
     )
+
+    if config.ENV == "dev":
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     # Configure logging
     logging.basicConfig(
@@ -146,7 +163,8 @@ def create_app() -> FastAPI:
     )
 
     # Include API routers
-    app.include_router(create_websocket_router(websocket_connection_service))
+    app.include_router(create_websocket_router(websocket_connection_service, logger))
+    app.include_router(create_auth_router())
     app.include_router(create_health_router(health_service, logger))
 
     logger.info("FastAPI server initialized with routers")

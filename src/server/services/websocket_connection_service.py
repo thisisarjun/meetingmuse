@@ -4,20 +4,14 @@ Core business logic for WebSocket connection handling and message processing
 """
 from typing import Optional
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect, status
 
 from common.logger.logger import Logger
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
-from server.models.ws_dtos import UserMessage
+from server.models.api.ws import UserMessage
 from server.services.message_processor import MessageProtocol
 
-from ..constants import (
-    CloseReasons,
-    ErrorCodes,
-    ErrorMessages,
-    SystemMessageTypes,
-    WebSocketCloseCodes,
-)
+from ..constants import CloseReasons, ErrorCodes, ErrorMessages, SystemMessageTypes
 from .connection_manager import ConnectionManager
 from .conversation_manager import ConversationManager
 
@@ -38,30 +32,25 @@ class WebSocketConnectionService:
         self.logger = logger
 
     async def handle_websocket_connection(
-        self, websocket: WebSocket, client_id: str
+        self, websocket: WebSocket, client_id: str, session_id: str
     ) -> None:
         """
-        Handle the complete WebSocket connection lifecycle for a client
+        Handle the complete WebSocket connection lifecycle for an authenticated client
 
         Args:
             websocket: WebSocket connection object
             client_id: Unique identifier for the client session
+            session_id: OAuth session identifier for authentication
         """
-        # Validate client ID TODO: Use JWT validation
-        if not MessageProtocol.validate_client_id(client_id):
-            self.logger.warning(f"Invalid client ID: {client_id}")
-            await websocket.close(
-                code=WebSocketCloseCodes.POLICY_VIOLATION,
-                reason=CloseReasons.INVALID_CLIENT_ID,
-            )
-            return
 
         # Attempt to establish connection
-        connection_success = await self.connection_manager.connect(websocket, client_id)
+        connection_success = await self.connection_manager.connect(
+            websocket, client_id, session_id
+        )
         if not connection_success:
             self.logger.error(f"Failed to establish connection for client: {client_id}")
             await websocket.close(
-                code=WebSocketCloseCodes.INTERNAL_ERROR,
+                code=status.WS_1011_INTERNAL_ERROR,
                 reason=CloseReasons.CONNECTION_ESTABLISHMENT_FAILED,
             )
             return
@@ -69,7 +58,7 @@ class WebSocketConnectionService:
         self.logger.info(f"WebSocket connection established for client: {client_id}")
 
         # Initialize conversation
-        self.conversation_manager.initialize_conversation(client_id)
+        self.conversation_manager.initialize_conversation(client_id, session_id)
 
         # Handle potential reconnection and conversation recovery
         conversation_resumed = await self.conversation_manager.handle_reconnection(

@@ -16,3 +16,5 @@ class ActiveConversation(BaseModel):
     status: ConversationStatus
     last_activity: Optional[str] = None
     ended_at: Optional[str] = None
+    session_id: Optional[str] = None
+    authenticated: Optional[bool] = None

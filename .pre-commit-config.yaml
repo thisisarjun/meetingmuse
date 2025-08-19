@@ -36,10 +36,10 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: poetry run mypy src/
+        entry: poetry run mypy
         language: system
         always_run: true
-        exclude: ^tests/
+        exclude: ^(tests/|scripts/)
         types: [python]
 
 

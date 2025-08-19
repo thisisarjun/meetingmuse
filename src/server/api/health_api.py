@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
 from common.logger import Logger
-from server.models.api_dtos import ErrorResponse, HealthStatus
+from server.models.api.health import ErrorResponse, HealthStatus
 from server.services.health_service import HealthService
 
 

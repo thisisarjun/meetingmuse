@@ -7,18 +7,6 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
 
-class MessageRequest(BaseModel):
-    """Request model for messages"""
-
-    content: str = Field(
-        ...,
-        description="Message content",
-        min_length=1,
-        max_length=1000,
-        examples=["A sample message content"],
-    )
-
-
 class ErrorResponse(BaseModel):
     """Standard error response model"""
 

@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
-from server.models.ws_dtos import BotResponse, ErrorMessage, SystemMessage
+from server.models.api.ws import BotResponse, ErrorMessage, SystemMessage
 
 from ..constants import SystemMessageTypes
 from ..models.connections import ConnectionMetadataDto
@@ -25,13 +25,16 @@ class ConnectionManager:
         # Store connection metadata
         self.connection_metadata: Dict[str, ConnectionMetadataDto] = {}
 
-    async def connect(self, websocket: WebSocket, client_id: str) -> bool:
+    async def connect(
+        self, websocket: WebSocket, client_id: str, session_id: Optional[str] = None
+    ) -> bool:
         """
         Accept a new WebSocket connection and add it to active connections
 
         Args:
             websocket: The WebSocket connection object
             client_id: Unique identifier for the client
+            session_id: Optional OAuth session ID for authenticated connections
 
         Returns:
             bool: True if connection was successful, False otherwise

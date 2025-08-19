@@ -3,7 +3,7 @@ Conversation Manager for WebSocket Server
 Handles conversation state and recovery for WebSocket connections
 """
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Optional
 
 from common.logger.logger import Logger
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
@@ -20,24 +20,28 @@ class ConversationManager:
         self.message_processor = message_processor
         self.active_conversations: Dict[str, ActiveConversation] = {}
 
-    def initialize_conversation(self, client_id: str) -> bool:
+    def initialize_conversation(
+        self, client_id: str, session_id: Optional[str] = None
+    ) -> bool:
         """
         Initialize conversation state for a new client
 
         Args:
             client_id: Client identifier
+            session_id: Optional OAuth session ID for authenticated conversations
 
         Returns:
             True if initialization successful, False otherwise
         """
         try:
             if client_id not in self.active_conversations:
-                # TODO: conversation status has to be pydantic model
                 self.active_conversations[client_id] = ActiveConversation(
                     started_at=datetime.now().isoformat(),
                     last_activity=datetime.now().isoformat(),
                     message_count=0,
                     status=ConversationStatus.ACTIVE,
+                    session_id=session_id,
+                    authenticated=session_id is not None,
                 )
                 self.logger.info(f"Initialized conversation for client {client_id}")
 
