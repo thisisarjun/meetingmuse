@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse
 
 from common.config.config import config
 from common.logger.logger import Logger
-from server.api.dependencies import get_logger, get_oauth_service, get_token_storage
+from server.api.dependencies import get_logger, get_oauth_service, get_session_manager
 from server.models.auth_api import (
     AuthUrlResponse,
     LogoutResponse,
@@ -15,7 +15,7 @@ from server.models.auth_api import (
     StatusResponse,
 )
 from server.services.oauth_service import OAuthService
-from server.services.token_storage import InMemoryTokenStorage
+from server.services.session_manager import SessionManager
 
 
 async def start_oauth_flow(
@@ -139,7 +139,7 @@ async def refresh_access_token(
 
 async def logout(
     client_id: str,
-    token_storage: InMemoryTokenStorage = Depends(get_token_storage),
+    session_manager: SessionManager = Depends(get_session_manager),
     oauth_service: OAuthService = Depends(get_oauth_service),
     logger: Logger = Depends(get_logger),
 ) -> LogoutResponse:
@@ -153,7 +153,7 @@ async def logout(
         Dictionary with logout status
     """
     try:
-        session = await token_storage.get_session_by_client_id(client_id)
+        session = await session_manager.get_session_by_client_id(client_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
 
@@ -175,7 +175,7 @@ async def logout(
 
 async def get_auth_status(
     client_id: str,
-    token_storage: InMemoryTokenStorage = Depends(get_token_storage),
+    session_manager: SessionManager = Depends(get_session_manager),
     oauth_service: OAuthService = Depends(get_oauth_service),
     logger: Logger = Depends(get_logger),
 ) -> StatusResponse:
@@ -192,7 +192,7 @@ async def get_auth_status(
         if not client_id or not client_id.strip():
             raise HTTPException(status_code=400, detail="Invalid client_id")
 
-        session = await token_storage.get_session_by_client_id(client_id)
+        session = await session_manager.get_session_by_client_id(client_id)
 
         if not session:
             logger.info(f"No session found for client: {client_id}")
@@ -210,7 +210,7 @@ async def get_auth_status(
                 message="Authentication expired",
             )
 
-        updated_session = await token_storage.get_session_by_client_id(client_id)
+        updated_session = await session_manager.get_session_by_client_id(client_id)
         if not updated_session:
             return StatusResponse(
                 client_id=client_id,

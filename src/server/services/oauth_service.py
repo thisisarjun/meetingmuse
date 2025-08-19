@@ -12,15 +12,19 @@ from common.config.config import config
 from common.http_client import http_client
 from server.models.oauth import ClientConfig, WebClientConfig
 from server.models.session import TokenInfo, UserSession
-from server.services.token_storage import InMemoryTokenStorage
+from server.services.session_manager import SessionManager
 
 
 class OAuthService:
     """Handles Google OAuth 2.0 authentication flow."""
 
-    def __init__(self, token_storage: InMemoryTokenStorage) -> None:
-        """Initialize OAuth service with Google configuration."""
-        self._token_storage = token_storage
+    def __init__(self, session_manager: SessionManager) -> None:
+        """Initialize OAuth service with Google configuration.
+
+        Args:
+            session_manager: Session manager for handling OAuth sessions
+        """
+        self._session_manager = session_manager
         self._client_config = ClientConfig(
             web=WebClientConfig(
                 client_id=config.GOOGLE_CLIENT_ID,
@@ -120,7 +124,7 @@ class OAuthService:
             )
 
             # Store session
-            await self._token_storage.store_session(session)
+            await self._session_manager.store_session(session)
 
             return session
 
@@ -137,7 +141,7 @@ class OAuthService:
         Returns:
             Updated TokenInfo or None if refresh failed
         """
-        session = await self._token_storage.get_session(session_id)
+        session = await self._session_manager.get_session(session_id)
         if not session or not session.tokens.refresh_token:
             return None
 
@@ -167,7 +171,9 @@ class OAuthService:
             )
 
             # Update session
-            await self._token_storage.update_tokens(session_id, new_token_info)
+            await self._session_manager.update_session_tokens(
+                session_id, new_token_info
+            )
 
             return new_token_info
 
@@ -184,7 +190,7 @@ class OAuthService:
         Returns:
             True if token is valid, False otherwise
         """
-        session = await self._token_storage.get_session(session_id)
+        session = await self._session_manager.get_session(session_id)
         if not session:
             return False
 
@@ -208,7 +214,7 @@ class OAuthService:
         Returns:
             True if successful, False otherwise
         """
-        session = await self._token_storage.get_session(session_id)
+        session = await self._session_manager.get_session(session_id)
         if not session:
             return False
 
@@ -223,7 +229,7 @@ class OAuthService:
             pass  # Continue even if revocation fails
 
         # Remove session
-        return await self._token_storage.delete_session(session_id)
+        return await self._session_manager.delete_session(session_id)
 
     # TODO: Use this method to make Calendar API calls
     async def get_credentials(self, session_id: str) -> Optional[Credentials]:
@@ -236,7 +242,7 @@ class OAuthService:
         Returns:
             Google credentials or None if invalid
         """
-        session = await self._token_storage.get_session(session_id)
+        session = await self._session_manager.get_session(session_id)
         if not session:
             return None
 
@@ -245,7 +251,7 @@ class OAuthService:
             return None
 
         # Get updated session after potential refresh
-        session = await self._token_storage.get_session(session_id)
+        session = await self._session_manager.get_session(session_id)
         if not session:
             return None
 
