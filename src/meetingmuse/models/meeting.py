@@ -9,7 +9,7 @@ class MeetingFindings(BaseModel):
     title: Optional[str] = None
     participants: Optional[List[str]] = None
     date_time: Optional[str] = None
-    duration: Optional[str] = None
+    durationInMns: Optional[int] = None
     location: Optional[str] = None
 
 

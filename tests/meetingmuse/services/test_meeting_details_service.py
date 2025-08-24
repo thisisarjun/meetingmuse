@@ -36,7 +36,7 @@ class TestMeetingDetailsService:
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com", "jane@example.com"],
-                    duration="30 minutes",
+                    durationInMns=30,
                 ),
                 True,
                 "all required fields present",
@@ -47,7 +47,7 @@ class TestMeetingDetailsService:
                     title=None,  # Missing title
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com", "jane@example.com"],
-                    duration="30 minutes",
+                    durationInMns=30,
                 ),
                 False,
                 "missing title",
@@ -57,7 +57,7 @@ class TestMeetingDetailsService:
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=[],  # Empty participants list
-                    duration="30 minutes",
+                    durationInMns=30,
                 ),
                 False,
                 "empty participants list",
@@ -84,7 +84,7 @@ class TestMeetingDetailsService:
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com"],
-                    duration="30 minutes",
+                    durationInMns=30,
                 ),
                 [],
                 "complete meeting details",
@@ -95,7 +95,7 @@ class TestMeetingDetailsService:
                     title=None,
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com"],
-                    duration="30 minutes",
+                    durationInMns=30,
                 ),
                 ["title"],
                 "missing title only",
@@ -148,7 +148,7 @@ class TestMeetingDetailsService:
             title="Team Standup",
             date_time="2024-01-15 10:00 AM",
             participants=["john@example.com", "jane@example.com"],
-            duration="30 minutes",
+            durationInMns=30,
             location="Conference Room A",
         )
 
@@ -166,7 +166,7 @@ class TestMeetingDetailsService:
             title="Team Standup",
             date_time="2024-01-15 10:00 AM",
             participants=["john@example.com"],
-            duration="30 minutes",
+            durationInMns=30,
         )
 
         # Act

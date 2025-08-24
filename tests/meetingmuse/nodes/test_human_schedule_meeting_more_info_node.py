@@ -35,7 +35,7 @@ class TestHumanScheduleMeetingMoreInfoNode:
                 title="Team Standup",
                 date_time=None,
                 participants=["john@example.com"],
-                duration=None,
+                durationInMns=None,
             ),
             operation_status=OperationStatus(
                 status=False,

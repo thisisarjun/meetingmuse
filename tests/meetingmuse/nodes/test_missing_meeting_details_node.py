@@ -41,7 +41,7 @@ class TestPromptMissingMeetingDetailsNode:
                 title="Team Standup",
                 date_time="2024-01-15 10:00 AM",
                 participants=["john@example.com", "jane@example.com"],
-                duration="30 minutes",
+                durationInMns=30,
             ),
             operation_status=OperationStatus(
                 status=False,
@@ -59,7 +59,7 @@ class TestPromptMissingMeetingDetailsNode:
                 title="Team Standup",
                 date_time=None,
                 participants=["john@example.com"],
-                duration=None,
+                durationInMns=None,
             ),
             operation_status=OperationStatus(
                 status=False,

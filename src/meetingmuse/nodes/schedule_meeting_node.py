@@ -35,65 +35,39 @@ class ScheduleMeetingNode(BaseNode):
         self.model = model
         self.oauth_service = oauth_service
 
-    # TODO: Modify prompt to return parsed datetime
     def _parse_datetime(self, date_time_str: Optional[str]) -> datetime:
         """Parse date time string to datetime object."""
         if not date_time_str:
+            self.logger.warning("No date time provided, setting default")
             return datetime.now().replace(
                 minute=0, second=0, microsecond=0
             ) + timedelta(hours=1)
 
         try:
-            # Try common formats
-            formats = [
-                "%Y-%m-%d %H:%M",
-                "%Y-%m-%d %H:%M:%S",
-                "%Y-%m-%dT%H:%M:%S",
-                "%Y-%m-%dT%H:%M:%SZ",
-                "%m/%d/%Y %H:%M",
-                "%d/%m/%Y %H:%M",
-            ]
-
-            for fmt in formats:
-                try:
-                    return datetime.strptime(date_time_str, fmt)
-                except ValueError:
-                    continue
-
-            self.logger.warning(
-                f"Could not parse date time: {date_time_str} - setting default"
-            )
-            return datetime.now().replace(
-                minute=0, second=0, microsecond=0
-            ) + timedelta(hours=1)
+            return datetime.strptime(date_time_str, "%Y-%m-%d %H:%M")
         except (ValueError, TypeError) as e:
             self.logger.error(f"Error parsing date time {date_time_str}: {str(e)}")
             return datetime.now().replace(
                 minute=0, second=0, microsecond=0
             ) + timedelta(hours=1)
 
-    # TODO: modify prompt to return parsed duration in minutes
-    def _parse_duration(self, duration_str: Optional[str]) -> int:
-        """Parse duration string to minutes."""
-        if not duration_str:
+    def _parse_duration(self, duration_minutes: Optional[int]) -> int:
+        """Get duration in minutes from integer value."""
+        if duration_minutes is None:
             return 60  # Default to 1 hour
 
-        try:
-            duration_lower = duration_str.lower().strip()
+        # Validate the duration is reasonable (between 5 minutes and 8 hours)
+        if not isinstance(duration_minutes, int) or duration_minutes < 5:
+            self.logger.warning(f"Invalid duration {duration_minutes}, using default")
+            return 60
 
-            # Parse common formats
-            if "hour" in duration_lower:
-                hours = int("".join(filter(str.isdigit, duration_lower))) or 1
-                return hours * 60
-            if "min" in duration_lower:
-                return int("".join(filter(str.isdigit, duration_lower))) or 60
+        if duration_minutes > 480:  # 8 hours
+            self.logger.warning(
+                f"Duration {duration_minutes} minutes too long, capping at 480 minutes"
+            )
+            return 480
 
-            # Try to extract number and assume minutes
-            minutes = int("".join(filter(str.isdigit, duration_lower))) or 60
-            return minutes
-        except (ValueError, TypeError) as e:
-            self.logger.error(f"Error parsing duration {duration_str}: {str(e)}")
-            return 60  # Default to 1 hour
+        return duration_minutes
 
     async def _create_calendar_event(
         self, state: MeetingMuseBotState
@@ -112,7 +86,7 @@ class ScheduleMeetingNode(BaseNode):
 
         # Parse meeting details
         start_time = self._parse_datetime(state.meeting_details.date_time)
-        duration_minutes = self._parse_duration(state.meeting_details.duration)
+        duration_minutes = self._parse_duration(state.meeting_details.durationInMns)
         end_time = start_time + timedelta(minutes=duration_minutes)
 
         # Prepare attendees
@@ -168,7 +142,7 @@ class ScheduleMeetingNode(BaseNode):
             )
             message = "No scheduling action needed for this intent."
             state.messages.append(AIMessage(content=message))
-            return Command(goto=NodeName.END)
+            return Command(goto=NodeName.END, update={"messages": state.messages})
 
         # Create calendar event using Google Calendar API
         try:
@@ -179,7 +153,10 @@ class ScheduleMeetingNode(BaseNode):
                 )
                 self.logger.error("No session ID available for calendar access")
                 state.messages.append(AIMessage(content=f"ERROR {error_msg}"))
-                return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
+                return Command(
+                    goto=NodeName.HUMAN_INTERRUPT_RETRY,
+                    update={"messages": state.messages},
+                )
 
             # Create calendar event
             self.logger.info("Creating Google Calendar event...")
@@ -205,7 +182,7 @@ class ScheduleMeetingNode(BaseNode):
                 f"Meeting scheduled successfully with ID: {event_details.event_id}"
             )
             state.messages.append(AIMessage(content=success_message))
-            return Command(goto=NodeName.END)
+            return Command(goto=NodeName.END, update={"messages": state.messages})
 
         except ValueError as ve:
             # Handle authentication and validation errors
@@ -214,14 +191,18 @@ class ScheduleMeetingNode(BaseNode):
             state.messages.append(
                 AIMessage(content=f"❌ {auth_error_msg}. Please re-authenticate.")
             )
-            return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
+            return Command(
+                goto=NodeName.HUMAN_INTERRUPT_RETRY, update={"messages": state.messages}
+            )
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             # Handle all other errors
             exception_error_msg = f"Failed to schedule meeting: {str(e)}"
             self.logger.error(f"Exception in scheduling: {exception_error_msg}")
             state.messages.append(AIMessage(content=f"❌ {exception_error_msg}"))
-            return Command(goto=NodeName.HUMAN_INTERRUPT_RETRY)
+            return Command(
+                goto=NodeName.HUMAN_INTERRUPT_RETRY, update={"messages": state.messages}
+            )
 
     @property
     def node_name(self) -> NodeName:
