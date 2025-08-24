@@ -157,7 +157,8 @@ namespace_packages = true
 module = [
     "langgraph.*",
     "langchain_huggingface.*",
-    "google_auth_oauthlib.*"
+    "google_auth_oauthlib.*",
+    "googleapiclient.*"
 ]
 ignore_missing_imports = true
 

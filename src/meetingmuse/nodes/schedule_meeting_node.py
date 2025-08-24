@@ -36,10 +36,12 @@ class ScheduleMeetingNode(BaseNode):
         self.oauth_service = oauth_service
 
     # TODO: Modify prompt to return parsed datetime
-    def _parse_datetime(self, date_time_str: Optional[str]) -> Optional[datetime]:
+    def _parse_datetime(self, date_time_str: Optional[str]) -> datetime:
         """Parse date time string to datetime object."""
         if not date_time_str:
-            return None
+            return datetime.now().replace(
+                minute=0, second=0, microsecond=0
+            ) + timedelta(hours=1)
 
         try:
             # Try common formats
@@ -58,11 +60,17 @@ class ScheduleMeetingNode(BaseNode):
                 except ValueError:
                     continue
 
-            self.logger.warning(f"Could not parse date time: {date_time_str}")
-            return None
-        except Exception as e:
+            self.logger.warning(
+                f"Could not parse date time: {date_time_str} - setting default"
+            )
+            return datetime.now().replace(
+                minute=0, second=0, microsecond=0
+            ) + timedelta(hours=1)
+        except (ValueError, TypeError) as e:
             self.logger.error(f"Error parsing date time {date_time_str}: {str(e)}")
-            return None
+            return datetime.now().replace(
+                minute=0, second=0, microsecond=0
+            ) + timedelta(hours=1)
 
     # TODO: modify prompt to return parsed duration in minutes
     def _parse_duration(self, duration_str: Optional[str]) -> int:
@@ -77,13 +85,13 @@ class ScheduleMeetingNode(BaseNode):
             if "hour" in duration_lower:
                 hours = int("".join(filter(str.isdigit, duration_lower))) or 1
                 return hours * 60
-            elif "min" in duration_lower:
+            if "min" in duration_lower:
                 return int("".join(filter(str.isdigit, duration_lower))) or 60
-            else:
-                # Try to extract number and assume minutes
-                minutes = int("".join(filter(str.isdigit, duration_lower))) or 60
-                return minutes
-        except Exception as e:
+
+            # Try to extract number and assume minutes
+            minutes = int("".join(filter(str.isdigit, duration_lower))) or 60
+            return minutes
+        except (ValueError, TypeError) as e:
             self.logger.error(f"Error parsing duration {duration_str}: {str(e)}")
             return 60  # Default to 1 hour
 
@@ -139,7 +147,9 @@ class ScheduleMeetingNode(BaseNode):
         try:
             # Insert the event
             created_event = (
-                service.events().insert(calendarId="primary", body=event).execute()
+                service.events()  # pylint: disable=no-member
+                .insert(calendarId="primary", body=event)
+                .execute()
             )
             return CalendarEventDetails(
                 event_id=created_event["id"],
@@ -149,7 +159,7 @@ class ScheduleMeetingNode(BaseNode):
             )
         except HttpError as e:
             self.logger.error(f"Google Calendar API error: {str(e)}")
-            raise ValueError(f"Failed to create calendar event: {str(e)}")
+            raise ValueError(f"Failed to create calendar event: {str(e)}") from e
 
     @log_node_entry(NodeName.SCHEDULE_MEETING)
     def node_action(self, state: MeetingMuseBotState) -> Command[Any]:

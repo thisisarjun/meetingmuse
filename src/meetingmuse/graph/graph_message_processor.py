@@ -3,6 +3,8 @@ Message Processor for graph Integration
 Handles message processing through the graph workflow
 """
 
+from typing import Any, Dict
+
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph.state import CompiledStateGraph
@@ -37,7 +39,7 @@ class GraphMessageProcessor:
             AI response content
         """
         try:
-            input_data = {"messages": [HumanMessage(content=content)]}
+            input_data: Dict[str, Any] = {"messages": [HumanMessage(content=content)]}
             input_data["session_id"] = session_id
 
             config = RunnableConfig(configurable={"thread_id": client_id})
