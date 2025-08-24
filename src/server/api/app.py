@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from common.config.config import config
 from common.logger import Logger
+from meetingmuse.clients.google_calendar import GoogleCalendarClient
 from meetingmuse.graph.graph import GraphBuilder
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
@@ -56,7 +57,8 @@ human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
 prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
     meeting_details_service, logger
 )
-schedule_meeting_node = ScheduleMeetingNode(model, logger, get_oauth_service())
+google_calendar_client = GoogleCalendarClient(get_oauth_service(), logger)
+schedule_meeting_node = ScheduleMeetingNode(model, logger, google_calendar_client)
 human_interrupt_retry_node = HumanInterruptRetryNode(logger)
 end_node = EndNode(logger)
 conversation_router = ConversationRouter(logger)

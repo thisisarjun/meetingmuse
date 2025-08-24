@@ -1,20 +1,16 @@
 import asyncio
-from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 from langchain_core.messages import AIMessage
 from langgraph.types import Command
 
 from common.decorators import log_node_entry
 from common.logger import Logger
+from meetingmuse.clients.google_calendar import GoogleCalendarClient
 from meetingmuse.llm_models.hugging_face import HuggingFaceModel
-from meetingmuse.models.meeting import CalendarEventDetails
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.base_node import BaseNode
-from server.services.oauth_service import OAuthService
 
 
 class ScheduleMeetingNode(BaseNode):
@@ -25,113 +21,18 @@ class ScheduleMeetingNode(BaseNode):
     """
 
     model: HuggingFaceModel
-    oauth_service: OAuthService
+    google_calendar_client: GoogleCalendarClient
 
     def __init__(
-        self, model: HuggingFaceModel, logger: Logger, oauth_service: OAuthService
+        self,
+        model: HuggingFaceModel,
+        logger: Logger,
+        google_calendar_client: GoogleCalendarClient,
     ) -> None:
-        """Initialize the node with model, logger, and OAuth service."""
+        """Initialize the node with model, logger, and Google Calendar client."""
         super().__init__(logger)
         self.model = model
-        self.oauth_service = oauth_service
-
-    def _parse_datetime(self, date_time_str: Optional[str]) -> datetime:
-        """Parse date time string to datetime object."""
-        if not date_time_str:
-            self.logger.warning("No date time provided, setting default")
-            return datetime.now().replace(
-                minute=0, second=0, microsecond=0
-            ) + timedelta(hours=1)
-
-        try:
-            return datetime.strptime(date_time_str, "%Y-%m-%d %H:%M")
-        except (ValueError, TypeError) as e:
-            self.logger.error(f"Error parsing date time {date_time_str}: {str(e)}")
-            return datetime.now().replace(
-                minute=0, second=0, microsecond=0
-            ) + timedelta(hours=1)
-
-    def _parse_duration(self, duration_minutes: Optional[int]) -> int:
-        """Get duration in minutes from integer value."""
-        if duration_minutes is None:
-            return 60  # Default to 1 hour
-
-        # Validate the duration is reasonable (between 5 minutes and 8 hours)
-        if not isinstance(duration_minutes, int) or duration_minutes < 5:
-            self.logger.warning(f"Invalid duration {duration_minutes}, using default")
-            return 60
-
-        if duration_minutes > 480:  # 8 hours
-            self.logger.warning(
-                f"Duration {duration_minutes} minutes too long, capping at 480 minutes"
-            )
-            return 480
-
-        return duration_minutes
-
-    async def _create_calendar_event(
-        self, state: MeetingMuseBotState
-    ) -> CalendarEventDetails:
-        """Create a Google Calendar event."""
-        if not state.session_id:
-            raise ValueError("No session ID available for calendar access")
-
-        # Get OAuth credentials
-        credentials = await self.oauth_service.get_credentials(state.session_id)
-        if not credentials:
-            raise ValueError("Could not obtain valid OAuth credentials")
-
-        # Build Google Calendar service
-        service = build("calendar", "v3", credentials=credentials)
-
-        # Parse meeting details
-        start_time = self._parse_datetime(state.meeting_details.date_time)
-        duration_minutes = self._parse_duration(state.meeting_details.durationInMns)
-        end_time = start_time + timedelta(minutes=duration_minutes)
-
-        # Prepare attendees
-        # TODO: Map participants to their email addresses
-        attendees = [{"email": "ismworkmail1@gmail.com"}]
-
-        # Create event object
-        event = {
-            "summary": state.meeting_details.title or "Meeting",
-            "location": state.meeting_details.location or "",
-            "description": "Meeting created via MeetingMuse",
-            "start": {
-                "dateTime": start_time.isoformat(),
-                "timeZone": "UTC",
-            },
-            "end": {
-                "dateTime": end_time.isoformat(),
-                "timeZone": "UTC",
-            },
-            "attendees": attendees,
-            "reminders": {
-                "useDefault": False,
-                "overrides": [
-                    {"method": "email", "minutes": 24 * 60},  # 24 hours before
-                    {"method": "popup", "minutes": 10},  # 10 minutes before
-                ],
-            },
-        }
-
-        try:
-            # Insert the event
-            created_event = (
-                service.events()  # pylint: disable=no-member
-                .insert(calendarId="primary", body=event)
-                .execute()
-            )
-            return CalendarEventDetails(
-                event_id=created_event["id"],
-                event_link=created_event.get("htmlLink"),
-                start_time=start_time.strftime("%Y-%m-%d %H:%M"),
-                end_time=end_time.strftime("%Y-%m-%d %H:%M"),
-            )
-        except HttpError as e:
-            self.logger.error(f"Google Calendar API error: {str(e)}")
-            raise ValueError(f"Failed to create calendar event: {str(e)}") from e
+        self.google_calendar_client = google_calendar_client
 
     @log_node_entry(NodeName.SCHEDULE_MEETING)
     def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
@@ -160,7 +61,16 @@ class ScheduleMeetingNode(BaseNode):
 
             # Create calendar event
             self.logger.info("Creating Google Calendar event...")
-            event_details = asyncio.run(self._create_calendar_event(state))
+            event_details = asyncio.run(
+                self.google_calendar_client.create_calendar_event(
+                    session_id=state.session_id,
+                    title=state.meeting_details.title,
+                    date_time=state.meeting_details.date_time,
+                    duration_minutes=state.meeting_details.durationInMns,
+                    location=state.meeting_details.location,
+                    participants=state.meeting_details.participants,
+                )
+            )
 
             # Success message
             success_message = (
