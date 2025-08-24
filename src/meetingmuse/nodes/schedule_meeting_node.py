@@ -116,10 +116,8 @@ class ScheduleMeetingNode(BaseNode):
         end_time = start_time + timedelta(minutes=duration_minutes)
 
         # Prepare attendees
-        attendees = []
-        if state.meeting_details.participants:
-            for participant in state.meeting_details.participants:
-                attendees.append({"email": participant})
+        # TODO: Map participants to their email addresses
+        attendees = [{"email": "ismworkmail1@gmail.com"}]
 
         # Create event object
         event = {
