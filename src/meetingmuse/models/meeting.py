@@ -11,3 +11,12 @@ class MeetingFindings(BaseModel):
     date_time: Optional[str] = None
     duration: Optional[str] = None
     location: Optional[str] = None
+
+
+class CalendarEventDetails(BaseModel):
+    """Pydantic model for calendar event creation response"""
+
+    event_id: str
+    event_link: Optional[str] = None
+    start_time: str
+    end_time: str

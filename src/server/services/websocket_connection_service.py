@@ -174,8 +174,12 @@ class WebSocketConnectionService:
             )
         else:
             # Process normal message
+            session_id = self.conversation_manager.get_session_id(client_id)
+            if session_id is None:
+                raise ConnectionRefusedError("Session ID is missing for user")
+
             response_content = await self.message_processor.process_user_message(
-                message_content, client_id
+                message_content, client_id, session_id
             )
 
         self.logger.info(f"Response content: {response_content}")

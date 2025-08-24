@@ -37,6 +37,7 @@ from ..services.conversation_manager import ConversationManager
 from ..services.health_service import HealthService
 from ..services.websocket_connection_service import WebSocketConnectionService
 from .auth_api import create_auth_router
+from .dependencies import get_oauth_service
 from .health_api import create_health_router
 from .websocket_api import create_websocket_router
 
@@ -55,7 +56,7 @@ human_schedule_meeting_more_info_node = HumanScheduleMeetingMoreInfoNode(logger)
 prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
     meeting_details_service, logger
 )
-schedule_meeting_node = ScheduleMeetingNode(model, logger)
+schedule_meeting_node = ScheduleMeetingNode(model, logger, get_oauth_service())
 human_interrupt_retry_node = HumanInterruptRetryNode(logger)
 end_node = EndNode(logger)
 conversation_router = ConversationRouter(logger)
