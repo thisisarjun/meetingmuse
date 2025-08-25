@@ -126,3 +126,15 @@ class ConversationManager:
             self.logger.error(
                 f"Error ending conversation for client {client_id}: {str(e)}"
             )
+
+    def get_session_id(self, client_id: str) -> Optional[str]:
+        """Get session ID for a client.
+
+        Args:
+            client_id: Client identifier
+
+        Returns:
+            Session ID if found, None otherwise
+        """
+        conversation = self.active_conversations.get(client_id)
+        return conversation.session_id if conversation else None

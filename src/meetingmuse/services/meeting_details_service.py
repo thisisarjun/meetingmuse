@@ -97,10 +97,17 @@ class MeetingDetailsService:
             else "unknown participants"
         )
 
+        # Format duration with "minutes" text
+        duration_str: str = (
+            f"{meeting_details.duration} minutes"
+            if meeting_details.duration is not None
+            else "unknown duration"
+        )
+
         response: str = (
             f"Perfect! I'll schedule your meeting '{meeting_details.title}' "
             f"for {meeting_details.date_time} with {participants_str} "
-            f"for {meeting_details.duration}"
+            f"for {duration_str}"
         )
         if meeting_details.location:
             response += f" at {meeting_details.location}"

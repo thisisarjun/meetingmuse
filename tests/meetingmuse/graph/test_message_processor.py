@@ -30,13 +30,19 @@ class TestMessageProcessorProcessUserMessage:
         mock_graph.ainvoke.return_value = sample_meeting_muse_state.model_dump()
 
         # Act
-        result = await message_processor.process_user_message(user_content, client_id)
+        session_id = "test_session_123"
+        result = await message_processor.process_user_message(
+            user_content, client_id, session_id
+        )
 
         # Assert
         assert result == expected_response
         mock_graph.ainvoke.assert_called_once()
         mock_graph.ainvoke.assert_called_with(
-            {"messages": [HumanMessage(content=user_content)]},
+            {
+                "messages": [HumanMessage(content=user_content)],
+                "session_id": session_id,
+            },
             config={"configurable": {"thread_id": client_id}},
         )
 
@@ -55,7 +61,10 @@ class TestMessageProcessorProcessUserMessage:
         mock_graph.ainvoke.return_value = state_with_only_human_message.model_dump()
 
         # Act
-        result = await message_processor.process_user_message(user_content, client_id)
+        session_id = "test_session_123"
+        result = await message_processor.process_user_message(
+            user_content, client_id, session_id
+        )
 
         # Assert
         assert result == expected_fallback
@@ -78,7 +87,10 @@ class TestMessageProcessorProcessUserMessage:
         mock_graph.ainvoke.return_value = empty_meeting_muse_state.model_dump()
 
         # Act
-        result = await message_processor.process_user_message(user_content, client_id)
+        session_id = "test_session_123"
+        result = await message_processor.process_user_message(
+            user_content, client_id, session_id
+        )
 
         # Assert
         assert result == expected_fallback
@@ -98,7 +110,10 @@ class TestMessageProcessorProcessUserMessage:
         )
 
         # Act
-        result = await message_processor.process_user_message(user_content, client_id)
+        session_id = "test_session_123"
+        result = await message_processor.process_user_message(
+            user_content, client_id, session_id
+        )
 
         # Assert
         assert result == expected_error_response
@@ -119,7 +134,10 @@ class TestMessageProcessorProcessUserMessage:
         mock_graph.ainvoke.side_effect = Exception("Graph processing failed")
 
         # Act
-        result = await message_processor.process_user_message(user_content, client_id)
+        session_id = "test_session_123"
+        result = await message_processor.process_user_message(
+            user_content, client_id, session_id
+        )
 
         # Assert
         assert result == expected_error_response
