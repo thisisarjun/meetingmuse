@@ -66,7 +66,7 @@ class ScheduleMeetingNode(BaseNode):
                     session_id=state.session_id,
                     title=state.meeting_details.title,
                     date_time=state.meeting_details.date_time,
-                    duration_minutes=state.meeting_details.durationInMns,
+                    duration_minutes=state.meeting_details.duration,
                     location=state.meeting_details.location,
                     participants=state.meeting_details.participants,
                 )
