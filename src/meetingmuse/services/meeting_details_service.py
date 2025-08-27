@@ -37,7 +37,7 @@ class MeetingDetailsService:
                 meeting_details.date_time is not None,
                 meeting_details.participants is not None
                 and len(meeting_details.participants) > 0,
-                meeting_details.durationInMns is not None,
+                meeting_details.duration is not None,
             ]
         )
 
@@ -52,7 +52,7 @@ class MeetingDetailsService:
             missing.append("date_time")
         if not meeting_details.participants or len(meeting_details.participants) == 0:
             missing.append("participants")
-        if not meeting_details.durationInMns:
+        if not meeting_details.duration:
             missing.append("duration")
         return missing
 
@@ -99,8 +99,8 @@ class MeetingDetailsService:
 
         # Format duration with "minutes" text
         duration_str: str = (
-            f"{meeting_details.durationInMns} minutes"
-            if meeting_details.durationInMns is not None
+            f"{meeting_details.duration} minutes"
+            if meeting_details.duration is not None
             else "unknown duration"
         )
 
@@ -124,7 +124,7 @@ class MeetingDetailsService:
             title=current_details.title or human_input,
             participants=current_details.participants,
             date_time=current_details.date_time,
-            durationInMns=current_details.durationInMns,
+            duration=current_details.duration,
             location=current_details.location,
         )
         return updated_details

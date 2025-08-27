@@ -37,7 +37,7 @@ class TestGetNextNodeName(TestCollectingInfoNode):
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com", "jane@example.com"],
-                    durationInMns=30,
+                    duration=30,
                 ),
                 NodeName.SCHEDULE_MEETING,
                 "all required fields present",
@@ -48,7 +48,7 @@ class TestGetNextNodeName(TestCollectingInfoNode):
                     title="Team Standup",
                     date_time=None,  # Missing date_time
                     participants=["john@example.com", "jane@example.com"],
-                    durationInMns=30,
+                    duration=30,
                 ),
                 NodeName.PROMPT_MISSING_MEETING_DETAILS,
                 "missing date_time",
@@ -58,7 +58,7 @@ class TestGetNextNodeName(TestCollectingInfoNode):
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=[],  # Empty participants list
-                    durationInMns=30,
+                    duration=30,
                 ),
                 NodeName.PROMPT_MISSING_MEETING_DETAILS,
                 "empty participants list",
@@ -100,7 +100,7 @@ class TestIsMeetingDetailsComplete(TestCollectingInfoNode):
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com", "jane@example.com"],
-                    durationInMns=30,
+                    duration=30,
                 ),
                 True,
                 "all required fields present",
@@ -111,7 +111,7 @@ class TestIsMeetingDetailsComplete(TestCollectingInfoNode):
                     title=None,  # Missing title
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com", "jane@example.com"],
-                    durationInMns=30,
+                    duration=30,
                 ),
                 False,
                 "missing title",
@@ -121,7 +121,7 @@ class TestIsMeetingDetailsComplete(TestCollectingInfoNode):
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=[],  # Empty participants list
-                    durationInMns=30,
+                    duration=30,
                 ),
                 False,
                 "empty participants list",
@@ -131,7 +131,7 @@ class TestIsMeetingDetailsComplete(TestCollectingInfoNode):
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com", "jane@example.com"],
-                    durationInMns=None,  # Missing duration
+                    duration=None,  # Missing duration
                 ),
                 False,
                 "missing duration",
@@ -167,25 +167,25 @@ class TestUpdateStateMeetingDetails(TestCollectingInfoNode):
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com"],
-                    durationInMns=30,
+                    duration=30,
                 ),
                 MeetingFindings(
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com"],
-                    durationInMns=30,
+                    duration=30,
                 ),
                 "update empty state with complete details",
             ),
             # Partial update - only add missing fields
             (
                 MeetingFindings(title="Team Standup", date_time="2024-01-15 10:00 AM"),
-                MeetingFindings(participants=["john@example.com"], durationInMns=30),
+                MeetingFindings(participants=["john@example.com"], duration=30),
                 MeetingFindings(
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com"],
-                    durationInMns=30,
+                    duration=30,
                 ),
                 "partial update adding missing fields",
             ),
@@ -195,14 +195,14 @@ class TestUpdateStateMeetingDetails(TestCollectingInfoNode):
                     title="Old Meeting",
                     date_time="2024-01-15 10:00 AM",
                     participants=["old@example.com"],
-                    durationInMns=60,
+                    duration=60,
                 ),
                 MeetingFindings(title="New Meeting", participants=["new@example.com"]),
                 MeetingFindings(
                     title="New Meeting",
                     date_time="2024-01-15 10:00 AM",
                     participants=["new@example.com"],
-                    durationInMns=60,
+                    duration=60,
                 ),
                 "update existing fields keeping others unchanged",
             ),
@@ -212,7 +212,7 @@ class TestUpdateStateMeetingDetails(TestCollectingInfoNode):
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com"],
-                    durationInMns=30,
+                    duration=30,
                 ),
                 MeetingFindings(
                     title=None, date_time=None, location="Conference Room A"
@@ -221,7 +221,7 @@ class TestUpdateStateMeetingDetails(TestCollectingInfoNode):
                     title="Team Standup",
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com"],
-                    durationInMns=30,
+                    duration=30,
                     location="Conference Room A",
                 ),
                 "none values do not overwrite existing fields",
@@ -260,7 +260,7 @@ class TestUpdateStateMeetingDetails(TestCollectingInfoNode):
             result_state.participants == expected_state_details.participants
         ), f"Participants mismatch for case: {test_description}"
         assert (
-            result_state.durationInMns == expected_state_details.durationInMns
+            result_state.duration == expected_state_details.duration
         ), f"Duration mismatch for case: {test_description}"
         assert (
             result_state.location == expected_state_details.location
@@ -286,7 +286,7 @@ class TestInvokeExtractionPrompt(TestCollectingInfoNode):
                     title="Team Standup meeting",
                     date_time="2024-01-15 10:00 AM",
                     participants=["john@example.com"],
-                    durationInMns=30,
+                    duration=30,
                 ),
                 "extraction prompt returns correct meeting details",
             ),
@@ -327,7 +327,7 @@ class TestInvokeMissingFieldsPrompt(TestCollectingInfoNode):
                         # title="Team Standup",
                         date_time="2024-01-15 10:00 AM",
                         participants=["john@example.com"],
-                        durationInMns=30,
+                        duration=30,
                     ),
                 ),
                 "I need some more information to schedule your meeting. Could you provide the missing details?",

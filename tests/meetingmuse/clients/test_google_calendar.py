@@ -32,7 +32,6 @@ class TestGoogleCalendarClient:
         """Create mock OAuth credentials."""
         return Mock()
 
-    @pytest.mark.asyncio
     async def test_create_calendar_event_success(
         self, client, mock_oauth_service, mock_credentials
     ):
@@ -80,7 +79,6 @@ class TestGoogleCalendarClient:
             )
             mock_oauth_service.get_credentials.assert_called_once_with(session_id)
 
-    @pytest.mark.asyncio
     async def test_create_calendar_event_oauth_error(self, client, mock_oauth_service):
         """Test create_calendar_event raises ValueError when credentials are not available."""
         # Arrange
@@ -97,7 +95,6 @@ class TestGoogleCalendarClient:
                 duration_minutes=30,
             )
 
-    @pytest.mark.asyncio
     async def test_create_calendar_event_general_error(
         self, client, mock_oauth_service, mock_credentials, mock_logger
     ):
@@ -132,7 +129,6 @@ class TestGoogleCalendarClient:
 
             mock_logger.error.assert_called_once()
 
-    @pytest.mark.asyncio
     async def test_create_calendar_event_session_id_error(self, client):
         """Test create_calendar_event raises ValueError when session_id is missing."""
         # Act & Assert

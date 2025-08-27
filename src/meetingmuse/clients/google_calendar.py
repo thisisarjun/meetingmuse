@@ -5,7 +5,11 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from common.logger import Logger
-from meetingmuse.models.meeting import CalendarEventDetails
+from meetingmuse.models.meeting import (
+    AttendeeDict,
+    CalendarEventDetails,
+    CalendarEventDict,
+)
 from server.services.oauth_service import OAuthService
 
 
@@ -56,6 +60,48 @@ class GoogleCalendarClient:
 
         return duration_minutes
 
+    def _build_event_payload(
+        self,
+        title: Optional[str],
+        start_time: datetime,
+        end_time: datetime,
+        *,
+        location: Optional[str],
+        attendees: list[AttendeeDict],
+    ) -> CalendarEventDict:
+        """Build the event payload for Google Calendar API.
+        Args:
+            title: Meeting title
+            start_time: Meeting start time
+            end_time: Meeting end time
+            location: Meeting location
+            attendees: List of attendees
+
+        Returns:
+            Dictionary containing the event payload
+        """
+        return {
+            "summary": title or "Meeting",
+            "location": location or "",
+            "description": "Meeting created via MeetingMuse",
+            "start": {
+                "dateTime": start_time.isoformat(),
+                "timeZone": "UTC",
+            },
+            "end": {
+                "dateTime": end_time.isoformat(),
+                "timeZone": "UTC",
+            },
+            "attendees": attendees,
+            "reminders": {
+                "useDefault": False,
+                "overrides": [
+                    {"method": "email", "minutes": 24 * 60},  # 24 hours before
+                    {"method": "popup", "minutes": 10},  # 10 minutes before
+                ],
+            },
+        }
+
     async def create_calendar_event(  # pylint: disable=too-many-positional-arguments
         self,
         session_id: str,
@@ -99,30 +145,12 @@ class GoogleCalendarClient:
 
         # Prepare attendees
         # TODO: Map participants to their email addresses
-        attendees = [{"email": "ismworkmail1@gmail.com"}]
+        attendees: list[AttendeeDict] = [{"email": "ismworkmail1@gmail.com"}]
 
         # Create event object
-        event = {
-            "summary": title or "Meeting",
-            "location": location or "",
-            "description": "Meeting created via MeetingMuse",
-            "start": {
-                "dateTime": start_time.isoformat(),
-                "timeZone": "UTC",
-            },
-            "end": {
-                "dateTime": end_time.isoformat(),
-                "timeZone": "UTC",
-            },
-            "attendees": attendees,
-            "reminders": {
-                "useDefault": False,
-                "overrides": [
-                    {"method": "email", "minutes": 24 * 60},  # 24 hours before
-                    {"method": "popup", "minutes": 10},  # 10 minutes before
-                ],
-            },
-        }
+        event = self._build_event_payload(
+            title, start_time, end_time, location=location, attendees=attendees
+        )
 
         try:
             # Insert the event
