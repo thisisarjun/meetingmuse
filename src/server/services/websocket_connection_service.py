@@ -118,9 +118,7 @@ class WebSocketConnectionService:
                 continue
 
             # TODO: Remove in next iteration
-            self.logger.info(
-                f"Received message from {client_id}: {user_message.content[:100]}..."
-            )
+            self.logger.info(f"Received message from {client_id}")
 
             # Send processing notification
             await self.connection_manager.send_system_message(
