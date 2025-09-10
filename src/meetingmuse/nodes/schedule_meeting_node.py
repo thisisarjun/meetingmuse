@@ -1,4 +1,3 @@
-import asyncio
 from typing import Any
 
 from langchain_core.messages import AIMessage
@@ -35,7 +34,7 @@ class ScheduleMeetingNode(BaseNode):
         self.google_calendar_client = google_calendar_client
 
     @log_node_entry(NodeName.SCHEDULE_MEETING)
-    def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
+    async def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
         # Check if user intent is schedule
         if state.user_intent != UserIntent.SCHEDULE_MEETING:
             self.logger.error(
@@ -61,20 +60,18 @@ class ScheduleMeetingNode(BaseNode):
 
             # Create calendar event
             self.logger.info("Creating Google Calendar event...")
-            event_details = asyncio.run(
-                self.google_calendar_client.create_calendar_event(
-                    session_id=state.session_id,
-                    title=state.meeting_details.title,
-                    date_time=state.meeting_details.date_time,
-                    duration_minutes=state.meeting_details.duration,
-                    location=state.meeting_details.location,
-                    participants=state.meeting_details.participants,
-                )
+            event_details = await self.google_calendar_client.create_calendar_event(
+                session_id=state.session_id,
+                title=state.meeting_details.title,
+                date_time=state.meeting_details.date_time,
+                duration_minutes=state.meeting_details.duration,
+                location=state.meeting_details.location,
+                participants=state.meeting_details.participants,
             )
 
             # Success message
             success_message = (
-                f"✅ Meeting scheduled successfully! \n"
+                f"Meeting scheduled successfully! \n"
                 f"Event ID: {event_details.event_id} \n"
                 f"Title: {state.meeting_details.title or 'Meeting'} \n"
                 f"Time: {event_details.start_time} - {event_details.end_time} \n"
