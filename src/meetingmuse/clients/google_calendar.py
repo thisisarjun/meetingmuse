@@ -145,7 +145,7 @@ class GoogleCalendarClient:
 
         # Prepare attendees
         # TODO: Map participants to their email addresses
-        attendees: list[AttendeeDict] = [{"email": "ismworkmail1@gmail.com"}]
+        attendees: list[AttendeeDict] = [{"email": "arjunslife@gmail.com"}]
 
         # Create event object
         event = self._build_event_payload(

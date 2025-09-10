@@ -1,31 +1,11 @@
-from unittest.mock import Mock
-
 import pytest
 
-from common.logger import Logger
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
 
 
-class TestCollectingInfoNode:
-    """Base test class for CollectingInfoNode with shared fixtures."""
-
-    @pytest.fixture
-    def mock_logger(self):
-        """Create a mock logger for testing."""
-        return Mock(spec=Logger)
-
-    @pytest.fixture
-    def node(self, mock_logger):
-        """Create a CollectingInfoNode instance with real HuggingFace model and mocked logger."""
-        model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
-        return CollectingInfoNode(model, mock_logger)
-
-
-class TestGetNextNodeName(TestCollectingInfoNode):
+class TestGetNextNodeName:
     """Test suite for CollectingInfoNode.get_next_node_name method."""
 
     @pytest.mark.parametrize(
@@ -71,7 +51,11 @@ class TestGetNextNodeName(TestCollectingInfoNode):
         ],
     )
     def test_get_next_node_name_with_meeting_details(
-        self, node, meeting_details, expected_result, test_description
+        self,
+        node,
+        meeting_details,
+        expected_result,
+        test_description,
     ):
         """
         Test get_next_node_name returns correct NodeName based on meeting details completeness.
@@ -88,7 +72,7 @@ class TestGetNextNodeName(TestCollectingInfoNode):
         assert result == expected_result, f"Failed for case: {test_description}"
 
 
-class TestIsMeetingDetailsComplete(TestCollectingInfoNode):
+class TestIsMeetingDetailsComplete:
     """Test suite for CollectingInfoNode.meeting_service.is_meeting_details_complete method."""
 
     @pytest.mark.parametrize(
@@ -140,7 +124,11 @@ class TestIsMeetingDetailsComplete(TestCollectingInfoNode):
         ],
     )
     def test_is_meeting_details_complete(
-        self, node, meeting_details, expected_result, test_description
+        self,
+        node,
+        meeting_details,
+        expected_result,
+        test_description,
     ):
         """
         Test is_meeting_details_complete returns correct boolean based on meeting details completeness.
@@ -154,7 +142,7 @@ class TestIsMeetingDetailsComplete(TestCollectingInfoNode):
         assert result == expected_result, f"Failed for case: {test_description}"
 
 
-class TestUpdateStateMeetingDetails(TestCollectingInfoNode):
+class TestUpdateStateMeetingDetails:
     """Test suite for CollectingInfoNode.meeting_service.update_state_meeting_details method."""
 
     @pytest.mark.parametrize(
@@ -269,7 +257,7 @@ class TestUpdateStateMeetingDetails(TestCollectingInfoNode):
         # Note: The method now returns a MeetingFindings object, not the state object
 
 
-class TestInvokeExtractionPrompt(TestCollectingInfoNode):
+class TestInvokeExtractionPrompt:
     """Test suite for CollectingInfoNode.invoke_extraction_prompt method."""
 
     @pytest.mark.skip(reason="live call to LLM")
@@ -313,7 +301,7 @@ class TestInvokeExtractionPrompt(TestCollectingInfoNode):
         assert result == expected_result, f"Failed for case: {test_description}"
 
 
-class TestInvokeMissingFieldsPrompt(TestCollectingInfoNode):
+class TestInvokeMissingFieldsPrompt:
     """Test suite for CollectingInfoNode.meeting_service.invoke_missing_fields_prompt method."""
 
     @pytest.mark.skip(reason="live call to LLM")
@@ -336,7 +324,7 @@ class TestInvokeMissingFieldsPrompt(TestCollectingInfoNode):
         ],
     )
     def test_invoke_missing_fields_prompt(
-        self, node, state, expected_result, test_description
+        self, state, expected_result, test_description, node
     ):
         """
         Test invoke_missing_fields_prompt returns correct response based on state.
