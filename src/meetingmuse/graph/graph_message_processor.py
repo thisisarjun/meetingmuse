@@ -138,7 +138,6 @@ class GraphMessageProcessor:
             config = RunnableConfig(configurable={"thread_id": client_id})
 
             # Resume the conversation with user input
-            result = None
             new_interrupt_detected = False
 
             async for event in self.graph.astream(
@@ -149,11 +148,11 @@ class GraphMessageProcessor:
                     self.logger.info(
                         f"New interrupt detected after resume for client {client_id}"
                     )
-                result = event
+                # result = event
 
             # If a new interrupt was detected, get the interrupt info from final state
+            current_state = self.graph.get_state(config)
             if new_interrupt_detected:
-                current_state = self.graph.get_state(config)
                 interrupt_info = Utils.get_interrupt_info_from_state_snapshot(
                     current_state
                 )
@@ -162,7 +161,9 @@ class GraphMessageProcessor:
                 return "I need additional information to continue."
 
             # Extract the latest AI response
-            meeting_muse_state = MeetingMuseBotState.model_validate(result)
+            meeting_muse_state = MeetingMuseBotState.model_validate(
+                current_state.values
+            )
             last_message = Utils.get_last_message(meeting_muse_state, MessageType.AI)
             if last_message:
                 return last_message
