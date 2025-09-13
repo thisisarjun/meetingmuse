@@ -1,5 +1,5 @@
 """
-Test suite for MessageProtocol service.
+Test suite for SocketMessageProcessor service.
 """
 import json
 from datetime import datetime
@@ -7,11 +7,11 @@ from datetime import datetime
 import pytest
 
 from server.models.api.ws import UserMessage
-from server.services.message_processor import MessageProtocol
+from server.services.socket_message_processor import SocketMessageProcessor
 
 
-class TestMessageProtocol:
-    """Test suite for MessageProtocol."""
+class TestSocketMessageProcessor:
+    """Test suite for SocketMessageProcessor."""
 
     def test_parse_user_message_valid_json(self):
         """Test parsing valid JSON user message."""
@@ -23,7 +23,7 @@ class TestMessageProtocol:
         }
         message_text = json.dumps(message_data)
 
-        result = MessageProtocol.parse_user_message(message_text)
+        result = SocketMessageProcessor.parse_user_message(message_text)
 
         assert isinstance(result, UserMessage)
         assert result.content == message_data["content"]
@@ -37,7 +37,7 @@ class TestMessageProtocol:
         )
 
         with pytest.raises(ValueError, match="Failed to parse json"):
-            MessageProtocol.parse_user_message(invalid_json)
+            SocketMessageProcessor.parse_user_message(invalid_json)
 
     def test_parse_user_message_missing_required_fields(self):
         """Test parsing JSON missing required fields raises ValueError."""
@@ -48,7 +48,7 @@ class TestMessageProtocol:
         message_text = json.dumps(message_data)
 
         with pytest.raises(ValueError, match="Invalid message data"):
-            MessageProtocol.parse_user_message(message_text)
+            SocketMessageProcessor.parse_user_message(message_text)
 
     @pytest.mark.parametrize(
         "client_id,expected",
@@ -65,5 +65,5 @@ class TestMessageProtocol:
     )
     def test_validate_client_id_parameterized(self, client_id, expected):
         """Test client ID validation with various inputs."""
-        result = MessageProtocol.validate_client_id(client_id)
+        result = SocketMessageProcessor.validate_client_id(client_id)
         assert result == expected

@@ -4,7 +4,7 @@ import re
 from server.models.api.ws import UserMessage
 
 
-class MessageProtocol:
+class SocketMessageProcessor:
     """Handles message parsing and validation"""
 
     @staticmethod

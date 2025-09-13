@@ -14,10 +14,10 @@ class ConversationManager:
     """Manages conversation state and recovery for WebSocket connections"""
 
     def __init__(
-        self, logger: Logger, message_processor: GraphMessageProcessor
+        self, logger: Logger, graph_message_processor: GraphMessageProcessor
     ) -> None:
         self.logger = logger
-        self.message_processor = message_processor
+        self.graph_message_processor = graph_message_processor
         self.active_conversations: Dict[str, ActiveConversation] = {}
 
     def initialize_conversation(
@@ -57,8 +57,8 @@ class ConversationManager:
         """
         try:
             # Get current conversation state from LangGraph
-            has_conversation = await self.message_processor.get_conversation_state(
-                client_id
+            has_conversation = (
+                await self.graph_message_processor.get_conversation_state(client_id)
             )
             if has_conversation:
                 # Update conversation metadata

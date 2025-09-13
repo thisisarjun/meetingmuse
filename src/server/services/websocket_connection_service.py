@@ -9,7 +9,7 @@ from fastapi import WebSocket, WebSocketDisconnect, status
 from common.logger.logger import Logger
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
 from server.models.api.ws import UserMessage
-from server.services.message_processor import MessageProtocol
+from server.services.socket_message_processor import SocketMessageProcessor
 
 from ..constants import CloseReasons, ErrorCodes, ErrorMessages, SystemMessageTypes
 from .connection_manager import ConnectionManager
@@ -105,7 +105,7 @@ class WebSocketConnectionService:
             # Parse the incoming message
             user_message: Optional[UserMessage] = None
             try:
-                user_message = MessageProtocol.parse_user_message(message_text)
+                user_message = SocketMessageProcessor.parse_user_message(message_text)
             except Exception as e:
                 self.logger.error(f"Error parsing user message: {str(e)}")
                 self.logger.warning(f"Invalid message format from {client_id}")

@@ -76,12 +76,12 @@ graph = GraphBuilder(
     prompt_missing_meeting_details_node=prompt_missing_meeting_details_node,
     end_node=end_node,
 ).build()
-message_processor = GraphMessageProcessor(graph=graph, logger=logger)
+graph_message_processor = GraphMessageProcessor(graph=graph, logger=logger)
 
 # Global service instances - initialized once
 connection_manager = ConnectionManager()
 conversation_manager = ConversationManager(
-    logger=logger, message_processor=message_processor
+    logger=logger, graph_message_processor=graph_message_processor
 )
 
 # Create specialized services with dependency injection
@@ -90,7 +90,7 @@ health_service = HealthService(connection_manager=connection_manager)
 websocket_connection_service = WebSocketConnectionService(
     connection_manager=connection_manager,
     conversation_manager=conversation_manager,
-    message_processor=message_processor,
+    graph_message_processor=graph_message_processor,
     logger=logger,
 )
 
