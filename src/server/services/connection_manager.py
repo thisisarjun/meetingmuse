@@ -208,35 +208,6 @@ class ConnectionManager:
             )
             return False
 
-    async def broadcast(self, message: str) -> int:
-        """
-        Send a message to all connected clients
-
-        Args:
-            message: Message content to broadcast
-
-        Returns:
-            int: Number of clients that successfully received the message
-        """
-        successful_sends = 0
-        failed_clients = []
-
-        for client_id in list(self.active_connections.keys()):
-            success = await self.send_personal_message(message, client_id)
-            if success:
-                successful_sends += 1
-            else:
-                failed_clients.append(client_id)
-
-        # Clean up failed connections
-        for client_id in failed_clients:
-            self.disconnect(client_id)
-
-        logger.info(
-            f"Broadcast sent to {successful_sends} clients, {len(failed_clients)} failed"
-        )
-        return successful_sends
-
     def get_client_info(self, client_id: str) -> Optional[ConnectionMetadataDto]:
         """Get metadata for a specific client"""
         return self.connection_metadata.get(client_id)
