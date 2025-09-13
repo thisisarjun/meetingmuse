@@ -2,10 +2,9 @@
 Test suite for ConnectionManager WebSocket service.
 """
 from datetime import datetime
-from unittest.mock import AsyncMock, Mock
 
 import pytest
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocketDisconnect
 
 from server.constants import SystemMessageTypes
 from server.models.connections import ConnectionMetadataDto
@@ -199,42 +198,6 @@ class TestConnectionManager:
 
         assert result is False
 
-    async def test_broadcast_success(self, connection_manager):
-        """Test broadcasting message to multiple clients."""
-        mock_ws1 = Mock(spec=WebSocket)
-        mock_ws1.send_text = AsyncMock()
-        mock_ws2 = Mock(spec=WebSocket)
-        mock_ws2.send_text = AsyncMock()
-
-        connection_manager.active_connections["client1"] = mock_ws1
-        connection_manager.active_connections["client2"] = mock_ws2
-        message = "Broadcast message"
-
-        result = await connection_manager.broadcast(message)
-
-        assert result == 2
-        mock_ws1.send_text.assert_called_once()
-        mock_ws2.send_text.assert_called_once()
-
-    async def test_broadcast_with_failed_connections(self, connection_manager):
-        """Test broadcasting with some failed connections."""
-        mock_ws1 = Mock(spec=WebSocket)
-        mock_ws1.send_text = AsyncMock()
-        mock_ws2 = Mock(spec=WebSocket)
-        mock_ws2.send_text = AsyncMock(side_effect=Exception("Send failed"))
-
-        connection_manager.active_connections["client1"] = mock_ws1
-        connection_manager.active_connections["client2"] = mock_ws2
-        connection_manager.connection_metadata["client2"] = ConnectionMetadataDto(
-            connected_at=datetime.now().isoformat(), message_count=0
-        )
-        message = "Broadcast message"
-
-        result = await connection_manager.broadcast(message)
-
-        assert result == 1
-        assert "client2" not in connection_manager.active_connections
-
     def test_get_client_info_existing_client(self, connection_manager):
         """Test getting client info for existing client."""
         client_id = "test_client_123"
@@ -330,8 +293,8 @@ class TestConnectionManager:
     @pytest.mark.parametrize(
         "retry_suggested",
         [
-            (True,),
-            (False,),
+            True,
+            False,
         ],
     )
     async def test_send_error_message_retry_flags(

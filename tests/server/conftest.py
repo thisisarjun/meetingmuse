@@ -15,6 +15,7 @@ from server.services.connection_manager import ConnectionManager
 from server.services.conversation_manager import ConversationManager
 from server.services.oauth_service import OAuthService
 from server.services.session_manager import SessionManager
+from server.storage.storage_adapter import StorageAdapter
 
 
 @pytest.fixture
@@ -82,6 +83,17 @@ def mock_session_manager():
     manager.update_session_tokens = AsyncMock()
     manager.delete_session = AsyncMock()
     return manager
+
+
+@pytest.fixture
+def mock_storage_adapter():
+    """Create a mock StorageAdapter for testing."""
+    adapter = Mock(spec=StorageAdapter)
+    adapter.get = AsyncMock()
+    adapter.set = AsyncMock()
+    adapter.delete = AsyncMock()
+    adapter.get_all_by_prefix = AsyncMock()
+    return adapter
 
 
 @pytest.fixture
