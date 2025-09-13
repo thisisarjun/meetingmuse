@@ -231,7 +231,6 @@ class OAuthService:
         # Remove session
         return await self._session_manager.delete_session(session_id)
 
-    # TODO: Use this method to make Calendar API calls
     async def get_credentials(self, session_id: str) -> Optional[Credentials]:
         """
         Get Google credentials for API calls.

@@ -8,7 +8,7 @@ from langchain_core.messages import HumanMessage
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
 
 
-class TestMessageProcessorProcessUserMessage:
+class TestGraphMessageProcessorProcessUserMessage:
     """Test suite for GraphMessageProcessor.process_user_message method."""
 
     @pytest.fixture
