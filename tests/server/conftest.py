@@ -13,6 +13,8 @@ from server.models.connections import ConnectionMetadataDto
 from server.models.conversation import ActiveConversation, ConversationStatus
 from server.services.connection_manager import ConnectionManager
 from server.services.conversation_manager import ConversationManager
+from server.services.oauth_service import OAuthService
+from server.services.session_manager import SessionManager
 
 
 @pytest.fixture
@@ -69,3 +71,20 @@ def active_conversation():
         session_id="session_123",
         authenticated=True,
     )
+
+
+@pytest.fixture
+def mock_session_manager():
+    """Create a mock SessionManager for testing."""
+    manager = Mock(spec=SessionManager)
+    manager.store_session = AsyncMock()
+    manager.get_session = AsyncMock()
+    manager.update_session_tokens = AsyncMock()
+    manager.delete_session = AsyncMock()
+    return manager
+
+
+@pytest.fixture
+def oauth_service(mock_session_manager):
+    """Create an OAuthService instance for testing."""
+    return OAuthService(mock_session_manager)
