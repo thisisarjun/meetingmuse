@@ -41,7 +41,6 @@ class ConnectionManager:
         """
         try:
             await websocket.accept()
-            # TODO: connection has to be pydantic model
             self.active_connections[client_id] = websocket
             self.connection_metadata[client_id] = ConnectionMetadataDto(
                 connected_at=datetime.now().isoformat(),

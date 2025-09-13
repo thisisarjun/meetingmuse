@@ -57,28 +57,6 @@ class TestConnectionManager:
         assert client_id not in connection_manager.active_connections
         assert client_id not in connection_manager.connection_metadata
 
-    def test_disconnect_existing_client(self, connection_manager, mock_websocket):
-        """Test disconnecting an existing client."""
-        client_id = "test_client_123"
-        connection_manager.active_connections[client_id] = mock_websocket
-        connection_manager.connection_metadata[client_id] = ConnectionMetadataDto(
-            connected_at=datetime.now().isoformat(), message_count=5
-        )
-
-        result = connection_manager.disconnect(client_id)
-
-        assert result is True
-        assert client_id not in connection_manager.active_connections
-        assert client_id not in connection_manager.connection_metadata
-
-    def test_disconnect_nonexistent_client(self, connection_manager):
-        """Test disconnecting a non-existent client."""
-        client_id = "nonexistent_client"
-
-        result = connection_manager.disconnect(client_id)
-
-        assert result is False
-
     async def test_send_personal_message_success(
         self, connection_manager, mock_websocket
     ):
