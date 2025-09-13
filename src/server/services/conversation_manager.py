@@ -22,7 +22,7 @@ class ConversationManager:
 
     def initialize_conversation(
         self, client_id: str, session_id: Optional[str] = None
-    ) -> bool:
+    ) -> None:
         """
         Initialize conversation state for a new client
 
@@ -33,25 +33,17 @@ class ConversationManager:
         Returns:
             True if initialization successful, False otherwise
         """
-        try:
-            if client_id not in self.active_conversations:
-                self.active_conversations[client_id] = ActiveConversation(
-                    started_at=datetime.now().isoformat(),
-                    last_activity=datetime.now().isoformat(),
-                    message_count=0,
-                    status=ConversationStatus.ACTIVE,
-                    session_id=session_id,
-                    authenticated=session_id is not None,
-                )
-                self.logger.info(f"Initialized conversation for client {client_id}")
 
-            return True
-
-        except Exception as e:
-            self.logger.error(
-                f"Failed to initialize conversation for client {client_id}: {str(e)}"
+        if client_id not in self.active_conversations:
+            self.active_conversations[client_id] = ActiveConversation(
+                started_at=datetime.now().isoformat(),
+                last_activity=datetime.now().isoformat(),
+                message_count=0,
+                status=ConversationStatus.ACTIVE,
+                session_id=session_id,
+                authenticated=session_id is not None,
             )
-            return False
+            self.logger.info(f"Initialized conversation for client {client_id}")
 
     async def handle_reconnection(self, client_id: str) -> bool:
         """
@@ -110,22 +102,15 @@ class ConversationManager:
         Args:
             client_id: Client identifier
         """
-        try:
-            if client_id in self.active_conversations:
-                self.active_conversations[client_id].status = ConversationStatus.ENDED
-                self.active_conversations[
-                    client_id
-                ].ended_at = datetime.now().isoformat()
 
-                # Optional: Remove old conversations after some time
-                # For now, we'll keep them for potential analysis
+        if client_id in self.active_conversations:
+            self.active_conversations[client_id].status = ConversationStatus.ENDED
+            self.active_conversations[client_id].ended_at = datetime.now().isoformat()
 
-                self.logger.info(f"Conversation ended for client {client_id}")
+            # Optional: Remove old conversations after some time
+            # For now, we'll keep them for potential analysis
 
-        except Exception as e:
-            self.logger.error(
-                f"Error ending conversation for client {client_id}: {str(e)}"
-            )
+            self.logger.info(f"Conversation ended for client {client_id}")
 
     def get_session_id(self, client_id: str) -> Optional[str]:
         """Get session ID for a client.
