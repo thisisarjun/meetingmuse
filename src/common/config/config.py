@@ -2,6 +2,7 @@ import os
 from typing import List
 
 from dotenv import load_dotenv
+from pydantic import SecretStr
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,6 +14,7 @@ class Config:
     HUGGINGFACE_API_TOKEN: str = os.getenv("HUGGINGFACE_API_TOKEN", "")
     ENV: str = os.getenv("ENV", "dev")
 
+    OPENAI_API_KEY = SecretStr(os.getenv("OPENAI_API_KEY", ""))
     # Google OAuth Configuration
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")

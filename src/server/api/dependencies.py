@@ -36,5 +36,5 @@ def get_oauth_service() -> OAuthService:
     """Dependency to get OAuth service instance"""
     global _oauth_service
     if _oauth_service is None:
-        _oauth_service = OAuthService(get_session_manager())
+        _oauth_service = OAuthService(get_session_manager(), get_logger())
     return _oauth_service

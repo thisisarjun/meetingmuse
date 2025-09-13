@@ -97,6 +97,6 @@ def mock_storage_adapter():
 
 
 @pytest.fixture
-def oauth_service(mock_session_manager):
+def oauth_service(mock_session_manager, mock_logger):
     """Create an OAuthService instance for testing."""
-    return OAuthService(mock_session_manager)
+    return OAuthService(mock_session_manager, mock_logger)
