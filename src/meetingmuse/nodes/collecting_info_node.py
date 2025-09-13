@@ -9,7 +9,7 @@ from langchain_core.runnables import Runnable
 from common.decorators import log_node_entry
 from common.logger import Logger
 from meetingmuse.graph.graph_utils.utils import Utils
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.llm_models.hugging_face import BaseLlmModel
 from meetingmuse.models.graph import MessageType
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
@@ -28,13 +28,13 @@ class CollectingInfoNode(BaseNode):
     It is used to collect the meeting details from the user.
     """
 
-    model: HuggingFaceModel
+    model: BaseLlmModel
     parser: PydanticOutputParser[MeetingFindings]
     prompt: ChatPromptTemplate
     chain: Runnable[Dict[str, Any], MeetingFindings]
     meeting_service: MeetingDetailsService
 
-    def __init__(self, model: HuggingFaceModel, logger: Logger) -> None:
+    def __init__(self, model: BaseLlmModel, logger: Logger) -> None:
         super().__init__(logger)
         self.model = model
         self.parser = PydanticOutputParser(pydantic_object=MeetingFindings)

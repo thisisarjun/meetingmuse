@@ -14,7 +14,7 @@ from common.logger import Logger
 from meetingmuse.clients.google_calendar import GoogleCalendarClient
 from meetingmuse.graph.graph import GraphBuilder
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.llm_models.factory import create_llm_model
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
@@ -45,8 +45,7 @@ from .websocket_api import create_websocket_router
 logger = Logger()
 
 # Node creation and graph creation
-# TODO: move to separate method
-model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
+model = create_llm_model("meta-llama/Meta-Llama-3-8B-Instruct")
 intent_classifier = IntentClassifier(model)
 classify_intent_node = ClassifyIntentNode(intent_classifier, logger)
 greeting_node = GreetingNode(model, logger)
