@@ -4,6 +4,7 @@ Shared test fixtures for server tests.
 from datetime import datetime
 from unittest.mock import AsyncMock, Mock
 
+import fakeredis.aioredis
 import pytest
 from fastapi import WebSocket
 
@@ -15,6 +16,7 @@ from server.services.connection_manager import ConnectionManager
 from server.services.conversation_manager import ConversationManager
 from server.services.oauth_service import OAuthService
 from server.services.session_manager import SessionManager
+from server.storage.redis_adapter import RedisStorageAdapter
 from server.storage.storage_adapter import StorageAdapter
 
 
@@ -100,3 +102,14 @@ def mock_storage_adapter():
 def oauth_service(mock_session_manager, mock_logger):
     """Create an OAuthService instance for testing."""
     return OAuthService(mock_session_manager, mock_logger)
+
+
+@pytest.fixture(name="redis_client")
+async def redis_client():
+    """Create a fake Redis client for testing."""
+    return fakeredis.aioredis.FakeRedis(decode_responses=True)
+
+
+@pytest.fixture(name="redis_adapter")
+def redis_adapter(redis_client):
+    return RedisStorageAdapter(redis_client)

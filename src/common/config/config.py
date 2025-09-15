@@ -33,6 +33,10 @@ class Config:
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "")
     SESSION_ENCRYPTION_KEY: str = os.getenv("SESSION_ENCRYPTION_KEY", "")
 
+    # Redis Configuration
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
+
     @classmethod
     def validate(cls) -> None:
         """Validate that all required environment variables are set."""
