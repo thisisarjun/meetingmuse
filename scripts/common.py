@@ -23,7 +23,7 @@ from meetingmuse.services.routing_service import ConversationRouter
 
 def initialize_nodes() -> dict[str, Any]:
     logger = Logger()
-    model = create_llm_model("meta-llama/Meta-Llama-3-8B-Instruct")
+    model = create_llm_model("gpt-4o-mini", "openai")
     intent_classifier = IntentClassifier(model)
     classify_intent_node = ClassifyIntentNode(intent_classifier, logger)
     greeting_node = GreetingNode(model, logger)

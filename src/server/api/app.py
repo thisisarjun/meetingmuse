@@ -45,7 +45,7 @@ from .websocket_api import create_websocket_router
 logger = Logger()
 
 # Node creation and graph creation
-model = create_llm_model("meta-llama/Meta-Llama-3-8B-Instruct")
+model = create_llm_model("gpt-4o-mini", "openai")
 intent_classifier = IntentClassifier(model)
 classify_intent_node = ClassifyIntentNode(intent_classifier, logger)
 greeting_node = GreetingNode(model, logger)

@@ -22,7 +22,7 @@ from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
 
 logger = Logger()
-model = create_llm_model("meta-llama/Meta-Llama-3-8B-Instruct")
+model = create_llm_model("gpt-4o-mini", "openai")
 intent_classifier = IntentClassifier(model)
 classify_intent_node = ClassifyIntentNode(intent_classifier, logger)
 greeting_node = GreetingNode(model, logger)
