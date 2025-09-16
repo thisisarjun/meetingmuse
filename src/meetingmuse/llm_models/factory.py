@@ -6,7 +6,7 @@ from meetingmuse.llm_models.openai import OpenAIModel
 def create_llm_model(model_name: str, provider: str = "huggingface") -> BaseLlmModel:
     if provider == "openai":
         return OpenAIModel(model_name)
-    elif provider == "huggingface":
+    if provider == "huggingface":
         return HuggingFaceModel(model_name)
     else:
         raise ValueError(f"Invalid provider: {provider}")

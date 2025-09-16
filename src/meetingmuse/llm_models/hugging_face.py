@@ -7,6 +7,7 @@ from meetingmuse.llm_models.base import BaseLlmModel
 
 class HuggingFaceModel(BaseLlmModel):
     def __init__(self, model_name: str) -> None:
+        super().__init__(model_name)
         self.model_name = model_name
 
     @property

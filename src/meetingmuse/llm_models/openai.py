@@ -10,6 +10,7 @@ class OpenAIModel(BaseLlmModel):
 
     def __init__(self, model_name: str) -> None:
         self.model_name = model_name
+        super().__init__(model_name)
 
     @property
     def chat_model(self) -> BaseChatModel:
