@@ -8,5 +8,4 @@ def create_llm_model(model_name: str, provider: str = "huggingface") -> BaseLlmM
         return OpenAIModel(model_name)
     if provider == "huggingface":
         return HuggingFaceModel(model_name)
-    else:
-        raise ValueError(f"Invalid provider: {provider}")
+    raise ValueError(f"Invalid provider: {provider}")
