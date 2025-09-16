@@ -40,7 +40,7 @@ def get_session_manager() -> SessionManager:
     """Dependency to get session manager instance"""
     global _session_manager
     if _session_manager is None:
-        _session_manager = SessionManager(get_storage_adapter("redis"))
+        _session_manager = SessionManager(get_storage_adapter("memory"))
     return _session_manager
 
 

@@ -12,7 +12,7 @@ class MemoryStorageAdapter(StorageAdapter):
         self._storage: Dict[str, Any] = {}
 
     async def get(self, key: str) -> Optional[str]:
-        return self._storage.get(key)
+        return str(self._storage.get(key))
 
     async def set(self, key: str, value: str) -> bool:
         try:
