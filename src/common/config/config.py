@@ -2,6 +2,7 @@ import os
 from typing import List
 
 from dotenv import load_dotenv
+from pydantic import SecretStr
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,9 +14,10 @@ class Config:
     HUGGINGFACE_API_TOKEN: str = os.getenv("HUGGINGFACE_API_TOKEN", "")
     ENV: str = os.getenv("ENV", "dev")
 
+    OPENAI_API_KEY = SecretStr(os.getenv("OPENAI_API_KEY", ""))
     # Google OAuth Configuration
-    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
-    GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "123")
+    GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "123")
     GOOGLE_REDIRECT_URI: str = os.getenv(
         "GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/callback"
     )
@@ -30,6 +32,10 @@ class Config:
     # Security Configuration
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "")
     SESSION_ENCRYPTION_KEY: str = os.getenv("SESSION_ENCRYPTION_KEY", "")
+
+    # Redis Configuration
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
 
     @classmethod
     def validate(cls) -> None:

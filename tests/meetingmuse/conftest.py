@@ -8,8 +8,10 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.graph.state import CompiledStateGraph
 
 from common.logger import Logger
+from meetingmuse.llm_models.factory import create_llm_model
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
+from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
 
 
 @pytest.fixture
@@ -65,3 +67,10 @@ def state_with_only_ai_message():
         messages=[AIMessage(content="How can I help you today?")],
         meeting_details=MeetingFindings(),
     )
+
+
+@pytest.fixture
+def node(mock_logger):
+    """Create a CollectingInfoNode instance with real HuggingFace model and mocked logger."""
+    model = create_llm_model("meta-llama/Meta-Llama-3-8B-Instruct")
+    return CollectingInfoNode(model, mock_logger)

@@ -1,9 +1,10 @@
 import json
+import re
 
 from server.models.api.ws import UserMessage
 
 
-class MessageProtocol:
+class SocketMessageProcessor:
     """Handles message parsing and validation"""
 
     @staticmethod
@@ -44,8 +45,6 @@ class MessageProtocol:
         # TODO: Implement JWT validation
         if len(client_id) > 100 or len(client_id) < 3:
             return False
-
-        import re
 
         if not re.match(r"^[a-zA-Z0-9_-]+$", client_id):
             return False

@@ -92,7 +92,10 @@ class SessionManager:
         """
         try:
             encrypted_session = self._encrypt_session(session)
-            return await self._storage.set(session.session_id, encrypted_session)
+            await self._storage.set(session.client_id, session.session_id)
+            return await self._storage.set(
+                session.session_id, encrypted_session.model_dump_json()
+            )
         except Exception:
             return False
 
@@ -106,7 +109,10 @@ class SessionManager:
             Decrypted session if found and valid, None otherwise
         """
         try:
-            encrypted_session = await self._storage.get(session_id)
+            session_details_raw = await self._storage.get(session_id)
+            if not session_details_raw:
+                return None
+            encrypted_session = UserSession.model_validate_json(session_details_raw)
             if not encrypted_session:
                 return None
 
@@ -154,17 +160,16 @@ class SessionManager:
         """
         try:
             # Get all sessions and check client IDs
-            all_sessions = await self._storage.get_all_by_prefix("")
+            session_id = await self._storage.get(client_id)
 
-            for session_id, encrypted_session in all_sessions.items():
-                if encrypted_session.client_id == client_id:
-                    return await self.get_session(session_id)
+            if session_id:
+                return await self.get_session(session_id)
 
             return None
         except Exception:
             return None
 
-    async def delete_session(self, session_id: str) -> bool:
+    async def delete_session(self, session_id: str, client_id: str) -> bool:
         """Delete a session.
 
         Args:
@@ -173,6 +178,7 @@ class SessionManager:
         Returns:
             True if deleted, False otherwise
         """
+        await self._storage.delete(client_id)
         return await self._storage.delete(session_id)
 
     async def is_token_valid(self, session_id: str) -> bool:

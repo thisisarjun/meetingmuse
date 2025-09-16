@@ -1,14 +1,14 @@
 """Storage adapter interface for different storage backends."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Optional
 
 
 class StorageAdapter(ABC):
     """Abstract storage adapter interface."""
 
     @abstractmethod
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Optional[str]:
         """Get value by key.
 
         Args:
@@ -19,7 +19,7 @@ class StorageAdapter(ABC):
         """
 
     @abstractmethod
-    async def set(self, key: str, value: Any) -> bool:
+    async def set(self, key: str, value: str) -> bool:
         """Set value by key.
 
         Args:
@@ -39,15 +39,4 @@ class StorageAdapter(ABC):
 
         Returns:
             True if deleted, False if not found
-        """
-
-    @abstractmethod
-    async def get_all_by_prefix(self, prefix: str) -> Dict[str, Any]:
-        """Get all key-value pairs with given prefix.
-
-        Args:
-            prefix: Key prefix to match
-
-        Returns:
-            Dictionary of matching key-value pairs
         """

@@ -1,7 +1,7 @@
 from typing import Any
 
 from common.logger import Logger
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.llm_models.factory import create_llm_model
 from meetingmuse.models.node import NodeName
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
@@ -23,7 +23,7 @@ from meetingmuse.services.routing_service import ConversationRouter
 
 def initialize_nodes() -> dict[str, Any]:
     logger = Logger()
-    model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
+    model = create_llm_model("meta-llama/Meta-Llama-3-8B-Instruct")
     intent_classifier = IntentClassifier(model)
     classify_intent_node = ClassifyIntentNode(intent_classifier, logger)
     greeting_node = GreetingNode(model, logger)

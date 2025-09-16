@@ -14,7 +14,7 @@ from common.logger import Logger
 from meetingmuse.clients.google_calendar import GoogleCalendarClient
 from meetingmuse.graph.graph import GraphBuilder
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.llm_models.factory import create_llm_model
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.clarify_request_node import ClarifyRequestNode
 from meetingmuse.nodes.classify_intent_node import ClassifyIntentNode
@@ -45,8 +45,7 @@ from .websocket_api import create_websocket_router
 logger = Logger()
 
 # Node creation and graph creation
-# TODO: move to separate method
-model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
+model = create_llm_model("meta-llama/Meta-Llama-3-8B-Instruct")
 intent_classifier = IntentClassifier(model)
 classify_intent_node = ClassifyIntentNode(intent_classifier, logger)
 greeting_node = GreetingNode(model, logger)
@@ -76,12 +75,12 @@ graph = GraphBuilder(
     prompt_missing_meeting_details_node=prompt_missing_meeting_details_node,
     end_node=end_node,
 ).build()
-message_processor = GraphMessageProcessor(graph=graph, logger=logger)
+graph_message_processor = GraphMessageProcessor(graph=graph, logger=logger)
 
 # Global service instances - initialized once
 connection_manager = ConnectionManager()
 conversation_manager = ConversationManager(
-    logger=logger, message_processor=message_processor
+    logger=logger, graph_message_processor=graph_message_processor
 )
 
 # Create specialized services with dependency injection
@@ -90,7 +89,7 @@ health_service = HealthService(connection_manager=connection_manager)
 websocket_connection_service = WebSocketConnectionService(
     connection_manager=connection_manager,
     conversation_manager=conversation_manager,
-    message_processor=message_processor,
+    graph_message_processor=graph_message_processor,
     logger=logger,
 )
 
@@ -154,6 +153,17 @@ def create_app() -> FastAPI:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+    else:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=[
+                "https://meetingmuse.vercel.app",
+                "https://www.meetingmuse.vercel.app",
+            ],
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],

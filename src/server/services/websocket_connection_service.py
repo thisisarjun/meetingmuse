@@ -9,7 +9,7 @@ from fastapi import WebSocket, WebSocketDisconnect, status
 from common.logger.logger import Logger
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
 from server.models.api.ws import UserMessage
-from server.services.message_processor import MessageProtocol
+from server.services.socket_message_processor import SocketMessageProcessor
 
 from ..constants import CloseReasons, ErrorCodes, ErrorMessages, SystemMessageTypes
 from .connection_manager import ConnectionManager
@@ -23,12 +23,12 @@ class WebSocketConnectionService:
         self,
         connection_manager: ConnectionManager,
         conversation_manager: ConversationManager,
-        message_processor: GraphMessageProcessor,
+        graph_message_processor: GraphMessageProcessor,
         logger: Logger,
     ) -> None:
         self.connection_manager = connection_manager
         self.conversation_manager = conversation_manager
-        self.message_processor = message_processor
+        self.graph_message_processor = graph_message_processor
         self.logger = logger
 
     async def handle_websocket_connection(
@@ -105,7 +105,7 @@ class WebSocketConnectionService:
             # Parse the incoming message
             user_message: Optional[UserMessage] = None
             try:
-                user_message = MessageProtocol.parse_user_message(message_text)
+                user_message = SocketMessageProcessor.parse_user_message(message_text)
             except Exception as e:
                 self.logger.error(f"Error parsing user message: {str(e)}")
                 self.logger.warning(f"Invalid message format from {client_id}")
@@ -117,10 +117,7 @@ class WebSocketConnectionService:
                 )
                 continue
 
-            # TODO: Remove in next iteration
-            self.logger.info(
-                f"Received message from {client_id}: {user_message.content[:100]}..."
-            )
+            self.logger.info(f"Received message from {client_id}")
 
             # Send processing notification
             await self.connection_manager.send_system_message(
@@ -158,7 +155,7 @@ class WebSocketConnectionService:
     ) -> str:
         """Process a user message and return the response"""
         # Check for any pending interrupts first
-        interrupt_info = await self.message_processor.check_if_interrupt_exists(
+        interrupt_info = await self.graph_message_processor.check_if_interrupt_exists(
             client_id
         )
         self.logger.info(f"Interrupt detected: {interrupt_info}")
@@ -168,7 +165,7 @@ class WebSocketConnectionService:
 
             # Resume conversation with user input
             response_content = (
-                await self.message_processor.resume_interrupt_conversation(
+                await self.graph_message_processor.resume_interrupt_conversation(
                     client_id, message_content
                 )
             )
@@ -178,7 +175,7 @@ class WebSocketConnectionService:
             if session_id is None:
                 raise ConnectionRefusedError("Session ID is missing for user")
 
-            response_content = await self.message_processor.process_user_message(
+            response_content = await self.graph_message_processor.process_user_message(
                 message_content, client_id, session_id
             )
 

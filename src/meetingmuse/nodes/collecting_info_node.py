@@ -1,13 +1,16 @@
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 
 from common.decorators import log_node_entry
 from common.logger import Logger
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.graph.graph_utils.utils import Utils
+from meetingmuse.llm_models.hugging_face import BaseLlmModel
+from meetingmuse.models.graph import MessageType
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
@@ -25,13 +28,13 @@ class CollectingInfoNode(BaseNode):
     It is used to collect the meeting details from the user.
     """
 
-    model: HuggingFaceModel
+    model: BaseLlmModel
     parser: PydanticOutputParser[MeetingFindings]
     prompt: ChatPromptTemplate
     chain: Runnable[Dict[str, Any], MeetingFindings]
     meeting_service: MeetingDetailsService
 
-    def __init__(self, model: HuggingFaceModel, logger: Logger) -> None:
+    def __init__(self, model: BaseLlmModel, logger: Logger) -> None:
         super().__init__(logger)
         self.model = model
         self.parser = PydanticOutputParser(pydantic_object=MeetingFindings)
@@ -82,6 +85,8 @@ class CollectingInfoNode(BaseNode):
                 "missing_fields": ", ".join(missing_required)
                 if missing_required
                 else "none",
+                "todays_date": datetime.now().strftime("%Y-%m-%d"),
+                "todays_day_name": datetime.now().strftime("%A"),
                 "format_instructions": self.parser.get_format_instructions(),
             }
         )
@@ -98,17 +103,9 @@ class CollectingInfoNode(BaseNode):
             f"Entering {self.node_name} node with current state: {state.meeting_details}"
         )
 
-        # TODO: make this a helper method in utils.py
-        last_human_message: Optional[str] = None
-        for message in reversed(state.messages):
-            if isinstance(message, HumanMessage):
-                # Handle both string and complex content types
-                content = message.content
-                if isinstance(content, str):
-                    last_human_message = content
-                else:
-                    last_human_message = str(content)
-                break
+        last_human_message: Optional[str] = Utils.get_last_message(
+            state, MessageType.HUMAN
+        )
 
         if not last_human_message:
             return state

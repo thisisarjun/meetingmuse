@@ -1,7 +1,11 @@
+from redis.asyncio import Redis
+
+from common.config import config
 from common.logger.logger import Logger
 from server.services.oauth_service import OAuthService
 from server.services.session_manager import SessionManager
 from server.storage.memory_storage import MemoryStorageAdapter
+from server.storage.redis_adapter import RedisStorageAdapter
 from server.storage.storage_adapter import StorageAdapter
 
 # Global service instances
@@ -15,12 +19,20 @@ def get_logger() -> Logger:
     return Logger()
 
 
-def get_storage_adapter() -> StorageAdapter:
+def get_storage_adapter(type: str = "memory") -> StorageAdapter:
     """Dependency to get storage adapter instance"""
     global _storage_adapter
-    if _storage_adapter is None:
-        # Swap adapter with appropriate storage in production
+    if type == "redis":
+        redis_client = Redis(
+            host=config.REDIS_HOST,
+            port=config.REDIS_PORT,
+            decode_responses=True,
+        )
+        _storage_adapter = RedisStorageAdapter(redis_client)
+    elif type == "memory":
         _storage_adapter = MemoryStorageAdapter()
+    else:
+        raise ValueError(f"Invalid storage adapter type: {type}")
     return _storage_adapter
 
 
@@ -28,7 +40,7 @@ def get_session_manager() -> SessionManager:
     """Dependency to get session manager instance"""
     global _session_manager
     if _session_manager is None:
-        _session_manager = SessionManager(get_storage_adapter())
+        _session_manager = SessionManager(get_storage_adapter("memory"))
     return _session_manager
 
 
@@ -36,5 +48,5 @@ def get_oauth_service() -> OAuthService:
     """Dependency to get OAuth service instance"""
     global _oauth_service
     if _oauth_service is None:
-        _oauth_service = OAuthService(get_session_manager())
+        _oauth_service = OAuthService(get_session_manager(), get_logger())
     return _oauth_service
