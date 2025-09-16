@@ -70,36 +70,6 @@ async def test_delete_nonexistent_key(redis_adapter):
 
 
 @pytest.mark.asyncio
-async def test_get_all_by_prefix_empty(redis_adapter):
-    """Test getting all keys by prefix when no matches exist."""
-    result = await redis_adapter.get_all_by_prefix("test_")
-    assert result == []
-
-
-@pytest.mark.asyncio
-async def test_get_all_by_prefix_with_matches(redis_adapter):
-    """Test getting all keys by prefix with matching keys."""
-    # Set up test data
-    test_data = {
-        "user_1": "data1",
-        "user_2": "data2",
-        "admin_1": "admin_data",
-        "user_3": "data3",
-    }
-
-    for key, value in test_data.items():
-        await redis_adapter.set(key, value)
-
-    # Get all keys with "user_" prefix
-    result = await redis_adapter.get_all_by_prefix("user_")
-
-    # fakeredis returns a list of keys, not a dict
-    # so we need to check that the right keys are returned
-    expected_keys = ["user_1", "user_2", "user_3"]
-    assert sorted(result) == sorted(expected_keys)
-
-
-@pytest.mark.asyncio
 async def test_multiple_operations(redis_adapter):
     """Test multiple operations in sequence."""
     # Set multiple keys

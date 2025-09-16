@@ -11,10 +11,10 @@ class MemoryStorageAdapter(StorageAdapter):
     def __init__(self) -> None:
         self._storage: Dict[str, Any] = {}
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Optional[str]:
         return self._storage.get(key)
 
-    async def set(self, key: str, value: Any) -> bool:
+    async def set(self, key: str, value: str) -> bool:
         try:
             self._storage[key] = value
             return True
@@ -26,8 +26,3 @@ class MemoryStorageAdapter(StorageAdapter):
             del self._storage[key]
             return True
         return False
-
-    async def get_all_by_prefix(self, prefix: str) -> Dict[str, Any]:
-        return {
-            key: value for key, value in self._storage.items() if key.startswith(prefix)
-        }

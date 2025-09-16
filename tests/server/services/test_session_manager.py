@@ -49,9 +49,10 @@ async def test_store_session_success(
     result = await session_manager.store_session(sample_session)
 
     assert result is True
-    mock_storage_adapter.set.assert_called_once()
-    call_args = mock_storage_adapter.set.call_args
-    assert call_args[0][0] == "session_123"  # session_id
+    mock_storage_adapter.set.call_count == 2
+    call_args = mock_storage_adapter.set.call_args_list
+    assert call_args[0][0][0] == "client_456"  # session_id
+    assert call_args[1][0][0] == "session_123"  # client_id
 
 
 async def test_store_session_failure(
@@ -71,7 +72,7 @@ async def test_get_session_success(
     """Test successful session retrieval."""
     # Store the session first to get encrypted version
     encrypted_session = session_manager._encrypt_session(sample_session)
-    mock_storage_adapter.get.return_value = encrypted_session
+    mock_storage_adapter.get.return_value = encrypted_session.model_dump_json()
 
     result = await session_manager.get_session("session_123")
 
@@ -110,7 +111,7 @@ async def test_get_session_expired(
     )
 
     encrypted_session = session_manager._encrypt_session(expired_session)
-    mock_storage_adapter.get.return_value = encrypted_session
+    mock_storage_adapter.get.return_value = encrypted_session.model_dump_json()
     mock_storage_adapter.delete.return_value = True
 
     result = await session_manager.get_session("session_123")
@@ -125,7 +126,7 @@ async def test_update_session_tokens_success(
     """Test successful token update."""
     # Mock get_session to return existing session
     encrypted_session = session_manager._encrypt_session(sample_session)
-    mock_storage_adapter.get.return_value = encrypted_session
+    mock_storage_adapter.get.return_value = encrypted_session.model_dump_json()
     mock_storage_adapter.set.return_value = True
 
     new_tokens = TokenInfo(
@@ -157,10 +158,13 @@ async def test_delete_session(session_manager, mock_storage_adapter):
     """Test session deletion."""
     mock_storage_adapter.delete.return_value = True
 
-    result = await session_manager.delete_session("session_123")
+    result = await session_manager.delete_session("session_123", "client_456")
 
     assert result is True
-    mock_storage_adapter.delete.assert_called_once_with("session_123")
+    mock_storage_adapter.delete.call_count == 2
+    call_args = mock_storage_adapter.delete.call_args_list
+    assert call_args[0][0][0] == "client_456"  # session_id
+    assert call_args[1][0][0] == "session_123"  # client_id
 
 
 async def test_is_token_valid_true(
@@ -168,7 +172,7 @@ async def test_is_token_valid_true(
 ):
     """Test valid token check."""
     encrypted_session = session_manager._encrypt_session(sample_session)
-    mock_storage_adapter.get.return_value = encrypted_session
+    mock_storage_adapter.get.return_value = encrypted_session.model_dump_json()
 
     result = await session_manager.is_token_valid("session_123")
 
@@ -189,10 +193,8 @@ async def test_get_session_by_client_id_success(
 ):
     """Test finding session by client ID."""
     encrypted_session = session_manager._encrypt_session(sample_session)
-    mock_storage_adapter.get_all_by_prefix.return_value = {
-        "session_123": encrypted_session
-    }
-    mock_storage_adapter.get.return_value = encrypted_session
+
+    mock_storage_adapter.get.return_value = encrypted_session.model_dump_json()
 
     result = await session_manager.get_session_by_client_id("client_456")
 
@@ -204,7 +206,6 @@ async def test_get_session_by_client_id_not_found(
     session_manager, mock_storage_adapter
 ):
     """Test client ID not found."""
-    mock_storage_adapter.get_all_by_prefix.return_value = {}
 
     result = await session_manager.get_session_by_client_id("nonexistent")
 

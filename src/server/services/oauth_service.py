@@ -232,7 +232,7 @@ class OAuthService:
             pass  # Continue even if revocation fails
 
         # Remove session
-        return await self._session_manager.delete_session(session_id)
+        return await self._session_manager.delete_session(session_id, session.client_id)
 
     async def get_credentials(self, session_id: str) -> Optional[Credentials]:
         """

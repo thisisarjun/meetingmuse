@@ -114,7 +114,6 @@ class GraphBuilder:  # pylint: disable=too-many-instance-attributes
             self.collecting_info_node.node_name,
             self.collecting_info_node.get_next_node_name,
             {
-                # TODO: should go to schedule meeting node
                 NodeName.SCHEDULE_MEETING: NodeName.SCHEDULE_MEETING,
                 NodeName.PROMPT_MISSING_MEETING_DETAILS: NodeName.PROMPT_MISSING_MEETING_DETAILS,
             },

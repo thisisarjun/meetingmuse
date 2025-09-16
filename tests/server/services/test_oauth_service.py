@@ -138,7 +138,9 @@ class TestOAuthService:
             result = await oauth_service.revoke_token(session_id)
 
         assert result is True
-        mock_session_manager.delete_session.assert_called_once_with(session_id)
+        mock_session_manager.delete_session.assert_called_once_with(
+            session_id, "test_client"
+        )
 
     async def test_revoke_token_no_session(self, oauth_service, mock_session_manager):
         """Test token revocation with no session."""

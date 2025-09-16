@@ -94,7 +94,6 @@ def mock_storage_adapter():
     adapter.get = AsyncMock()
     adapter.set = AsyncMock()
     adapter.delete = AsyncMock()
-    adapter.get_all_by_prefix = AsyncMock()
     return adapter
 
 

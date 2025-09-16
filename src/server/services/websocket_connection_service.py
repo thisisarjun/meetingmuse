@@ -117,7 +117,6 @@ class WebSocketConnectionService:
                 )
                 continue
 
-            # TODO: Remove in next iteration
             self.logger.info(f"Received message from {client_id}")
 
             # Send processing notification
