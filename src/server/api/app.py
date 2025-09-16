@@ -157,6 +157,17 @@ def create_app() -> FastAPI:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+    else:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=[
+                "https://meetingmuse.vercel.app",
+                "https://www.meetingmuse.vercel.app",
+            ],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     # Configure logging
     logging.basicConfig(
