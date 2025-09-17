@@ -9,7 +9,6 @@ class RedisStorageAdapter(StorageAdapter):
     def __init__(self, redis_client: Redis):
         self.redis_client = redis_client
 
-    # TODO: make base class always return a string
     async def get(self, key: str) -> Optional[str]:
         return cast(Optional[str], await self.redis_client.get(key))
 

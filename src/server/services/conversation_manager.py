@@ -104,12 +104,7 @@ class ConversationManager:
         """
 
         if client_id in self.active_conversations:
-            self.active_conversations[client_id].status = ConversationStatus.ENDED
-            self.active_conversations[client_id].ended_at = datetime.now().isoformat()
-
-            # Optional: Remove old conversations after some time
-            # For now, we'll keep them for potential analysis
-
+            del self.active_conversations[client_id]
             self.logger.info(f"Conversation ended for client {client_id}")
 
     def get_session_id(self, client_id: str) -> Optional[str]:
@@ -123,3 +118,12 @@ class ConversationManager:
         """
         conversation = self.active_conversations.get(client_id)
         return conversation.session_id if conversation else None
+
+    def delete_conversation(self, client_id: str) -> None:
+        """Delete conversation for a client.
+
+        Args:
+            client_id: Client identifier
+        """
+        if client_id in self.active_conversations:
+            del self.active_conversations[client_id]

@@ -128,9 +128,7 @@ class TestConversationManager:
 
         await conversation_manager.end_conversation(client_id)
 
-        conversation = conversation_manager.active_conversations[client_id]
-        assert conversation.status == ConversationStatus.ENDED
-        assert conversation.ended_at is not None
+        assert conversation_manager.active_conversations.get(client_id) is None
 
     async def test_end_conversation_nonexistent_client(self, conversation_manager):
         """Test ending conversation for non-existent client."""
