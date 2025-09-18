@@ -7,6 +7,7 @@ from redis.asyncio import Redis
 from common.config.config import config
 from common.logger import Logger
 from meetingmuse.clients.google_calendar import GoogleCalendarClient
+from meetingmuse.clients.google_contacts import GoogleContactsClient
 from meetingmuse.graph.graph import GraphBuilder
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
 from meetingmuse.llm_models.base import BaseLlmModel
@@ -100,6 +101,7 @@ class DependencyContainer:
 
         # External dependencies
         self._google_calendar_client: Optional[GoogleCalendarClient] = None
+        self._google_contacts_client: Optional[GoogleContactsClient] = None
 
         # API and WebSocket dependencies
         self._connection_manager: Optional[ConnectionManager] = None
@@ -238,6 +240,21 @@ class DependencyContainer:
         except Exception as e:
             self.logger.error(f"Failed to create Google Calendar client: {e}")
             raise RuntimeError(f"Failed to create Google Calendar client: {e}")
+
+    @property
+    def google_contacts_client(self) -> GoogleContactsClient:
+        """Get Google Contacts client instance"""
+        if self._google_contacts_client is not None:
+            return self._google_contacts_client
+
+        try:
+            self._google_contacts_client = GoogleContactsClient(
+                self.oauth_service, self.logger
+            )
+            return self._google_contacts_client
+        except Exception as e:
+            self.logger.error(f"Failed to create Google Contacts client: {e}")
+            raise RuntimeError(f"Failed to create Google Contacts client: {e}")
 
     @property
     def intent_classifier(self) -> IntentClassifier:
