@@ -77,7 +77,7 @@ async def search_contacts(
 
 def create_people_router() -> APIRouter:
     """Create and configure People API router."""
-    router: APIRouter = APIRouter(prefix="/api/people", tags=["people"])
+    router: APIRouter = APIRouter(prefix="/people", tags=["people"])
 
     # Add routes with proper typing
     router.add_api_route(
