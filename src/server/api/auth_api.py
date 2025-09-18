@@ -7,7 +7,12 @@ from fastapi.responses import RedirectResponse
 
 from common.config.config import config
 from common.logger.logger import Logger
-from server.api.dependencies import get_logger, get_oauth_service, get_session_manager
+from server.api.dependencies import (
+    get_logger,
+    get_oauth_service,
+    get_session_manager,
+    get_websocket_connection_service,
+)
 from server.models.api.auth import (
     AuthUrlResponse,
     LogoutResponse,
@@ -16,6 +21,7 @@ from server.models.api.auth import (
 )
 from server.services.oauth_service import OAuthService
 from server.services.session_manager import SessionManager
+from server.services.websocket_connection_service import WebSocketConnectionService
 
 
 async def start_oauth_flow(
@@ -142,6 +148,9 @@ async def logout(
     session_manager: SessionManager = Depends(get_session_manager),
     oauth_service: OAuthService = Depends(get_oauth_service),
     logger: Logger = Depends(get_logger),
+    websocket_connection_service: WebSocketConnectionService = Depends(
+        get_websocket_connection_service
+    ),
 ) -> LogoutResponse:
     """
     Logout and revoke tokens for a client.
@@ -161,6 +170,7 @@ async def logout(
 
         if success:
             logger.info(f"Logout successful for client: {client_id}")
+            websocket_connection_service._cleanup_client_connection(client_id)
             return LogoutResponse(message="Logout successful")
         else:
             logger.warning(f"Logout failed for client: {client_id}")

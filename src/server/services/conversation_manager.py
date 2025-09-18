@@ -95,7 +95,7 @@ class ConversationManager:
             ].last_activity = datetime.now().isoformat()
             self.active_conversations[client_id].message_count += 1
 
-    async def end_conversation(self, client_id: str) -> None:
+    def end_conversation(self, client_id: str) -> None:
         """
         Mark conversation as ended and cleanup
 

@@ -126,7 +126,7 @@ class TestConversationManager:
         # Initialize conversation first
         conversation_manager.initialize_conversation(client_id)
 
-        await conversation_manager.end_conversation(client_id)
+        conversation_manager.end_conversation(client_id)
 
         assert conversation_manager.active_conversations.get(client_id) is None
 
@@ -135,7 +135,7 @@ class TestConversationManager:
         client_id = "nonexistent_client"
 
         # Should not raise exception
-        await conversation_manager.end_conversation(client_id)
+        conversation_manager.end_conversation(client_id)
 
         assert client_id not in conversation_manager.active_conversations
 

@@ -3,6 +3,7 @@ from common.logger.logger import Logger
 from server.dependency_container import DependencyContainer
 from server.services.oauth_service import OAuthService
 from server.services.session_manager import SessionManager
+from server.services.websocket_connection_service import WebSocketConnectionService
 from server.storage.storage_adapter import StorageAdapter
 
 # Global dependency container instance - initialized based on environment
@@ -38,3 +39,8 @@ def get_session_manager() -> SessionManager:
 def get_oauth_service() -> OAuthService:
     """Dependency to get OAuth service instance"""
     return get_container().oauth_service
+
+
+def get_websocket_connection_service() -> WebSocketConnectionService:
+    """Dependency to get websocket connection service instance"""
+    return get_container().websocket_connection_service

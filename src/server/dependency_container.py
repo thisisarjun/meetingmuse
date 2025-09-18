@@ -127,7 +127,11 @@ class DependencyContainer:
         """Create container for development environment"""
         return cls(
             DependencyConfig(
-                model_name="gpt-4o-mini", provider="openai", storage_type="memory"
+                model_name="gpt-4o-mini",
+                provider="openai",
+                storage_type="redis",
+                redis_host=config.REDIS_HOST,
+                redis_port=config.REDIS_PORT,
             )
         )
 

@@ -86,13 +86,13 @@ class WebSocketConnectionService:
                     ErrorMessages.INTERNAL_SERVER_ERROR,
                     retry_suggested=True,
                 )
-            except Exception:
+            except Exception as e:
                 self.logger.warning(
-                    f"Could not send error message to {client_id} before cleanup"
+                    f"Could not send error message to {client_id} before cleanup: {str(e)}"
                 )
         finally:
             # Clean up connection and conversation
-            await self._cleanup_client_connection(client_id)
+            self._cleanup_client_connection(client_id)
 
     async def _handle_message_loop(self, websocket: WebSocket, client_id: str) -> None:
         """Handle the message processing loop for a client"""
@@ -196,7 +196,7 @@ class WebSocketConnectionService:
             },
         )
 
-    async def _cleanup_client_connection(self, client_id: str) -> None:
+    def _cleanup_client_connection(self, client_id: str) -> None:
         """Clean up a client's connection and conversation"""
         self.logger.info(f"Cleaning up connection for client: {client_id}")
 
@@ -204,14 +204,14 @@ class WebSocketConnectionService:
         self.connection_manager.disconnect(client_id)
 
         # End conversation
-        await self.conversation_manager.end_conversation(client_id)
+        self.conversation_manager.end_conversation(client_id)
 
         self.logger.info(f"Connection cleanup completed for client: {client_id}")
 
-    async def cleanup_all_connections(self) -> None:
+    def cleanup_all_connections(self) -> None:
         """Clean up all active connections during shutdown"""
         active_clients = self.connection_manager.list_active_clients()
         if active_clients:
             self.logger.info(f"Cleaning up {len(active_clients)} active connections")
             for client_id in active_clients.copy():
-                await self._cleanup_client_connection(client_id)
+                self._cleanup_client_connection(client_id)

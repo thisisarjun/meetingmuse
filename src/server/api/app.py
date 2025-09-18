@@ -44,8 +44,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Shutdown
     logger.info("MeetingMuse WebSocket Server shutting down...")
 
+    websocket_connection_service.cleanup_all_connections()
     # Clean up all connections using the service
-    await websocket_connection_service.cleanup_all_connections()
 
     logger.info("Application shutdown complete")
 
