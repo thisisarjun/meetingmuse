@@ -18,7 +18,7 @@ Your task:
 REQUIRED FIELDS:
 - title: Meeting purpose/subject (string or null)
 - date_time: Date and time in format "YYYY-MM-DD HH:MM" (string or null)
-- participants: Who should attend (list of strings or null)
+- participants: List of valid email addresses (list of strings in email format or null)
 - duration: Meeting duration in minutes (integer or null)
 - location: Meeting location (string or null)
 
@@ -29,6 +29,24 @@ INSTRUCTIONS:
 - CRITICAL: Use "null" not "None" - this is JSON, not Python
 - IMPORTANT: Return ONLY valid JSON, no code blocks, no explanations, no markdown formatting
 - Do not wrap the JSON in ```json``` or any other formatting
+
+PARTICIPANTS EMAIL VALIDATION RULES:
+- CRITICAL: Only accept valid email addresses (e.g., john@example.com, sarah.smith@company.com)
+- If user provides names without email addresses, IGNORE them completely
+- If user provides team names or groups without emails, IGNORE them completely
+- Only include participants if they are provided as valid email addresses containing "@" symbol
+- A valid email must have format: [name]@[domain].[extension]
+- Examples of what to accept:
+  * "john@example.com" → accept as "john@example.com"
+  * "sarah.smith@company.com" → accept as "sarah.smith@company.com"
+- Examples of what to IGNORE:
+  * "John Smith" → ignore (no email)
+  * "Sarah" → ignore (no email)
+  * "dev team" → ignore (no email)
+  * "marketing team" → ignore (no email)
+  * "finance" → ignore (no email)
+- If no valid email addresses are provided, set participants to null
+- Only include participants if mentioned in the user's message AND they are valid emails
 
 DATE/TIME FORMATTING RULES:
 - ALWAYS convert date/time to "YYYY-MM-DD HH:MM" format (24-hour time)
@@ -80,22 +98,31 @@ EXAMPLES (assuming TODAY is {todays_date}):
    Output: {{"title": "team standup", "date_time": "[tomorrow's date] 14:00", "participants": null, "duration": 30, "location": null}}
 
 2. User says: "Meeting with John and Sarah on 2024-12-15 14:30:45"
-   Output: {{"title": "Meeting", "date_time": "2024-12-15 14:30", "participants": ["John", "Sarah"], "duration": 60, "location": null}}
+   Output: {{"title": "Meeting", "date_time": "2024-12-15 14:30", "participants": null, "duration": 60, "location": null}}
 
 3. User says: "Quick sync with the dev team next Monday morning in the conference room"
-   Output: {{"title": "Quick sync with the dev team", "date_time": "[next Monday's date] 09:00", "participants": ["dev team"], "duration": 30, "location": "conference room"}}
+   Output: {{"title": "Quick sync with the dev team", "date_time": "[next Monday's date] 09:00", "participants": null, "duration": 30, "location": "conference room"}}
 
 4. User says: "Add Lisa to the participants and change duration to 2 hours"
-   Output: {{"title": "[existing title]", "date_time": "[existing date_time]", "participants": ["[existing participants]", "Lisa"], "duration": 120, "location": "[existing location]"}}
+   Output: {{"title": "[existing title]", "date_time": "[existing date_time]", "participants": "[existing participants]", "duration": 120, "location": "[existing location]"}}
 
 5. User says: "Budget review on 2024-12-20 15:00:00 with finance team for 90 minutes"
-   Output: {{"title": "Budget review", "date_time": "2024-12-20 15:00", "participants": ["finance team"], "duration": 90, "location": null}}
+   Output: {{"title": "Budget review", "date_time": "2024-12-20 15:00", "participants": null, "duration": 90, "location": null}}
 
 6. User says: "Change the meeting to this Friday at 3:30pm"
    Output: {{"title": "[existing title]", "date_time": "[this Friday's date] 15:30", "participants": "[existing participants]", "duration": "[existing duration]", "location": "[existing location]"}}
 
 7. User says: "Project kickoff in 5 days at noon"
    Output: {{"title": "Project kickoff", "date_time": "[date 5 days from today] 12:00", "participants": null, "duration": 60, "location": null}}
+
+8. User says: "Meeting with john.doe@company.com and sarah.smith@company.com tomorrow"
+   Output: {{"title": "Meeting", "date_time": "[tomorrow's date] 10:00", "participants": ["john.doe@company.com", "sarah.smith@company.com"], "duration": 60, "location": null}}
+
+9. User says: "Invite John Smith and the marketing team"
+   Output: {{"title": null, "date_time": null, "participants": null, "duration": null, "location": null}}
+
+10. User says: "Meeting with arjun, sarah, and mike@company.com"
+   Output: {{"title": "Meeting", "date_time": null, "participants": ["mike@company.com"], "duration": 60, "location": null}}
 
 NEGATIVE CASES - When no meeting information is provided:
 
@@ -114,5 +141,6 @@ NEGATIVE CASES - When no meeting information is provided:
 REMEMBER:
 - Always calculate dates relative to TODAY: {todays_date} (YYYY-MM-DD format) which is {todays_day_name}
 - Accept YYYY-MM-DD HH:mm:ss format and convert to YYYY-MM-DD HH:MM (drop seconds)
+- Only accept valid email addresses - IGNORE names, teams, or any non-email participants
 - Return ONLY the JSON object with no additional text or formatting
 """
