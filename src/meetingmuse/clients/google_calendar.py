@@ -136,7 +136,6 @@ class GoogleCalendarClient:
             raise ValueError("Could not obtain valid OAuth credentials")
 
         # Build Google Calendar service
-        print("credentials", credentials)
         service = build("calendar", "v3", credentials=credentials)
 
         # Parse meeting details
