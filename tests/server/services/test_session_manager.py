@@ -10,11 +10,11 @@ from server.services.session_manager import SessionManager
 
 
 @pytest.fixture
-def session_manager(mock_storage_adapter):
+def session_manager(mock_storage_adapter, mock_logger):
     """Create a SessionManager instance for testing."""
     with patch("server.services.session_manager.config") as mock_config:
         mock_config.SESSION_ENCRYPTION_KEY = "test_key_123456789012345678901"
-        return SessionManager(mock_storage_adapter)
+        return SessionManager(mock_storage_adapter, mock_logger)
 
 
 @pytest.fixture

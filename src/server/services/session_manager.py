@@ -7,6 +7,7 @@ from typing import Optional
 from cryptography.fernet import Fernet
 
 from common.config.config import config
+from common.logger import Logger
 from server.models.session import TokenInfo, UserSession
 from server.storage.storage_adapter import StorageAdapter
 
@@ -14,7 +15,7 @@ from server.storage.storage_adapter import StorageAdapter
 class SessionManager:
     """Manages OAuth sessions with encrypted token storage."""
 
-    def __init__(self, storage_adapter: StorageAdapter) -> None:
+    def __init__(self, storage_adapter: StorageAdapter, logger: Logger) -> None:
         """Initialize session manager.
 
         Args:
@@ -23,6 +24,7 @@ class SessionManager:
         self._storage = storage_adapter
         self._encryption_key = self._get_encryption_key()
         self._cipher = Fernet(self._encryption_key)
+        self.logger = logger
 
     def _get_encryption_key(self) -> bytes:
         """Get or generate encryption key."""
@@ -96,7 +98,8 @@ class SessionManager:
             return await self._storage.set(
                 session.session_id, encrypted_session.model_dump_json()
             )
-        except Exception:
+        except Exception as error:
+            self.logger.error(f"error storing session: {error}")
             return False
 
     async def get_session(self, session_id: str) -> Optional[UserSession]:
@@ -122,7 +125,8 @@ class SessionManager:
                 return None
 
             return self._decrypt_session(encrypted_session)
-        except Exception:
+        except Exception as error:
+            self.logger.error(f"error fetching session details {error}")
             return None
 
     async def update_session_tokens(self, session_id: str, tokens: TokenInfo) -> bool:
@@ -166,7 +170,8 @@ class SessionManager:
                 return await self.get_session(session_id)
 
             return None
-        except Exception:
+        except Exception as error:
+            self.logger.error(f"error getting session by client_id: {error}")
             return None
 
     async def delete_session(self, session_id: str, client_id: str) -> bool:

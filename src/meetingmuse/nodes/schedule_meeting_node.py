@@ -74,19 +74,16 @@ class ScheduleMeetingNode(BaseNode):
 
             # Success message
             success_message = (
-                f"Meeting scheduled successfully! \n"
-                f"Event ID: {event_details.event_id} \n"
-                f"Title: {state.meeting_details.title or 'Meeting'} \n"
-                f"Time: {event_details.start_time} - {event_details.end_time} \n"
+                "Meeting scheduled successfully! please check your calendar."
             )
 
-            if event_details.event_link:
-                success_message += f"Calendar Link: {event_details.event_link} \n"
-
-            if state.meeting_details.participants:
-                success_message += (
-                    f"Participants: {', '.join(state.meeting_details.participants)} \n"
-                )
+            # if event_details.event_link:
+            #     success_message += f"Calendar Link: {event_details.event_link} \n"
+            #
+            # if state.meeting_details.participants:
+            #     success_message += (
+            #         f"Participants: {', '.join(state.meeting_details.participants)} \n"
+            #     )
 
             self.logger.info(
                 f"Meeting scheduled successfully with ID: {event_details.event_id}"
