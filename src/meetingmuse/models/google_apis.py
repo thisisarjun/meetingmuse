@@ -45,11 +45,3 @@ class PeopleSearchResponse(BaseModel):
     results: List[PersonResult] = []
     nextPageToken: Optional[str] = None
     totalSize: Optional[int] = None
-
-
-class ContactEmail(BaseModel):
-    """Simplified contact email model for internal use."""
-
-    email: str
-    name: Optional[str] = None
-    resource_name: Optional[str] = None
