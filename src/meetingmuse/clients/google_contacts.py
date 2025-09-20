@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, Dict, List
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -13,7 +13,7 @@ class GoogleContactsClient:
         self.oauth_service = oauth_service
         self.logger = logger
 
-    def _extract_email_addresses(self, people_list: dict) -> List[str]:
+    def _extract_email_addresses(self, people_list: Dict[str, Any]) -> List[str]:
         """
         Extract email addresses from Google People API response.
 
@@ -53,7 +53,7 @@ class GoogleContactsClient:
 
         try:
             people_list = (
-                service.people()
+                service.people()  # pylint: disable=no-member
                 .searchContacts(
                     query=query,
                     readMask="emailAddresses",
