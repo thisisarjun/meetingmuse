@@ -35,16 +35,14 @@ async def search_contacts(
         HTTPException: If authentication fails or API error occurs
     """
     try:
-        logger.info(
-            f"Searching contacts with query: '{query}' for session: {session_id}"
-        )
+        logger.info("starting_contacts_search")
 
         # Call the Google Contacts API to search for contacts
         email_addresses = await contacts_client.get_contacts(
             query=query, session_id=session_id
         )
 
-        logger.info(f"Found {len(email_addresses)} contacts matching query: '{query}'")
+        logger.info("success_contacts_search")
         return email_addresses
 
     except ValueError as e:
