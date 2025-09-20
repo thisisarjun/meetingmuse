@@ -102,6 +102,16 @@ class GoogleCalendarClient:
             },
         }
 
+    def _prepare_attendees(
+        self, participants: Optional[list[str]]
+    ) -> list[AttendeeDict]:
+        """Prepare attendees for the event payload."""
+        attendees: list[AttendeeDict] = []
+        if participants:
+            for participant in participants:
+                attendees.append({"email": participant})
+        return attendees
+
     async def create_calendar_event(  # pylint: disable=too-many-positional-arguments
         self,
         session_id: str,
@@ -144,8 +154,7 @@ class GoogleCalendarClient:
         end_time = start_time + timedelta(minutes=parsed_duration)
 
         # Prepare attendees
-        # TODO: Map participants to their email addresses
-        attendees: list[AttendeeDict] = [{"email": "arjunslife@gmail.com"}]
+        attendees: list[AttendeeDict] = self._prepare_attendees(participants)
 
         # Create event object
         event = self._build_event_payload(
