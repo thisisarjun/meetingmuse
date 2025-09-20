@@ -15,6 +15,7 @@ from common.logger import Logger
 from ..dependency_container import DependencyContainer
 from .auth_api import create_auth_router
 from .health_api import create_health_router
+from .people_api import create_people_router
 from .websocket_api import create_websocket_router
 
 logger = Logger()
@@ -83,6 +84,10 @@ def create_app() -> FastAPI:
                 "name": "authentication",
                 "description": "OAuth flow for user authentication.",
             },
+            {
+                "name": "people",
+                "description": "Contact search functionality using Google People API.",
+            },
         ],
         lifespan=lifespan,
     )
@@ -114,6 +119,7 @@ def create_app() -> FastAPI:
     app.include_router(create_websocket_router(websocket_connection_service, logger))
     app.include_router(create_auth_router())
     app.include_router(create_health_router(health_service, logger))
+    app.include_router(create_people_router())
 
     logger.info("FastAPI server initialized with routers")
     return app

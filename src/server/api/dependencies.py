@@ -1,5 +1,6 @@
 from common.config.config import config
 from common.logger.logger import Logger
+from meetingmuse.clients.google_contacts import GoogleContactsClient
 from server.dependency_container import DependencyContainer
 from server.services.oauth_service import OAuthService
 from server.services.session_manager import SessionManager
@@ -44,3 +45,8 @@ def get_oauth_service() -> OAuthService:
 def get_websocket_connection_service() -> WebSocketConnectionService:
     """Dependency to get websocket connection service instance"""
     return get_container().websocket_connection_service
+
+
+def get_google_contacts_client() -> GoogleContactsClient:
+    """Dependency to get Google Contacts client instance"""
+    return get_container().google_contacts_client
