@@ -103,7 +103,7 @@ def create_app() -> FastAPI:
     else:
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=["https://meetingmuse.online"],
+            allow_origins=["https://www.meetingmuse.online"],
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],
