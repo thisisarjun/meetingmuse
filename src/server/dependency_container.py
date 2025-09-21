@@ -144,9 +144,7 @@ class DependencyContainer:
             DependencyConfig(
                 model_name="gpt-4o",
                 provider="openai",
-                storage_type="redis",
-                redis_host=config.REDIS_HOST,
-                redis_port=config.REDIS_PORT,
+                storage_type="memory",
             )
         )
 
