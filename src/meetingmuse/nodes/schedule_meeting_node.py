@@ -8,7 +8,7 @@ from langgraph.types import Command
 from common.decorators import log_node_entry
 from common.logger import Logger
 from meetingmuse.clients.google_calendar import GoogleCalendarClient
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.llm_models.hugging_face import BaseLlmModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.response import ResponseBuilder, ResponseType, StructuredMessage
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
@@ -22,12 +22,12 @@ class ScheduleMeetingNode(BaseNode):
     On success, goes to END. On failure, goes to human interrupt retry node.
     """
 
-    model: HuggingFaceModel
+    model: BaseLlmModel
     google_calendar_client: GoogleCalendarClient
 
     def __init__(
         self,
-        model: HuggingFaceModel,
+        model: BaseLlmModel,
         logger: Logger,
         google_calendar_client: GoogleCalendarClient,
     ) -> None:
@@ -93,7 +93,14 @@ class ScheduleMeetingNode(BaseNode):
                 )
             )
 
-            # Success message
+            # if event_details.event_link:
+            #     success_message += f"Calendar Link: {event_details.event_link} \n"
+            #
+            # if state.meeting_details.participants:
+            #     success_message += (
+            #         f"Participants: {', '.join(state.meeting_details.participants)} \n"
+            #     )
+
             self.logger.info(
                 f"Meeting scheduled successfully with ID: {event_details.event_id}"
             )

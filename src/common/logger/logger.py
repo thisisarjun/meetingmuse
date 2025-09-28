@@ -4,6 +4,8 @@ import logging
 import sys
 from typing import TextIO, Union
 
+from common.config.config import config
+
 
 class ColoredFormatter(logging.Formatter):
     """Custom formatter with color support."""
@@ -27,6 +29,8 @@ class ColoredFormatter(logging.Formatter):
 
         # Create the base format
         log_format: str = f"{self.BOLD}%(asctime)s{self.RESET} - {color}{self.BOLD}%(levelname)s{self.RESET} - {color}%(message)s{self.RESET}"  # pylint: disable=line-too-long
+        if config.ENV == "dev":
+            log_format += "\n\n"
 
         # Create formatter with the colored format
         formatter: logging.Formatter = logging.Formatter(

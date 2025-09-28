@@ -6,19 +6,19 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 
 from common.logger import Logger
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.llm_models.hugging_face import BaseLlmModel
 from meetingmuse.models.state import UserIntent
 from meetingmuse.prompts import intent_classifier_prompt
 
 
 class IntentClassifier:
-    model: HuggingFaceModel
+    model: BaseLlmModel
     parser: StrOutputParser
     prompt: ChatPromptTemplate
     chain: Runnable[Dict[str, Any], str]
     logger: Logger
 
-    def __init__(self, model: HuggingFaceModel) -> None:
+    def __init__(self, model: BaseLlmModel) -> None:
         self.model = model
         self.parser = StrOutputParser()
         self.prompt = ChatPromptTemplate.from_messages(

@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 
 from common.logger import Logger
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.llm_models.hugging_face import BaseLlmModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.prompts.missing_fields_prompt import MISSING_FIELDS_PROMPT
@@ -14,12 +14,12 @@ from meetingmuse.prompts.missing_fields_prompt import MISSING_FIELDS_PROMPT
 class MeetingDetailsService:
     """Service for handling meeting details validation and prompts"""
 
-    model: HuggingFaceModel
+    model: BaseLlmModel
     logger: Logger
     missing_fields_prompt: ChatPromptTemplate
     missing_fields_chain: Runnable[Dict[str, Any], BaseMessage]
 
-    def __init__(self, model: HuggingFaceModel, logger: Logger) -> None:
+    def __init__(self, model: BaseLlmModel, logger: Logger) -> None:
         self.model = model
         self.logger = logger
         self.missing_fields_prompt = ChatPromptTemplate.from_messages(

@@ -10,6 +10,7 @@ from google_auth_oauthlib.flow import Flow
 
 from common.config.config import config
 from common.http_client import http_client
+from common.logger.logger import Logger
 from server.models.oauth import ClientConfig, WebClientConfig
 from server.models.session import TokenInfo, UserSession
 from server.services.session_manager import SessionManager
@@ -18,13 +19,14 @@ from server.services.session_manager import SessionManager
 class OAuthService:
     """Handles Google OAuth 2.0 authentication flow."""
 
-    def __init__(self, session_manager: SessionManager) -> None:
+    def __init__(self, session_manager: SessionManager, logger: Logger) -> None:
         """Initialize OAuth service with Google configuration.
 
         Args:
             session_manager: Session manager for handling OAuth sessions
         """
         self._session_manager = session_manager
+        self._logger = logger
         self._client_config = ClientConfig(
             web=WebClientConfig(
                 client_id=config.GOOGLE_CLIENT_ID,
@@ -106,6 +108,7 @@ class OAuthService:
                 # Convert to UTC
                 expiry = expiry.replace(tzinfo=timezone.utc)
 
+            self._logger.info(f"Credentials: {credentials.to_json()}")
             token_info = TokenInfo(
                 access_token=credentials.token,
                 refresh_token=credentials.refresh_token,
@@ -229,9 +232,8 @@ class OAuthService:
             pass  # Continue even if revocation fails
 
         # Remove session
-        return await self._session_manager.delete_session(session_id)
+        return await self._session_manager.delete_session(session_id, session.client_id)
 
-    # TODO: Use this method to make Calendar API calls
     async def get_credentials(self, session_id: str) -> Optional[Credentials]:
         """
         Get Google credentials for API calls.

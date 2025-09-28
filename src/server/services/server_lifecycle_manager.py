@@ -34,7 +34,7 @@ class ServerLifecycleManager:
 
         try:
             # Clean up all connections using the service
-            await self.websocket_service.cleanup_all_connections()
+            self.websocket_service.cleanup_all_connections()
 
             logger.info("Resource cleanup completed")
         except Exception as e:

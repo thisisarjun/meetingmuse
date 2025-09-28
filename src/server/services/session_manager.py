@@ -7,6 +7,7 @@ from typing import Optional
 from cryptography.fernet import Fernet
 
 from common.config.config import config
+from common.logger import Logger
 from server.models.session import TokenInfo, UserSession
 from server.storage.storage_adapter import StorageAdapter
 
@@ -14,7 +15,7 @@ from server.storage.storage_adapter import StorageAdapter
 class SessionManager:
     """Manages OAuth sessions with encrypted token storage."""
 
-    def __init__(self, storage_adapter: StorageAdapter) -> None:
+    def __init__(self, storage_adapter: StorageAdapter, logger: Logger) -> None:
         """Initialize session manager.
 
         Args:
@@ -23,6 +24,7 @@ class SessionManager:
         self._storage = storage_adapter
         self._encryption_key = self._get_encryption_key()
         self._cipher = Fernet(self._encryption_key)
+        self.logger = logger
 
     def _get_encryption_key(self) -> bytes:
         """Get or generate encryption key."""
@@ -92,8 +94,12 @@ class SessionManager:
         """
         try:
             encrypted_session = self._encrypt_session(session)
-            return await self._storage.set(session.session_id, encrypted_session)
-        except Exception:
+            await self._storage.set(session.client_id, session.session_id)
+            return await self._storage.set(
+                session.session_id, encrypted_session.model_dump_json()
+            )
+        except Exception as error:
+            self.logger.error(f"error storing session: {error}")
             return False
 
     async def get_session(self, session_id: str) -> Optional[UserSession]:
@@ -106,7 +112,10 @@ class SessionManager:
             Decrypted session if found and valid, None otherwise
         """
         try:
-            encrypted_session = await self._storage.get(session_id)
+            session_details_raw = await self._storage.get(session_id)
+            if not session_details_raw:
+                return None
+            encrypted_session = UserSession.model_validate_json(session_details_raw)
             if not encrypted_session:
                 return None
 
@@ -116,7 +125,8 @@ class SessionManager:
                 return None
 
             return self._decrypt_session(encrypted_session)
-        except Exception:
+        except Exception as error:
+            self.logger.error(f"error fetching session details {error}")
             return None
 
     async def update_session_tokens(self, session_id: str, tokens: TokenInfo) -> bool:
@@ -154,17 +164,17 @@ class SessionManager:
         """
         try:
             # Get all sessions and check client IDs
-            all_sessions = await self._storage.get_all_by_prefix("")
+            session_id = await self._storage.get(client_id)
 
-            for session_id, encrypted_session in all_sessions.items():
-                if encrypted_session.client_id == client_id:
-                    return await self.get_session(session_id)
+            if session_id:
+                return await self.get_session(session_id)
 
             return None
-        except Exception:
+        except Exception as error:
+            self.logger.error(f"error getting session by client_id: {error}")
             return None
 
-    async def delete_session(self, session_id: str) -> bool:
+    async def delete_session(self, session_id: str, client_id: str) -> bool:
         """Delete a session.
 
         Args:
@@ -173,6 +183,7 @@ class SessionManager:
         Returns:
             True if deleted, False otherwise
         """
+        await self._storage.delete(client_id)
         return await self._storage.delete(session_id)
 
     async def is_token_valid(self, session_id: str) -> bool:

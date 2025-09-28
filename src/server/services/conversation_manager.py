@@ -14,15 +14,15 @@ class ConversationManager:
     """Manages conversation state and recovery for WebSocket connections"""
 
     def __init__(
-        self, logger: Logger, message_processor: GraphMessageProcessor
+        self, logger: Logger, graph_message_processor: GraphMessageProcessor
     ) -> None:
         self.logger = logger
-        self.message_processor = message_processor
+        self.graph_message_processor = graph_message_processor
         self.active_conversations: Dict[str, ActiveConversation] = {}
 
     def initialize_conversation(
         self, client_id: str, session_id: Optional[str] = None
-    ) -> bool:
+    ) -> None:
         """
         Initialize conversation state for a new client
 
@@ -33,25 +33,17 @@ class ConversationManager:
         Returns:
             True if initialization successful, False otherwise
         """
-        try:
-            if client_id not in self.active_conversations:
-                self.active_conversations[client_id] = ActiveConversation(
-                    started_at=datetime.now().isoformat(),
-                    last_activity=datetime.now().isoformat(),
-                    message_count=0,
-                    status=ConversationStatus.ACTIVE,
-                    session_id=session_id,
-                    authenticated=session_id is not None,
-                )
-                self.logger.info(f"Initialized conversation for client {client_id}")
 
-            return True
-
-        except Exception as e:
-            self.logger.error(
-                f"Failed to initialize conversation for client {client_id}: {str(e)}"
+        if client_id not in self.active_conversations:
+            self.active_conversations[client_id] = ActiveConversation(
+                started_at=datetime.now().isoformat(),
+                last_activity=datetime.now().isoformat(),
+                message_count=0,
+                status=ConversationStatus.ACTIVE,
+                session_id=session_id,
+                authenticated=session_id is not None,
             )
-            return False
+            self.logger.info(f"Initialized conversation for client {client_id}")
 
     async def handle_reconnection(self, client_id: str) -> bool:
         """
@@ -65,8 +57,8 @@ class ConversationManager:
         """
         try:
             # Get current conversation state from LangGraph
-            has_conversation = await self.message_processor.get_conversation_state(
-                client_id
+            has_conversation = (
+                await self.graph_message_processor.get_conversation_state(client_id)
             )
             if has_conversation:
                 # Update conversation metadata
@@ -103,29 +95,17 @@ class ConversationManager:
             ].last_activity = datetime.now().isoformat()
             self.active_conversations[client_id].message_count += 1
 
-    async def end_conversation(self, client_id: str) -> None:
+    def end_conversation(self, client_id: str) -> None:
         """
         Mark conversation as ended and cleanup
 
         Args:
             client_id: Client identifier
         """
-        try:
-            if client_id in self.active_conversations:
-                self.active_conversations[client_id].status = ConversationStatus.ENDED
-                self.active_conversations[
-                    client_id
-                ].ended_at = datetime.now().isoformat()
 
-                # Optional: Remove old conversations after some time
-                # For now, we'll keep them for potential analysis
-
-                self.logger.info(f"Conversation ended for client {client_id}")
-
-        except Exception as e:
-            self.logger.error(
-                f"Error ending conversation for client {client_id}: {str(e)}"
-            )
+        if client_id in self.active_conversations:
+            del self.active_conversations[client_id]
+            self.logger.info(f"Conversation ended for client {client_id}")
 
     def get_session_id(self, client_id: str) -> Optional[str]:
         """Get session ID for a client.
@@ -138,3 +118,12 @@ class ConversationManager:
         """
         conversation = self.active_conversations.get(client_id)
         return conversation.session_id if conversation else None
+
+    def delete_conversation(self, client_id: str) -> None:
+        """Delete conversation for a client.
+
+        Args:
+            client_id: Client identifier
+        """
+        if client_id in self.active_conversations:
+            del self.active_conversations[client_id]

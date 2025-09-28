@@ -7,7 +7,7 @@ from langchain_core.runnables import Runnable
 
 from common.decorators import log_node_entry
 from common.logger import Logger
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
+from meetingmuse.llm_models.hugging_face import BaseLlmModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
@@ -15,12 +15,12 @@ from meetingmuse.prompts.clarify_request_prompt import CLARIFY_REQUEST_PROMPT
 
 
 class ClarifyRequestNode(BaseNode):
-    model: HuggingFaceModel
+    model: BaseLlmModel
     prompt: ChatPromptTemplate
     parser: StrOutputParser
     chain: Runnable[Dict[str, Any], str]
 
-    def __init__(self, model: HuggingFaceModel, logger: Logger) -> None:
+    def __init__(self, model: BaseLlmModel, logger: Logger) -> None:
         super().__init__(logger)
         self.model = model
         self.prompt = ChatPromptTemplate.from_messages(

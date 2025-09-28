@@ -35,7 +35,6 @@ class SystemMessageTypes(StrEnum):
     PROCESSING = "processing"
     CONVERSATION_RESUMED = "conversation_resumed"
     WAITING_FOR_INPUT = "waiting_for_input"
-    PROCESSING_STEP = "processing_step"
 
 
 # WebSocket Close Reasons

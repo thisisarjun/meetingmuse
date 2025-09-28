@@ -141,3 +141,154 @@ class TestGoogleCalendarClient:
                 date_time="2025-08-25 14:30",
                 duration_minutes=30,
             )
+
+    def test_prepare_attendees_with_participants(self, client):
+        """Test _prepare_attendees with valid participant list."""
+        # Arrange
+        participants = ["alice@example.com", "bob@example.com", "charlie@example.com"]
+
+        # Act
+        result = client._prepare_attendees(participants)
+
+        # Assert
+        assert isinstance(result, list)
+        assert len(result) == 3
+        assert result[0] == {"email": "alice@example.com"}
+        assert result[1] == {"email": "bob@example.com"}
+        assert result[2] == {"email": "charlie@example.com"}
+
+    def test_prepare_attendees_with_empty_list(self, client):
+        """Test _prepare_attendees with empty participant list."""
+        # Arrange
+        participants = []
+
+        # Act
+        result = client._prepare_attendees(participants)
+
+        # Assert
+        assert isinstance(result, list)
+        assert len(result) == 0
+
+    def test_prepare_attendees_with_none(self, client):
+        """Test _prepare_attendees with None participants."""
+        # Arrange
+        participants = None
+
+        # Act
+        result = client._prepare_attendees(participants)
+
+        # Assert
+        assert isinstance(result, list)
+        assert len(result) == 0
+
+    def test_prepare_attendees_with_single_participant(self, client):
+        """Test _prepare_attendees with single participant."""
+        # Arrange
+        participants = ["single@example.com"]
+
+        # Act
+        result = client._prepare_attendees(participants)
+
+        # Assert
+        assert isinstance(result, list)
+        assert len(result) == 1
+        assert result[0] == {"email": "single@example.com"}
+
+    async def test_create_calendar_event_with_multiple_participants(
+        self, client, mock_oauth_service, mock_credentials
+    ):
+        """Test successful calendar event creation with multiple participants."""
+        # Arrange
+        session_id = "test-session-123"
+        title = "Team Planning Meeting"
+        date_time = "2025-08-25 14:30"
+        duration_minutes = 60
+        location = "Conference Room B"
+        participants = ["alice@example.com", "bob@example.com", "charlie@example.com"]
+
+        mock_oauth_service.get_credentials = AsyncMock(return_value=mock_credentials)
+
+        mock_created_event = {
+            "id": "event-456",
+            "htmlLink": "https://calendar.google.com/event?eid=event-456",
+        }
+
+        with patch("meetingmuse.clients.google_calendar.build") as mock_build:
+            mock_service = Mock()
+            mock_events = Mock()
+            mock_insert = Mock()
+
+            mock_build.return_value = mock_service
+            mock_service.events.return_value = mock_events
+            mock_events.insert.return_value = mock_insert
+            mock_insert.execute.return_value = mock_created_event
+
+            # Act
+            result = await client.create_calendar_event(
+                session_id=session_id,
+                title=title,
+                date_time=date_time,
+                duration_minutes=duration_minutes,
+                location=location,
+                participants=participants,
+            )
+
+            # Assert
+            assert isinstance(result, CalendarEventDetails)
+            assert result.event_id == "event-456"
+            assert (
+                result.event_link == "https://calendar.google.com/event?eid=event-456"
+            )
+
+            # Verify the event payload included all participants
+            call_args = mock_events.insert.call_args
+            event_payload = call_args.kwargs["body"]
+            assert len(event_payload["attendees"]) == 3
+            assert {"email": "alice@example.com"} in event_payload["attendees"]
+            assert {"email": "bob@example.com"} in event_payload["attendees"]
+            assert {"email": "charlie@example.com"} in event_payload["attendees"]
+
+    async def test_create_calendar_event_without_participants(
+        self, client, mock_oauth_service, mock_credentials
+    ):
+        """Test successful calendar event creation without participants."""
+        # Arrange
+        session_id = "test-session-123"
+        title = "Personal Task"
+        date_time = "2025-08-25 14:30"
+        duration_minutes = 30
+
+        mock_oauth_service.get_credentials = AsyncMock(return_value=mock_credentials)
+
+        mock_created_event = {
+            "id": "event-789",
+            "htmlLink": "https://calendar.google.com/event?eid=event-789",
+        }
+
+        with patch("meetingmuse.clients.google_calendar.build") as mock_build:
+            mock_service = Mock()
+            mock_events = Mock()
+            mock_insert = Mock()
+
+            mock_build.return_value = mock_service
+            mock_service.events.return_value = mock_events
+            mock_events.insert.return_value = mock_insert
+            mock_insert.execute.return_value = mock_created_event
+
+            # Act
+            result = await client.create_calendar_event(
+                session_id=session_id,
+                title=title,
+                date_time=date_time,
+                duration_minutes=duration_minutes,
+                participants=None,
+            )
+
+            # Assert
+            assert isinstance(result, CalendarEventDetails)
+            assert result.event_id == "event-789"
+
+            # Verify the event payload has no attendees
+            call_args = mock_events.insert.call_args
+            event_payload = call_args.kwargs["body"]
+            assert len(event_payload["attendees"]) == 0

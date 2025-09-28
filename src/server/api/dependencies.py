@@ -1,40 +1,52 @@
+from common.config.config import config
 from common.logger.logger import Logger
+from meetingmuse.clients.google_contacts import GoogleContactsClient
+from server.dependency_container import DependencyContainer
 from server.services.oauth_service import OAuthService
 from server.services.session_manager import SessionManager
-from server.storage.memory_storage import MemoryStorageAdapter
+from server.services.websocket_connection_service import WebSocketConnectionService
 from server.storage.storage_adapter import StorageAdapter
 
-# Global service instances
-_storage_adapter: StorageAdapter | None = None
-_session_manager: SessionManager | None = None
-_oauth_service: OAuthService | None = None
+# Global dependency container instance - initialized based on environment
+_container: DependencyContainer | None = None
+
+
+def get_container() -> DependencyContainer:
+    """Get the global dependency container instance"""
+    global _container
+    if _container is None:
+        if config.ENV == "dev":
+            _container = DependencyContainer.create_development()
+        else:
+            _container = DependencyContainer.create_production()
+    return _container
 
 
 def get_logger() -> Logger:
     """Dependency to get logger instance"""
-    return Logger()
+    return get_container().logger
 
 
 def get_storage_adapter() -> StorageAdapter:
     """Dependency to get storage adapter instance"""
-    global _storage_adapter
-    if _storage_adapter is None:
-        # Swap adapter with appropriate storage in production
-        _storage_adapter = MemoryStorageAdapter()
-    return _storage_adapter
+    return get_container().storage_adapter
 
 
 def get_session_manager() -> SessionManager:
     """Dependency to get session manager instance"""
-    global _session_manager
-    if _session_manager is None:
-        _session_manager = SessionManager(get_storage_adapter())
-    return _session_manager
+    return get_container().session_manager
 
 
 def get_oauth_service() -> OAuthService:
     """Dependency to get OAuth service instance"""
-    global _oauth_service
-    if _oauth_service is None:
-        _oauth_service = OAuthService(get_session_manager())
-    return _oauth_service
+    return get_container().oauth_service
+
+
+def get_websocket_connection_service() -> WebSocketConnectionService:
+    """Dependency to get websocket connection service instance"""
+    return get_container().websocket_connection_service
+
+
+def get_google_contacts_client() -> GoogleContactsClient:
+    """Dependency to get Google Contacts client instance"""
+    return get_container().google_contacts_client
