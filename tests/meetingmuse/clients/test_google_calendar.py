@@ -23,17 +23,12 @@ class TestGoogleCalendarClient:
         return Mock(spec=Logger)
 
     @pytest.fixture
-    def client(self, mock_oauth_service, mock_logger):
+    def client(self, mock_oauth_service: OAuthService, mock_logger: Logger):
         """Create a GoogleCalendarClient instance with mocked dependencies."""
         return GoogleCalendarClient(mock_oauth_service, mock_logger)
 
-    @pytest.fixture
-    def mock_credentials(self):
-        """Create mock OAuth credentials."""
-        return Mock()
-
     async def test_create_calendar_event_success(
-        self, client, mock_oauth_service, mock_credentials
+        self, client: GoogleCalendarClient, mock_oauth_service: OAuthService
     ):
         """Test successful calendar event creation."""
         # Arrange
@@ -44,7 +39,7 @@ class TestGoogleCalendarClient:
         location = "Conference Room A"
         participants = ["test@example.com"]
 
-        mock_oauth_service.get_credentials = AsyncMock(return_value=mock_credentials)
+        mock_oauth_service.get_credentials = AsyncMock(return_value=Mock())
 
         mock_created_event = {
             "id": "event-123",
@@ -79,7 +74,9 @@ class TestGoogleCalendarClient:
             )
             mock_oauth_service.get_credentials.assert_called_once_with(session_id)
 
-    async def test_create_calendar_event_oauth_error(self, client, mock_oauth_service):
+    async def test_create_calendar_event_oauth_error(
+        self, client: GoogleCalendarClient, mock_oauth_service: OAuthService
+    ):
         """Test create_calendar_event raises ValueError when credentials are not available."""
         # Arrange
         mock_oauth_service.get_credentials = AsyncMock(return_value=None)
@@ -96,12 +93,15 @@ class TestGoogleCalendarClient:
             )
 
     async def test_create_calendar_event_general_error(
-        self, client, mock_oauth_service, mock_credentials, mock_logger
+        self,
+        client: GoogleCalendarClient,
+        mock_oauth_service: OAuthService,
+        mock_logger: Logger,
     ):
         """Test create_calendar_event handles Google Calendar API errors."""
         # Arrange
         session_id = "test-session-123"
-        mock_oauth_service.get_credentials = AsyncMock(return_value=mock_credentials)
+        mock_oauth_service.get_credentials = AsyncMock(return_value=Mock())
 
         http_error = HttpError(
             resp=Mock(status=403),
@@ -129,7 +129,9 @@ class TestGoogleCalendarClient:
 
             mock_logger.error.assert_called_once()
 
-    async def test_create_calendar_event_session_id_error(self, client):
+    async def test_create_calendar_event_session_id_error(
+        self, client: GoogleCalendarClient
+    ):
         """Test create_calendar_event raises ValueError when session_id is missing."""
         # Act & Assert
         with pytest.raises(
@@ -142,7 +144,7 @@ class TestGoogleCalendarClient:
                 duration_minutes=30,
             )
 
-    def test_prepare_attendees_with_participants(self, client):
+    def test_prepare_attendees_with_participants(self, client: GoogleCalendarClient):
         """Test _prepare_attendees with valid participant list."""
         # Arrange
         participants = ["alice@example.com", "bob@example.com", "charlie@example.com"]
@@ -157,7 +159,7 @@ class TestGoogleCalendarClient:
         assert result[1] == {"email": "bob@example.com"}
         assert result[2] == {"email": "charlie@example.com"}
 
-    def test_prepare_attendees_with_empty_list(self, client):
+    def test_prepare_attendees_with_empty_list(self, client: GoogleCalendarClient):
         """Test _prepare_attendees with empty participant list."""
         # Arrange
         participants = []
@@ -169,7 +171,7 @@ class TestGoogleCalendarClient:
         assert isinstance(result, list)
         assert len(result) == 0
 
-    def test_prepare_attendees_with_none(self, client):
+    def test_prepare_attendees_with_none(self, client: GoogleCalendarClient):
         """Test _prepare_attendees with None participants."""
         # Arrange
         participants = None
@@ -181,7 +183,9 @@ class TestGoogleCalendarClient:
         assert isinstance(result, list)
         assert len(result) == 0
 
-    def test_prepare_attendees_with_single_participant(self, client):
+    def test_prepare_attendees_with_single_participant(
+        self, client: GoogleCalendarClient
+    ):
         """Test _prepare_attendees with single participant."""
         # Arrange
         participants = ["single@example.com"]
@@ -195,7 +199,7 @@ class TestGoogleCalendarClient:
         assert result[0] == {"email": "single@example.com"}
 
     async def test_create_calendar_event_with_multiple_participants(
-        self, client, mock_oauth_service, mock_credentials
+        self, client: GoogleCalendarClient, mock_oauth_service: OAuthService
     ):
         """Test successful calendar event creation with multiple participants."""
         # Arrange
@@ -206,7 +210,7 @@ class TestGoogleCalendarClient:
         location = "Conference Room B"
         participants = ["alice@example.com", "bob@example.com", "charlie@example.com"]
 
-        mock_oauth_service.get_credentials = AsyncMock(return_value=mock_credentials)
+        mock_oauth_service.get_credentials = AsyncMock(return_value=Mock())
 
         mock_created_event = {
             "id": "event-456",
@@ -249,7 +253,7 @@ class TestGoogleCalendarClient:
             assert {"email": "charlie@example.com"} in event_payload["attendees"]
 
     async def test_create_calendar_event_without_participants(
-        self, client, mock_oauth_service, mock_credentials
+        self, client: GoogleCalendarClient, mock_oauth_service: OAuthService
     ):
         """Test successful calendar event creation without participants."""
         # Arrange
@@ -258,7 +262,7 @@ class TestGoogleCalendarClient:
         date_time = "2025-08-25 14:30"
         duration_minutes = 30
 
-        mock_oauth_service.get_credentials = AsyncMock(return_value=mock_credentials)
+        mock_oauth_service.get_credentials = AsyncMock(return_value=Mock())
 
         mock_created_event = {
             "id": "event-789",
