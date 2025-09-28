@@ -1,18 +1,11 @@
 from typing import List
 
-from common.logger import Logger
-from meetingmuse.llm_models.hugging_face import BaseLlmModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.services.base_schedule_service import BaseScheduleService
 
 
 class ReminderDetailsService(BaseScheduleService):
     """Service for handling reminder details validation and prompts"""
-
-    def __init__(
-        self, model: BaseLlmModel, logger: Logger, interactive_prompt_template: str
-    ) -> None:
-        super().__init__(model, logger, interactive_prompt_template)
 
     def is_details_complete(self, details: MeetingFindings) -> bool:
         """Check if all required fields are present for reminder (title as topic, date_time)"""
