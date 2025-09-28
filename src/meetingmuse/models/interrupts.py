@@ -14,3 +14,8 @@ class InterruptInfo(BaseModel):
     message: str
     question: str
     options: Optional[list[str]] = None
+
+
+class InterruptOperationApproval(InterruptInfo):
+    type: InterruptType = InterruptType.OPERATION_APPROVAL
+    options: list[str] = ["retry", "cancel"]

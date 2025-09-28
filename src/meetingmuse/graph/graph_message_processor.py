@@ -13,6 +13,7 @@ from langgraph.types import Command
 from common.logger import Logger
 from meetingmuse.graph.graph_utils import Utils
 from meetingmuse.models.graph import MessageType
+from meetingmuse.models.graph_response import GraphResponse
 from meetingmuse.models.state import MeetingMuseBotState
 
 
@@ -26,7 +27,7 @@ class GraphMessageProcessor:
 
     async def process_user_message(
         self, content: str, client_id: str, session_id: str
-    ) -> str:
+    ) -> GraphResponse:
         """
         Process user message through graph workflow
 
@@ -36,7 +37,7 @@ class GraphMessageProcessor:
             session_id: OAuth session ID for authenticated operations
 
         Returns:
-            AI response content
+            GraphResponse with content and optional interrupt info
         """
         try:
             input_data: Dict[str, Any] = {"messages": [HumanMessage(content=content)]}
@@ -53,22 +54,28 @@ class GraphMessageProcessor:
 
             interrupt_info = Utils.get_interrupt_info_from_events(result)
             if interrupt_info:
-                return interrupt_info.question
+                return GraphResponse(
+                    content=interrupt_info.question, interrupt_info=interrupt_info
+                )
 
             meeting_muse_state = MeetingMuseBotState.model_validate(result)
             last_message = Utils.get_last_message(meeting_muse_state, MessageType.AI)
             # Extract AI response
             if last_message:
-                return last_message
+                return GraphResponse(content=last_message)
 
             self.logger.warning(f"No messages in result for client {client_id}")
-            return "I'm having trouble processing your request. Please try again."
+            return GraphResponse(
+                content="I'm having trouble processing your request. Please try again."
+            )
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             self.logger.error(
                 f"Error processing message for client {client_id}: {str(e)}"
             )
-            return "I encountered an error processing your request. Please try again."
+            return GraphResponse(
+                content="I encountered an error processing your request. Please try again."
+            )
 
     async def check_if_interrupt_exists(self, client_id: str) -> bool:
         """
@@ -123,7 +130,7 @@ class GraphMessageProcessor:
 
     async def resume_interrupt_conversation(
         self, client_id: str, user_input: str
-    ) -> str:
+    ) -> GraphResponse:
         """
         Resume an interrupted conversation with user input
 
@@ -132,7 +139,7 @@ class GraphMessageProcessor:
             user_input: User's response to the interrupt
 
         Returns:
-            AI response after resuming
+            GraphResponse with content and optional interrupt info after resuming
         """
         try:
             config = RunnableConfig(configurable={"thread_id": client_id})
@@ -157,8 +164,12 @@ class GraphMessageProcessor:
                     current_state
                 )
                 if interrupt_info:
-                    return interrupt_info.question
-                return "I need additional information to continue."
+                    return GraphResponse(
+                        content=interrupt_info.question, interrupt_info=interrupt_info
+                    )
+                return GraphResponse(
+                    content="I need additional information to continue."
+                )
 
             # Extract the latest AI response
             meeting_muse_state = MeetingMuseBotState.model_validate(
@@ -166,14 +177,16 @@ class GraphMessageProcessor:
             )
             last_message = Utils.get_last_message(meeting_muse_state, MessageType.AI)
             if last_message:
-                return last_message
+                return GraphResponse(content=last_message)
 
-            return "Thank you for the additional information. Let me continue processing your request."
+            return GraphResponse(
+                content="Thank you for the additional information. Let me continue processing your request."
+            )
 
         except Exception as e:  # pylint: disable=broad-exception-caught
             self.logger.error(
                 f"Error resuming conversation for client {client_id}: {str(e)}"
             )
-            return (
-                "I encountered an error while processing your input. Please try again."
+            return GraphResponse(
+                content="I encountered an error while processing your input. Please try again."
             )

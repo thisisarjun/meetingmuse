@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
+from server.models.message.ui_elements import UIElements
 from server.models.message.websocket_message import (
     BotResponse,
     ErrorMessage,
@@ -86,7 +87,9 @@ class ConnectionManager:
             return True
         return False
 
-    async def send_personal_message(self, message: str, client_id: str) -> bool:
+    async def send_bot_response_message(
+        self, message: str, client_id: str, ui_elements: Optional[UIElements] = None
+    ) -> bool:
         """
         Send a message to a specific client
 
@@ -110,6 +113,7 @@ class ConnectionManager:
             response = BotResponse(
                 content=message,
                 session_id=client_id,
+                ui_elements=ui_elements,
             )
 
             await websocket.send_text(response.model_dump_json())

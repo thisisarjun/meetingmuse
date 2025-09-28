@@ -8,7 +8,9 @@ from fastapi import WebSocket, WebSocketDisconnect, status
 
 from common.logger.logger import Logger
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
+from meetingmuse.models.graph_response import GraphResponse
 from server.models.message.websocket_message import UserMessage
+from server.services.interrupt_ui_mapper import map_interrupt_to_ui_elements
 from server.services.socket_message_processor import SocketMessageProcessor
 
 from ..constants import CloseReasons, ErrorCodes, ErrorMessages, SystemMessageTypes
@@ -129,13 +131,20 @@ class WebSocketConnectionService:
 
             # Process the message
             try:
-                response_content = await self._process_input_user_message(
+                graph_response = await self._process_input_user_message(
                     client_id, user_message.content
                 )
 
+                # Prepare UI elements if interrupt exists
+                ui_elements = None
+                if graph_response.interrupt_info:
+                    ui_elements = map_interrupt_to_ui_elements(
+                        graph_response.interrupt_info
+                    )
+
                 # Send AI response
-                success = await self.connection_manager.send_personal_message(
-                    response_content, client_id
+                success = await self.connection_manager.send_bot_response_message(
+                    graph_response.content, client_id, ui_elements
                 )
 
                 if not success:
@@ -152,9 +161,9 @@ class WebSocketConnectionService:
 
     async def _process_input_user_message(
         self, client_id: str, message_content: str
-    ) -> str:
-        """Process a user message and return the response"""
-        # Check for any pending interrupts first
+    ) -> GraphResponse:
+        """Process a user message and return the graph response"""
+        # Check for any pending interrupts first,
         interrupt_info = await self.graph_message_processor.check_if_interrupt_exists(
             client_id
         )
@@ -164,7 +173,7 @@ class WebSocketConnectionService:
             # Handle interrupt - ask for user input
 
             # Resume conversation with user input
-            response_content = (
+            graph_response = (
                 await self.graph_message_processor.resume_interrupt_conversation(
                     client_id, message_content
                 )
@@ -175,12 +184,12 @@ class WebSocketConnectionService:
             if session_id is None:
                 raise ConnectionRefusedError("Session ID is missing for user")
 
-            response_content = await self.graph_message_processor.process_user_message(
+            graph_response = await self.graph_message_processor.process_user_message(
                 message_content, client_id, session_id
             )
 
-        self.logger.info(f"Response content: {response_content}")
-        return response_content
+        self.logger.info(f"Response content: {graph_response.content}")
+        return graph_response
 
     async def _handle_processing_error(self, client_id: str, error: Exception) -> None:
         """Handle errors during message processing"""
