@@ -130,7 +130,7 @@ class CollectingInfoNode(BaseNode):
             self.logger.error(f"Parsing error: {e}")
             # Fallback: keep existing details and generate fallback response
             new_meeting_details = meeting_details
-            response_message = "I need some more information to schedule your meeting. Could you provide the missing details?"
+            response_message = "I need some more information to schedule your meeting. Could you provide the missing details?"  # pylint: disable=line-too-long
 
         # Update only non None fields
         updated_meeting_details = self.schedule_service.update_state_meeting_details(

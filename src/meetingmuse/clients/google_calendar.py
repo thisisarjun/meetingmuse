@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from googleapiclient.discovery import build
@@ -30,15 +30,17 @@ class GoogleCalendarClient:
         """Parse date time string to datetime object."""
         if not date_time_str:
             self.logger.warning("No date time provided, setting default")
-            return datetime.now().replace(
+            return datetime.now(timezone.utc).replace(
                 minute=0, second=0, microsecond=0
             ) + timedelta(hours=1)
 
         try:
-            return datetime.strptime(date_time_str, "%Y-%m-%d %H:%M")
+            return datetime.strptime(date_time_str, "%Y-%m-%d %H:%M").replace(
+                tzinfo=timezone.utc
+            )
         except (ValueError, TypeError) as e:
             self.logger.error(f"Error parsing date time {date_time_str}: {str(e)}")
-            return datetime.now().replace(
+            return datetime.now(timezone.utc).replace(
                 minute=0, second=0, microsecond=0
             ) + timedelta(hours=1)
 

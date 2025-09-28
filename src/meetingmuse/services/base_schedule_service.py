@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from langchain_core.messages import AIMessage, BaseMessage
@@ -51,18 +51,20 @@ class BaseScheduleService(ABC):
 
     def invoke_extraction_prompt(
         self,
-        meeting_details: MeetingFindings,
+        details: MeetingFindings,
         missing_required: List[str],
         user_input: str = "",
     ) -> InteractiveMeetingResponse:
         response: InteractiveMeetingResponse = self.interactive_chain.invoke(
             {
                 "user_message": user_input,  # Empty message for pure response generation
-                "current_details": meeting_details.model_dump(),
+                "current_details": details.model_dump(),
                 "missing_fields": ", ".join(missing_required)
                 if missing_required
                 else "none",
-                "todays_date": datetime.now().strftime("%Y-%m-%d"),
+                "todays_datetime": datetime.now(timezone.utc).strftime(
+                    "%Y-%m-%d %H:%M"
+                ),
                 "todays_day_name": datetime.now().strftime("%A"),
                 "format_instructions": self.parser.get_format_instructions(),
             }
@@ -84,14 +86,14 @@ class BaseScheduleService(ABC):
             raise
 
     def update_state_meeting_details(
-        self, meeting_details: MeetingFindings, state: MeetingMuseBotState
+        self, details: MeetingFindings, state: MeetingMuseBotState
     ) -> MeetingFindings:
         """Update the meeting details with new information"""
         # Create a new MeetingFindings object with updated values
         current = state.meeting_details
         updated_data = {}
 
-        for key, value in meeting_details.model_dump().items():
+        for key, value in details.model_dump().items():
             if value is not None:
                 updated_data[key] = value
             else:
