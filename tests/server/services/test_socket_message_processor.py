@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pytest
 
-from server.models.api.ws import UserMessage
+from server.models.api.web_socket_message import UserMessage
 from server.services.socket_message_processor import SocketMessageProcessor
 
 

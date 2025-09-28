@@ -2,13 +2,10 @@
 Message Protocol Definitions
 Defines the message format and validation for WebSocket communication
 """
-import logging
 from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
-
-logger = logging.getLogger(__name__)
 
 
 class UserMessage(BaseModel):

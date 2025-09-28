@@ -8,7 +8,11 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
-from server.models.api.ws import BotResponse, ErrorMessage, SystemMessage
+from server.models.api.web_socket_message import (
+    BotResponse,
+    ErrorMessage,
+    SystemMessage,
+)
 
 from ..constants import SystemMessageTypes
 from ..models.connections import ConnectionMetadataDto
