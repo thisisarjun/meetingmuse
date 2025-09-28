@@ -8,7 +8,12 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
-from server.models.api.ws import BotResponse, ErrorMessage, SystemMessage
+from server.models.message.ui_elements import UIElements
+from server.models.message.websocket_message import (
+    BotResponse,
+    ErrorMessage,
+    SystemMessage,
+)
 
 from ..constants import SystemMessageTypes
 from ..models.connections import ConnectionMetadataDto
@@ -82,7 +87,9 @@ class ConnectionManager:
             return True
         return False
 
-    async def send_personal_message(self, message: str, client_id: str) -> bool:
+    async def send_bot_response_message(
+        self, message: str, client_id: str, ui_elements: Optional[UIElements] = None
+    ) -> bool:
         """
         Send a message to a specific client
 
@@ -106,6 +113,7 @@ class ConnectionManager:
             response = BotResponse(
                 content=message,
                 session_id=client_id,
+                ui_elements=ui_elements,
             )
 
             await websocket.send_text(response.model_dump_json())
@@ -165,7 +173,7 @@ class ConnectionManager:
         self,
         client_id: str,
         error_code: str,
-        message: str,
+        content: str,
         retry_suggested: bool = True,
         additional_metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
@@ -175,7 +183,7 @@ class ConnectionManager:
         Args:
             client_id: Target client identifier
             error_code: Error code identifier
-            message: Human-readable error message
+            content: Human-readable error message
             retry_suggested: Whether client should retry the operation
             additional_metadata: Optional additional metadata to include
 
@@ -190,7 +198,7 @@ class ConnectionManager:
 
             error_response = ErrorMessage(
                 error_code=error_code,
-                message=message,
+                content=content,
                 retry_suggested=retry_suggested,
             )
 

@@ -88,7 +88,7 @@ test-verbose:
 	poetry run pytest tests/ -v --tb=long -s
 
 test-coverage:
-	poetry run pytest tests/ --cov=src/meetingmuse --cov-report=html --cov-report=term-missing
+	poetry run pytest -vv tests/ --cov=src/meetingmuse --cov-report=html --cov-report=term-missing
 
 # Code quality with Poetry
 lint:

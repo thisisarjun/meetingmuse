@@ -13,6 +13,7 @@ class Config:
 
     HUGGINGFACE_API_TOKEN: str = os.getenv("HUGGINGFACE_API_TOKEN", "")
     ENV: str = os.getenv("ENV", "dev")
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     OPENAI_API_KEY = SecretStr(os.getenv("OPENAI_API_KEY", ""))
     # Google OAuth Configuration

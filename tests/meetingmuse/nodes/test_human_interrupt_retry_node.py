@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from langchain_core.messages import AIMessage
 from langgraph.types import Command
 
-from meetingmuse.models.interrupts import InterruptInfo, InterruptType
+from meetingmuse.models.interrupts import InterruptOperationApproval, InterruptType
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
@@ -40,11 +40,9 @@ class TestHumanInterruptRetryNode:
 
         # Verify interrupt was called with correct parameters
         mock_interrupt.assert_called_once_with(
-            InterruptInfo(
-                type=InterruptType.OPERATION_APPROVAL,
+            InterruptOperationApproval(
                 message="Meeting scheduling failed.",
                 question="Would you like to retry this operation?",
-                options=["retry", "cancel"],
             )
         )
 
@@ -69,7 +67,7 @@ class TestHumanInterruptRetryNode:
 
         # Verify interrupt was called with correct parameters
         mock_interrupt.assert_called_once_with(
-            InterruptInfo(
+            InterruptOperationApproval(
                 type=InterruptType.OPERATION_APPROVAL,
                 message="Meeting scheduling failed.",
                 question="Would you like to retry this operation?",
@@ -85,7 +83,7 @@ class TestHumanInterruptRetryNode:
         assert len(self.base_state.messages) == 1
         assert isinstance(self.base_state.messages[0], AIMessage)
         assert "cancel" in self.base_state.messages[0].content.lower()
-        assert "operation ended" in self.base_state.messages[0].content.lower()
+        assert "canceled" in self.base_state.messages[0].content.lower()
 
     @patch("meetingmuse.nodes.human_interrupt_retry_node.interrupt")
     def test_state_preservation(self, mock_interrupt):
