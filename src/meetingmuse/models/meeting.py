@@ -31,6 +31,13 @@ class MeetingFindings(BaseModel):
     location: Optional[str] = None
 
 
+class InteractiveMeetingResponse(BaseModel):
+    """Pydantic model for interactive meeting collection response"""
+
+    extracted_data: MeetingFindings
+    response_message: str
+
+
 class CalendarEventDetails(BaseModel):
     """Pydantic model for calendar event creation response"""
 

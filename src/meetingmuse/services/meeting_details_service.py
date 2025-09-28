@@ -1,14 +1,18 @@
+from datetime import datetime
 from typing import Any, Dict, List
 
 from langchain_core.messages import BaseMessage
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 
 from common.logger import Logger
 from meetingmuse.llm_models.hugging_face import BaseLlmModel
-from meetingmuse.models.meeting import MeetingFindings
+from meetingmuse.models.meeting import InteractiveMeetingResponse, MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.prompts.missing_fields_prompt import MISSING_FIELDS_PROMPT
+from meetingmuse.prompts.schedule_meeting_collecting_info_prompt import (
+    INTERACTIVE_MEETING_COLLECTION_PROMPT,
+)
 
 
 class MeetingDetailsService:
@@ -16,18 +20,22 @@ class MeetingDetailsService:
 
     model: BaseLlmModel
     logger: Logger
-    missing_fields_prompt: ChatPromptTemplate
-    missing_fields_chain: Runnable[Dict[str, Any], BaseMessage]
+    interactive_prompt: ChatPromptTemplate
+    parser: PydanticOutputParser[InteractiveMeetingResponse]
+    interactive_chain: Runnable[Dict[str, Any], InteractiveMeetingResponse]
 
     def __init__(self, model: BaseLlmModel, logger: Logger) -> None:
         self.model = model
         self.logger = logger
-        self.missing_fields_prompt = ChatPromptTemplate.from_messages(
+        self.parser = PydanticOutputParser(pydantic_object=InteractiveMeetingResponse)
+        self.interactive_prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", MISSING_FIELDS_PROMPT),
+                ("system", INTERACTIVE_MEETING_COLLECTION_PROMPT),
             ]
         )
-        self.missing_fields_chain = self.missing_fields_prompt | self.model.chat_model
+        self.interactive_chain = (
+            self.interactive_prompt | self.model.chat_model | self.parser
+        )
 
     def is_meeting_details_complete(self, meeting_details: MeetingFindings) -> bool:
         """Check if all required fields are present (title, date_time, participants, duration)"""
@@ -57,16 +65,25 @@ class MeetingDetailsService:
         return missing
 
     def invoke_missing_fields_prompt(self, state: MeetingMuseBotState) -> BaseMessage:
-        """Invoke the missing fields prompt to get the missing required fields"""
+        """Generate a response message asking for missing fields using interactive prompt"""
         try:
-            return self.missing_fields_chain.invoke(
+            missing_required = self.get_missing_required_fields(state.meeting_details)
+            response: InteractiveMeetingResponse = self.interactive_chain.invoke(
                 {
+                    "user_message": "",  # Empty message for pure response generation
                     "current_details": state.meeting_details.model_dump(),
-                    "missing_required": self.get_missing_required_fields(
-                        state.meeting_details
-                    ),
+                    "missing_fields": ", ".join(missing_required)
+                    if missing_required
+                    else "none",
+                    "todays_date": datetime.now().strftime("%Y-%m-%d"),
+                    "todays_day_name": datetime.now().strftime("%A"),
+                    "format_instructions": self.parser.get_format_instructions(),
                 }
             )
+            # Create BaseMessage with the response content
+            from langchain_core.messages import AIMessage
+
+            return AIMessage(content=response.response_message)
         except Exception as e:
             self.logger.error(f"Missing fields prompt error: {e}")
             raise

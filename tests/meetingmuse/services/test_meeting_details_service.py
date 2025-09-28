@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from langchain_core.messages import AIMessage
 
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState
@@ -183,16 +184,16 @@ class TestMeetingDetailsService:
             messages=[], meeting_details=MeetingFindings(title="Team Meeting")
         )
         mock_response = Mock()
-        mock_response.content = "What time would you like the meeting?"
+        mock_response.response_message = "What time would you like the meeting?"
 
-        with patch.object(service, "missing_fields_chain") as mock_chain:
+        with patch.object(service, "interactive_chain") as mock_chain:
             mock_chain.invoke.return_value = mock_response
 
             # Act
             result = service.invoke_missing_fields_prompt(state)
 
             # Assert
-            assert result == mock_response
+            assert AIMessage(content=mock_response.response_message) == result
             mock_chain.invoke.assert_called_once()
 
     def test_invoke_missing_fields_prompt_error(self, service, mock_logger):
@@ -202,7 +203,7 @@ class TestMeetingDetailsService:
             messages=[], meeting_details=MeetingFindings(title="Team Meeting")
         )
 
-        with patch.object(service, "missing_fields_chain") as mock_chain:
+        with patch.object(service, "interactive_chain") as mock_chain:
             mock_chain.invoke.side_effect = Exception("LLM Error")
 
             # Act & Assert

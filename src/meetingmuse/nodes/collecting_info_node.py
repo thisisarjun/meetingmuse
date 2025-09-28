@@ -11,12 +11,12 @@ from common.logger import Logger
 from meetingmuse.graph.graph_utils.utils import Utils
 from meetingmuse.llm_models.hugging_face import BaseLlmModel
 from meetingmuse.models.graph import MessageType
-from meetingmuse.models.meeting import MeetingFindings
+from meetingmuse.models.meeting import InteractiveMeetingResponse, MeetingFindings
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.prompts.schedule_meeting_collecting_info_prompt import (
-    SCHEDULE_MEETING_COLLECTING_INFO_PROMPT,
+    INTERACTIVE_MEETING_COLLECTION_PROMPT,
 )
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 
@@ -29,18 +29,18 @@ class CollectingInfoNode(BaseNode):
     """
 
     model: BaseLlmModel
-    parser: PydanticOutputParser[MeetingFindings]
+    parser: PydanticOutputParser[InteractiveMeetingResponse]
     prompt: ChatPromptTemplate
-    chain: Runnable[Dict[str, Any], MeetingFindings]
+    chain: Runnable[Dict[str, Any], InteractiveMeetingResponse]
     meeting_service: MeetingDetailsService
 
     def __init__(self, model: BaseLlmModel, logger: Logger) -> None:
         super().__init__(logger)
         self.model = model
-        self.parser = PydanticOutputParser(pydantic_object=MeetingFindings)
+        self.parser = PydanticOutputParser(pydantic_object=InteractiveMeetingResponse)
         self.prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", SCHEDULE_MEETING_COLLECTING_INFO_PROMPT),
+                ("system", INTERACTIVE_MEETING_COLLECTION_PROMPT),
             ]
         )
         self.chain = self.prompt | self.model.chat_model | self.parser
@@ -76,7 +76,7 @@ class CollectingInfoNode(BaseNode):
         meeting_details: MeetingFindings,
         missing_required: List[str],
         user_input: str,
-    ) -> MeetingFindings:
+    ) -> InteractiveMeetingResponse:
         """Invoke the extraction prompt to get the missing required fields"""
         prompt = self.chain.invoke(
             {
@@ -90,26 +90,9 @@ class CollectingInfoNode(BaseNode):
                 "format_instructions": self.parser.get_format_instructions(),
             }
         )
-        if not isinstance(prompt, MeetingFindings):
-            raise ValueError(f"Expected MeetingFindings, got {type(prompt)}")
+        if not isinstance(prompt, InteractiveMeetingResponse):
+            raise ValueError(f"Expected InteractiveMeetingResponse, got {type(prompt)}")
         return prompt
-
-    def fetch_missing_fields_via_prompt(self, state: MeetingMuseBotState) -> str:
-        try:
-            prompt_response = self.meeting_service.invoke_missing_fields_prompt(state)
-            # Handle both string and complex content types
-            if hasattr(prompt_response, "content"):
-                content = prompt_response.content
-                if isinstance(content, str):
-                    response = content
-                else:
-                    response = str(content)
-            else:
-                response = str(prompt_response)
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            self.logger.error(f"Missing fields prompt error: {e}")
-            response = "I need some more information to schedule your meeting. Could you provide the missing details?"  # pylint: disable=line-too-long
-        return response
 
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         self.logger.info(
@@ -133,13 +116,18 @@ class CollectingInfoNode(BaseNode):
             return self.complete_state(meeting_details, state)
 
         try:
-            new_meeting_details: MeetingFindings = self.invoke_extraction_prompt(
-                meeting_details, missing_required, last_human_message
+            interactive_response: InteractiveMeetingResponse = (
+                self.invoke_extraction_prompt(
+                    meeting_details, missing_required, last_human_message
+                )
             )
+            new_meeting_details = interactive_response.extracted_data
+            response_message = interactive_response.response_message
         except Exception as e:  # pylint: disable=broad-exception-caught
             self.logger.error(f"Parsing error: {e}")
-            # Fallback: keep existing details
+            # Fallback: keep existing details and generate fallback response
             new_meeting_details = meeting_details
+            response_message = "I need some more information to schedule your meeting. Could you provide the missing details?"
 
         # Update only non None fields
         updated_meeting_details = self.meeting_service.update_state_meeting_details(
@@ -149,17 +137,7 @@ class CollectingInfoNode(BaseNode):
 
         self.logger.info(f"Updated meeting details: {state.meeting_details}")
 
-        # Generate contextual response based on missing required fields
-        updated_missing_required: List[
-            str
-        ] = self.meeting_service.get_missing_required_fields(state.meeting_details)
-
-        if updated_missing_required:
-            response = self.fetch_missing_fields_via_prompt(state)
-        else:
-            response = "Great! I have all the information I need."
-
-        state.messages.append(AIMessage(content=response))
+        state.messages.append(AIMessage(content=response_message))
         return state
 
     @property
