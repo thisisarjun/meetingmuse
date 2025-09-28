@@ -153,11 +153,11 @@ class WebSocketConnectionService:
                     )
                     break
 
-            except Exception as llm_error:
-                self.logger.error(
-                    f"LLM processing error for client {client_id}: {str(llm_error)}"
+            except Exception as exception:
+                self.logger.exception(
+                    f"exception for client {client_id}: {repr(exception)}",
                 )
-                await self._handle_processing_error(client_id, llm_error)
+                await self._handle_processing_error(client_id, exception)
 
     async def _process_input_user_message(
         self, client_id: str, message_content: str

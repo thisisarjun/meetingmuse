@@ -4,7 +4,7 @@ from langchain_core.messages import AIMessage
 from langgraph.types import Command, interrupt
 
 from common.decorators import log_node_entry
-from meetingmuse.models.interrupts import InterruptInfo, InterruptType
+from meetingmuse.models.interrupts import InterruptOperationApproval
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
 from meetingmuse.nodes.base_node import BaseNode
@@ -23,11 +23,9 @@ class HumanInterruptRetryNode(BaseNode):
         # Use LangGraph's interrupt() for human decision
 
         options = ["retry", "cancel"]
-        interrupt_info = InterruptInfo(
-            type=InterruptType.OPERATION_APPROVAL,
+        interrupt_info = InterruptOperationApproval(
             message="Meeting scheduling failed.",
             question="Would you like to retry this operation?",
-            options=options,
         )
         approval: str = interrupt(interrupt_info)
 
@@ -45,7 +43,7 @@ class HumanInterruptRetryNode(BaseNode):
                 goto=NodeName.SCHEDULE_MEETING, update={"messages": state.messages}
             )
         # User chose to cancel - end the operation
-        cancel_message: str = "User chose to cancel. Operation ended."
+        cancel_message: str = "I understand. I apologize for the technical issue with our calendar system. The meeting request has been canceled. Please feel free to try again later or let me know if there's anything else I can help you with."
 
         self.logger.info("User chose to cancel operation")
         state.messages.append(AIMessage(content=cancel_message))
