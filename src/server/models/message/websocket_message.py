@@ -8,6 +8,8 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from server.models.message.ui_elements import UIElements
+
 
 class MessageType(StrEnum):
     """Message type identifier"""
@@ -58,6 +60,9 @@ class BotResponse(BaseMessage):
         description="Response timestamp",
     )
     session_id: str = Field(..., description="Session identifier")
+    ui_elements: Optional[UIElements] = Field(
+        default=None, description="UI elements to display with the response"
+    )
 
 
 class SystemMessage(BaseMessage):
