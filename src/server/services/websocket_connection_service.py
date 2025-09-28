@@ -81,9 +81,9 @@ class WebSocketConnectionService:
             # Attempt to send error message before closing
             try:
                 await self.connection_manager.send_error_message(
-                    client_id,
-                    ErrorCodes.INTERNAL_SERVER_ERROR,
-                    ErrorMessages.INTERNAL_SERVER_ERROR,
+                    client_id=client_id,
+                    error_code=ErrorCodes.INTERNAL_SERVER_ERROR,
+                    content=ErrorMessages.INTERNAL_SERVER_ERROR,
                     retry_suggested=True,
                 )
             except Exception as e:
@@ -110,9 +110,9 @@ class WebSocketConnectionService:
                 self.logger.error(f"Error parsing user message: {str(e)}")
                 self.logger.warning(f"Invalid message format from {client_id}")
                 await self.connection_manager.send_error_message(
-                    client_id,
-                    ErrorCodes.INVALID_MESSAGE_FORMAT,
-                    ErrorMessages.INVALID_MESSAGE_FORMAT,
+                    client_id=client_id,
+                    error_code=ErrorCodes.INVALID_MESSAGE_FORMAT,
+                    content=ErrorMessages.INVALID_MESSAGE_FORMAT,
                     retry_suggested=True,
                 )
                 continue
@@ -185,9 +185,9 @@ class WebSocketConnectionService:
     async def _handle_processing_error(self, client_id: str, error: Exception) -> None:
         """Handle errors during message processing"""
         await self.connection_manager.send_error_message(
-            client_id,
-            ErrorCodes.INTERNAL_SERVER_ERROR,
-            "I'm having trouble processing your request. Please try again.",
+            client_id=client_id,
+            error_code=ErrorCodes.INTERNAL_SERVER_ERROR,
+            content="I'm having trouble processing your request. Please try again.",
             retry_suggested=True,
             additional_metadata={
                 "conversation_preserved": True,

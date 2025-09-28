@@ -160,11 +160,11 @@ class TestConnectionManager:
         client_id = "test_client_123"
         connection_manager.active_connections[client_id] = mock_websocket
         error_code = "TEST_ERROR"
-        message = "Test error message"
+        content = "Test error message"
         additional_metadata = {"debug_info": "test"}
 
         result = await connection_manager.send_error_message(
-            client_id, error_code, message, True, additional_metadata
+            client_id, error_code, content, True, additional_metadata
         )
 
         assert result is True
@@ -174,10 +174,10 @@ class TestConnectionManager:
         """Test sending error message to disconnected client."""
         client_id = "disconnected_client"
         error_code = "TEST_ERROR"
-        message = "Test error message"
+        content = "Test error message"
 
         result = await connection_manager.send_error_message(
-            client_id, error_code, message
+            client_id, error_code, content
         )
 
         assert result is False
@@ -190,10 +190,10 @@ class TestConnectionManager:
         connection_manager.active_connections[client_id] = mock_websocket
         mock_websocket.send_text.side_effect = Exception("Send failed")
         error_code = "TEST_ERROR"
-        message = "Test error message"
+        content = "Test error message"
 
         result = await connection_manager.send_error_message(
-            client_id, error_code, message
+            client_id, error_code, content
         )
 
         assert result is False
