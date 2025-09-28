@@ -70,7 +70,7 @@ class TestClassifyIntentNode:
         This tests realistic conversation scenarios where there are multiple exchanges.
         """
         # Arrange
-        mock_intent_classifier.classify.return_value = UserIntent.CANCEL_MEETING
+        mock_intent_classifier.classify.return_value = UserIntent.GENERAL_CHAT
 
         state = MeetingMuseBotState(
             messages=[
@@ -89,4 +89,4 @@ class TestClassifyIntentNode:
         mock_intent_classifier.classify.assert_called_once_with(
             "Actually, cancel my 3pm meeting"
         )
-        assert result.user_intent == UserIntent.CANCEL_MEETING
+        assert result.user_intent == UserIntent.GENERAL_CHAT

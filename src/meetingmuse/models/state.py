@@ -12,8 +12,6 @@ from meetingmuse.models.meeting import MeetingFindings
 class UserIntent(StrEnum):
     GENERAL_CHAT = "general"
     SCHEDULE_MEETING = "schedule"
-    CANCEL_MEETING = "cancel"
-    CHECK_AVAILABILITY = "check_availability"
     UNKNOWN = "unknown"
 
 

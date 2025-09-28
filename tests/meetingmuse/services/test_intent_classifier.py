@@ -22,15 +22,6 @@ class TestIntentClassifier:
             ),
             ("Set up a call with the marketing team", UserIntent.SCHEDULE_MEETING),
             ("Can we arrange a meeting for Friday?", UserIntent.SCHEDULE_MEETING),
-            # Check availability scenarios
-            ("Am I free tomorrow at 3pm?", UserIntent.CHECK_AVAILABILITY),
-            ("What's my availability for next week?", UserIntent.CHECK_AVAILABILITY),
-            ("When can I meet with John?", UserIntent.CHECK_AVAILABILITY),
-            ("Do I have any conflicts on Monday?", UserIntent.CHECK_AVAILABILITY),
-            # Cancel meeting scenarios
-            ("Cancel my 3pm meeting today", UserIntent.CANCEL_MEETING),
-            ("Delete the appointment with Sarah", UserIntent.CANCEL_MEETING),
-            ("Remove the team standup from my calendar", UserIntent.CANCEL_MEETING),
             # Reschedule meeting scenarios
             # General chat scenarios
             ("Hello there!", UserIntent.GENERAL_CHAT),
