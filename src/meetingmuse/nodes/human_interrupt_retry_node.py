@@ -43,7 +43,7 @@ class HumanInterruptRetryNode(BaseNode):
                 goto=NodeName.SCHEDULE_MEETING, update={"messages": state.messages}
             )
         # User chose to cancel - end the operation
-        cancel_message: str = "I understand. I apologize for the technical issue with our calendar system. The meeting request has been canceled. Please feel free to try again later or let me know if there's anything else I can help you with."
+        cancel_message: str = "I understand. I apologize for the technical issue with our calendar system. The meeting request has been canceled. Please feel free to try again later or let me know if there's anything else I can help you with."  # pylint: disable=line-too-long
 
         self.logger.info("User chose to cancel operation")
         state.messages.append(AIMessage(content=cancel_message))
