@@ -94,11 +94,24 @@ class CollectingInfoNode(BaseNode):
             raise ValueError(f"Expected MeetingFindings, got {type(prompt)}")
         return prompt
 
-    def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
-        self.logger.info(
-            f"Entering {self.node_name} node with current state: {state.meeting_details}"
-        )
+    def fetch_missing_fields_via_prompt(self, state: MeetingMuseBotState) -> str:
+        try:
+            prompt_response = self.meeting_service.invoke_missing_fields_prompt(state)
+            # Handle both string and complex content types
+            if hasattr(prompt_response, "content"):
+                content = prompt_response.content
+                if isinstance(content, str):
+                    response = content
+                else:
+                    response = str(content)
+            else:
+                response = str(prompt_response)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            self.logger.error(f"Missing fields prompt error: {e}")
+            response = "I need some more information to schedule your meeting. Could you provide the missing details?"  # pylint: disable=line-too-long
+        return response
 
+    def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         self.logger.info(
             f"Entering {self.node_name} node with current state: {state.meeting_details}"
         )
@@ -141,24 +154,8 @@ class CollectingInfoNode(BaseNode):
             str
         ] = self.meeting_service.get_missing_required_fields(state.meeting_details)
 
-        # TODO: refactor this method
         if updated_missing_required:
-            try:
-                prompt_response = self.meeting_service.invoke_missing_fields_prompt(
-                    state
-                )
-                # Handle both string and complex content types
-                if hasattr(prompt_response, "content"):
-                    content = prompt_response.content
-                    if isinstance(content, str):
-                        response = content
-                    else:
-                        response = str(content)
-                else:
-                    response = str(prompt_response)
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                self.logger.error(f"Missing fields prompt error: {e}")
-                response = "I need some more information to schedule your meeting. Could you provide the missing details?"  # pylint: disable=line-too-long
+            response = self.fetch_missing_fields_via_prompt(state)
         else:
             response = "Great! I have all the information I need."
 
