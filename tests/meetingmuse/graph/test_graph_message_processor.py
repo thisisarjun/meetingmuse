@@ -2,11 +2,14 @@
 Test suite for GraphMessageProcessor.process_user_message method.
 """
 
+from types import SimpleNamespace
+
 import pytest
 from langchain_core.messages import HumanMessage
 
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
 from meetingmuse.models.graph_response import GraphResponse
+from meetingmuse.models.interrupts import InterruptInfo, InterruptType
 
 
 class TestGraphMessageProcessorProcessUserMessage:
@@ -152,3 +155,44 @@ class TestGraphMessageProcessorProcessUserMessage:
         mock_logger.error.assert_called_once_with(
             f"Error processing message for client {client_id}: Graph processing failed"
         )
+
+    @pytest.mark.asyncio
+    async def test_process_user_message_interrupt_info(
+        self, message_processor, mock_graph, mock_logger
+    ):
+        """Test when graph.ainvoke raises an exception."""
+        # Arrange
+        user_content = "Hello"
+        client_id = "test_client_123"
+        session_id = "test_session_123"
+
+        expected_interrupt_info = GraphResponse(
+            content="Would you like to retry this operation?",
+            interrupt_info=InterruptInfo(
+                type=InterruptType.OPERATION_APPROVAL,
+                message="Meeting scheduling failed.",
+                question="Would you like to retry this operation?",
+                options=["retry", "cancel"],
+            ),
+        )
+
+        mock_graph.ainvoke.return_value = {
+            "__interrupt__": [
+                SimpleNamespace(
+                    value=InterruptInfo(
+                        type=InterruptType.OPERATION_APPROVAL,
+                        message="Meeting scheduling failed.",
+                        question="Would you like to retry this operation?",
+                        options=["retry", "cancel"],
+                    )
+                )
+            ],
+        }
+
+        # Act
+        result = await message_processor.process_user_message(
+            user_content, client_id, session_id
+        )
+
+        # Assert
+        assert result == expected_interrupt_info
