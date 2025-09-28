@@ -108,6 +108,10 @@ class Logger:
         """Log an error message."""
         self.logger.error(self._add_prefix(message))
 
+    def exception(self, message: str) -> None:
+        """Log an error message."""
+        self.logger.exception(self._add_prefix(message))
+
     def debug(self, message: str) -> None:
         """Log a debug message."""
         self.logger.debug(self._add_prefix(message))

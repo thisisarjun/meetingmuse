@@ -17,10 +17,6 @@ class UserIntent(StrEnum):
     UNKNOWN = "unknown"
 
 
-class OperationName(StrEnum):
-    SCHEDULE_MEETING = "schedule_meeting"
-
-
 class OperationStatus(BaseModel):
     status: bool = False
     error_message: Optional[str] = None

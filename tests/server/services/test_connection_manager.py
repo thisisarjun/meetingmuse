@@ -56,7 +56,7 @@ class TestConnectionManager:
         assert client_id not in connection_manager.active_connections
         assert client_id not in connection_manager.connection_metadata
 
-    async def test_send_personal_message_success(
+    async def test_send_bot_response_message_success(
         self, connection_manager, mock_websocket
     ):
         """Test sending a personal message successfully."""
@@ -64,7 +64,7 @@ class TestConnectionManager:
         connection_manager.active_connections[client_id] = mock_websocket
         message = "Hello, test message!"
 
-        result = await connection_manager.send_personal_message(message, client_id)
+        result = await connection_manager.send_bot_response_message(message, client_id)
 
         assert result is True
         mock_websocket.send_text.assert_called_once()
@@ -76,18 +76,18 @@ class TestConnectionManager:
         assert sent_message["content"] == message
         assert sent_message["session_id"] == client_id
 
-    async def test_send_personal_message_to_disconnected_client(
+    async def test_send_bot_response_message_to_disconnected_client(
         self, connection_manager
     ):
         """Test sending message to disconnected client."""
         client_id = "disconnected_client"
         message = "Hello, test message!"
 
-        result = await connection_manager.send_personal_message(message, client_id)
+        result = await connection_manager.send_bot_response_message(message, client_id)
 
         assert result is False
 
-    async def test_send_personal_message_websocket_disconnect(
+    async def test_send_bot_response_message_websocket_disconnect(
         self, connection_manager, mock_websocket
     ):
         """Test handling WebSocketDisconnect during message send."""
@@ -99,12 +99,12 @@ class TestConnectionManager:
         mock_websocket.send_text.side_effect = WebSocketDisconnect()
         message = "Hello, test message!"
 
-        result = await connection_manager.send_personal_message(message, client_id)
+        result = await connection_manager.send_bot_response_message(message, client_id)
 
         assert result is False
         assert client_id not in connection_manager.active_connections
 
-    async def test_send_personal_message_general_exception(
+    async def test_send_bot_response_message_general_exception(
         self, connection_manager, mock_websocket
     ):
         """Test handling general exception during message send."""
@@ -113,7 +113,7 @@ class TestConnectionManager:
         mock_websocket.send_text.side_effect = Exception("Send failed")
         message = "Hello, test message!"
 
-        result = await connection_manager.send_personal_message(message, client_id)
+        result = await connection_manager.send_bot_response_message(message, client_id)
 
         assert result is False
 
@@ -160,11 +160,11 @@ class TestConnectionManager:
         client_id = "test_client_123"
         connection_manager.active_connections[client_id] = mock_websocket
         error_code = "TEST_ERROR"
-        message = "Test error message"
+        content = "Test error message"
         additional_metadata = {"debug_info": "test"}
 
         result = await connection_manager.send_error_message(
-            client_id, error_code, message, True, additional_metadata
+            client_id, error_code, content, True, additional_metadata
         )
 
         assert result is True
@@ -174,10 +174,10 @@ class TestConnectionManager:
         """Test sending error message to disconnected client."""
         client_id = "disconnected_client"
         error_code = "TEST_ERROR"
-        message = "Test error message"
+        content = "Test error message"
 
         result = await connection_manager.send_error_message(
-            client_id, error_code, message
+            client_id, error_code, content
         )
 
         assert result is False
@@ -190,10 +190,10 @@ class TestConnectionManager:
         connection_manager.active_connections[client_id] = mock_websocket
         mock_websocket.send_text.side_effect = Exception("Send failed")
         error_code = "TEST_ERROR"
-        message = "Test error message"
+        content = "Test error message"
 
         result = await connection_manager.send_error_message(
-            client_id, error_code, message
+            client_id, error_code, content
         )
 
         assert result is False

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, Optional, TypeVar
+from typing import Literal, Optional
 
 from langgraph.graph.state import CompiledStateGraph
 from redis.asyncio import Redis
@@ -38,8 +38,6 @@ from server.services.websocket_connection_service import WebSocketConnectionServ
 from server.storage.memory_storage import MemoryStorageAdapter
 from server.storage.redis_adapter import RedisStorageAdapter
 from server.storage.storage_adapter import StorageAdapter
-
-T = TypeVar("T")
 
 
 @dataclass
