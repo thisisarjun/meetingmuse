@@ -1,7 +1,7 @@
 import json
 import re
 
-from server.models.api.web_socket_message import UserMessage
+from server.models.api.websocket_message import UserMessage
 
 
 class SocketMessageProcessor:
