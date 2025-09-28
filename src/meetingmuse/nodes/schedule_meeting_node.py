@@ -37,7 +37,7 @@ class ScheduleMeetingNode(BaseNode):
     @log_node_entry(NodeName.SCHEDULE_MEETING)
     def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
         # Check if user intent is schedule
-        if state.user_intent != UserIntent.SCHEDULE_MEETING:
+        if state.user_intent not in [UserIntent.SCHEDULE_MEETING, UserIntent.REMINDER]:
             self.logger.error(
                 f"No scheduling action needed for this intent: {state.user_intent}, wrong workflow"
             )

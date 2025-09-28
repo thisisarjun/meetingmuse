@@ -4,8 +4,7 @@ GREETING_PROMPT = """
 
         The user just greeted you. Respond warmly and briefly explain how you can help:
         - Schedule new meetings
-        - Check calendar availability
-        - Cancel or reschedule existing meetings
+        - Set reminders
 
         Keep it conversational and welcoming. Don't be too wordy.
 """

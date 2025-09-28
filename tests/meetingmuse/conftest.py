@@ -12,6 +12,14 @@ from meetingmuse.llm_models.factory import create_llm_model
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
+from meetingmuse.prompts.reminder_collecting_info_prompt import (
+    REMINDER_COLLECTING_INFO_PROMPT,
+)
+from meetingmuse.prompts.schedule_meeting_collecting_info_prompt import (
+    INTERACTIVE_MEETING_COLLECTION_PROMPT,
+)
+from meetingmuse.services.meeting_details_service import MeetingDetailsService
+from meetingmuse.services.reminder_details_service import ReminderDetailsService
 
 
 @pytest.fixture
@@ -70,7 +78,31 @@ def state_with_only_ai_message():
 
 
 @pytest.fixture
-def node(mock_logger):
+def mock_model():
+    """Create a mock HuggingFace model."""
+    mock_model = Mock()
+    mock_model.chat_model = Mock()
+    return mock_model
+
+
+@pytest.fixture
+def reminder_service(mock_model, mock_logger):
+    """Create a ReminderDetailsService instance with mocked dependencies."""
+    return ReminderDetailsService(
+        mock_model, mock_logger, REMINDER_COLLECTING_INFO_PROMPT
+    )
+
+
+@pytest.fixture
+def meeting_service(mock_model, mock_logger):
+    """Create a MeetingDetailsService instance with mocked dependencies."""
+    return MeetingDetailsService(
+        mock_model, mock_logger, INTERACTIVE_MEETING_COLLECTION_PROMPT
+    )
+
+
+@pytest.fixture
+def collecting_info_node(mock_logger, meeting_service, reminder_service):
     """Create a CollectingInfoNode instance with real HuggingFace model and mocked logger."""
     model = create_llm_model("meta-llama/Meta-Llama-3-8B-Instruct")
-    return CollectingInfoNode(model, mock_logger)
+    return CollectingInfoNode(model, mock_logger, meeting_service, reminder_service)

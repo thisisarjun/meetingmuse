@@ -3,17 +3,31 @@ from typing import List
 from common.decorators import log_node_entry
 from common.logger import Logger
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 from meetingmuse.nodes.base_node import BaseNode
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
+from meetingmuse.services.reminder_details_service import ReminderDetailsService
 
 
 class PromptMissingMeetingDetailsNode(BaseNode):
-    meeting_service: MeetingDetailsService
+    schedule_service: MeetingDetailsService | ReminderDetailsService
 
-    def __init__(self, meeting_service: MeetingDetailsService, logger: Logger) -> None:
+    def __init__(
+        self,
+        meeting_service: MeetingDetailsService,
+        reminder_service: ReminderDetailsService,
+        logger: Logger,
+    ) -> None:
         super().__init__(logger)
         self.meeting_service = meeting_service
+        self.reminder_service = reminder_service
+
+    def set_schedule_service(self, state: MeetingMuseBotState) -> None:
+        self.schedule_service = (
+            self.meeting_service
+            if state.user_intent == UserIntent.SCHEDULE_MEETING
+            else self.reminder_service
+        )
 
     def get_next_node(self, state: MeetingMuseBotState) -> NodeName:
         if not state.operation_status.ai_prompt_input:
@@ -22,7 +36,8 @@ class PromptMissingMeetingDetailsNode(BaseNode):
 
     @log_node_entry(NodeName.PROMPT_MISSING_MEETING_DETAILS)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
-        missing_fields: List[str] = self.meeting_service.get_missing_required_fields(
+        self.set_schedule_service(state)
+        missing_fields: List[str] = self.schedule_service.get_missing_required_fields(
             state.meeting_details
         )
 
@@ -34,7 +49,7 @@ class PromptMissingMeetingDetailsNode(BaseNode):
             return state
 
         try:
-            prompt_response = self.meeting_service.invoke_missing_fields_prompt(state)
+            prompt_response = self.schedule_service.get_missing_fields_via_prompt(state)
             # Handle both string and complex content types
 
             if hasattr(prompt_response, "content"):

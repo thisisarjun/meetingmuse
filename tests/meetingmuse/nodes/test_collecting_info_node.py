@@ -2,7 +2,7 @@ import pytest
 
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, UserIntent
 
 
 class TestGetNextNodeName:
@@ -52,7 +52,7 @@ class TestGetNextNodeName:
     )
     def test_get_next_node_name_with_meeting_details(
         self,
-        node,
+        collecting_info_node,
         meeting_details,
         expected_result,
         test_description,
@@ -63,17 +63,21 @@ class TestGetNextNodeName:
         This parameterized test covers various scenarios of complete and incomplete meeting details.
         """
         # Arrange
-        state = MeetingMuseBotState(messages=[], meeting_details=meeting_details)
+        state = MeetingMuseBotState(
+            messages=[],
+            meeting_details=meeting_details,
+            user_intent=UserIntent.SCHEDULE_MEETING,
+        )
 
         # Act
-        result = node.get_next_node_name(state)
+        result = collecting_info_node.get_next_node_name(state)
 
         # Assert
         assert result == expected_result, f"Failed for case: {test_description}"
 
 
 class TestIsMeetingDetailsComplete:
-    """Test suite for CollectingInfoNode.meeting_service.is_meeting_details_complete method."""
+    """Test suite for CollectingInfoNode.meeting_service.is_details_complete method."""
 
     @pytest.mark.parametrize(
         "meeting_details,expected_result,test_description",
@@ -123,20 +127,22 @@ class TestIsMeetingDetailsComplete:
             (MeetingFindings(), False, "empty meeting details"),
         ],
     )
-    def test_is_meeting_details_complete(
+    def test_is_details_complete(
         self,
-        node,
+        collecting_info_node,
         meeting_details,
         expected_result,
         test_description,
     ):
         """
-        Test is_meeting_details_complete returns correct boolean based on meeting details completeness.
+        Test is_details_complete returns correct boolean based on meeting details completeness.
 
         This parameterized test covers various scenarios of complete and incomplete meeting details.
         """
         # Act
-        result = node.meeting_service.is_meeting_details_complete(meeting_details)
+        result = collecting_info_node.meeting_service.is_details_complete(
+            meeting_details
+        )
 
         # Assert
         assert result == expected_result, f"Failed for case: {test_description}"
@@ -218,7 +224,7 @@ class TestUpdateStateMeetingDetails:
     )
     def test_update_state_meeting_details(
         self,
-        node,
+        collecting_info_node,
         initial_state_details,
         new_meeting_details,
         expected_state_details,
@@ -233,8 +239,10 @@ class TestUpdateStateMeetingDetails:
         state = MeetingMuseBotState(messages=[], meeting_details=initial_state_details)
 
         # Act
-        result_state = node.meeting_service.update_state_meeting_details(
-            new_meeting_details, state
+        result_state = (
+            collecting_info_node.meeting_service.update_state_meeting_details(
+                new_meeting_details, state
+            )
         )
 
         # Assert - result_state is actually a MeetingFindings object, not a state
@@ -282,7 +290,7 @@ class TestInvokeExtractionPrompt:
     )
     def test_invoke_extraction_prompt(
         self,
-        node,
+        collecting_info_node,
         meeting_details,
         missing_required,
         user_input,
@@ -293,7 +301,7 @@ class TestInvokeExtractionPrompt:
         Test invoke_extraction_prompt returns correct meeting details based on user input.
         """
         # Act
-        result = node.invoke_extraction_prompt(
+        result = collecting_info_node.invoke_extraction_prompt(
             meeting_details, missing_required, user_input
         )
 
@@ -302,7 +310,7 @@ class TestInvokeExtractionPrompt:
 
 
 class TestInvokeMissingFieldsPrompt:
-    """Test suite for CollectingInfoNode.meeting_service.invoke_missing_fields_prompt method."""
+    """Test suite for CollectingInfoNode.meeting_service.get_missing_fields_via_prompt method."""
 
     @pytest.mark.skip(reason="live call to LLM")
     @pytest.mark.parametrize(
@@ -323,14 +331,16 @@ class TestInvokeMissingFieldsPrompt:
             ),
         ],
     )
-    def test_invoke_missing_fields_prompt(
-        self, state, expected_result, test_description, node
+    def test_get_missing_fields_via_prompt(
+        self, state, expected_result, test_description, collecting_info_node
     ):
         """
-        Test invoke_missing_fields_prompt returns correct response based on state.
+        Test get_missing_fields_via_prompt returns correct response based on state.
         """
         # Act
-        result = node.meeting_service.invoke_missing_fields_prompt(state)
+        result = collecting_info_node.meeting_service.get_missing_fields_via_prompt(
+            state
+        )
         print(result)
 
         # Assert

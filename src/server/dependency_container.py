@@ -26,8 +26,15 @@ from meetingmuse.nodes.prompt_missing_meeting_details_node import (
     PromptMissingMeetingDetailsNode,
 )
 from meetingmuse.nodes.schedule_meeting_node import ScheduleMeetingNode
+from meetingmuse.prompts.reminder_collecting_info_prompt import (
+    REMINDER_COLLECTING_INFO_PROMPT,
+)
+from meetingmuse.prompts.schedule_meeting_collecting_info_prompt import (
+    INTERACTIVE_MEETING_COLLECTION_PROMPT,
+)
 from meetingmuse.services.intent_classifier import IntentClassifier
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
+from meetingmuse.services.reminder_details_service import ReminderDetailsService
 from meetingmuse.services.routing_service import ConversationRouter
 from server.services.connection_manager import ConnectionManager
 from server.services.conversation_manager import ConversationManager
@@ -84,6 +91,7 @@ class DependencyContainer:
         self._collecting_info_node: Optional[CollectingInfoNode] = None
         self._clarify_request_node: Optional[ClarifyRequestNode] = None
         self._meeting_details_service: Optional[MeetingDetailsService] = None
+        self._reminder_details_service: Optional[ReminderDetailsService] = None
         self._human_schedule_meeting_more_info_node: Optional[
             HumanScheduleMeetingMoreInfoNode
         ] = None
@@ -302,7 +310,12 @@ class DependencyContainer:
             return self._collecting_info_node
 
         try:
-            self._collecting_info_node = CollectingInfoNode(self.model, self.logger)
+            self._collecting_info_node = CollectingInfoNode(
+                self.model,
+                self.logger,
+                self.meeting_details_service,
+                self.reminder_details_service,
+            )
             return self._collecting_info_node
         except Exception as e:
             self.logger.error(f"Failed to create collecting info node: {e}")
@@ -329,12 +342,26 @@ class DependencyContainer:
 
         try:
             self._meeting_details_service = MeetingDetailsService(
-                self.model, self.logger
+                self.model, self.logger, INTERACTIVE_MEETING_COLLECTION_PROMPT
             )
             return self._meeting_details_service
         except Exception as e:
             self.logger.error(f"Failed to create meeting details service: {e}")
             raise RuntimeError(f"Failed to create meeting details service: {e}")
+
+    @property
+    def reminder_details_service(self) -> ReminderDetailsService:
+        """Get reminder details service instance"""
+        if self._reminder_details_service is not None:
+            return self._reminder_details_service
+        try:
+            self._reminder_details_service = ReminderDetailsService(
+                self.model, self.logger, REMINDER_COLLECTING_INFO_PROMPT
+            )
+            return self._reminder_details_service
+        except Exception as e:
+            self.logger.error(f"Failed to create reminder details service: {e}")
+            raise RuntimeError(f"Failed to create reminder details service: {e}")
 
     @property
     def human_schedule_meeting_more_info_node(self) -> HumanScheduleMeetingMoreInfoNode:
@@ -363,7 +390,7 @@ class DependencyContainer:
 
         try:
             self._prompt_missing_meeting_details_node = PromptMissingMeetingDetailsNode(
-                self.meeting_details_service, self.logger
+                self.meeting_details_service, self.reminder_details_service, self.logger
             )
             return self._prompt_missing_meeting_details_node
         except Exception as e:
