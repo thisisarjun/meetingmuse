@@ -2,7 +2,7 @@
 
 Your favourite calendar bot 🗓️
 
-A smart meeting scheduling assistant built with LangGraph and LangChain, designed to help you manage your calendar through natural conversation.
+A smart meeting scheduling assistant built with LangGraph and LangChain, designed to help you manage your calendar through simple natural conversation.
 
 ![compressed](https://github.com/user-attachments/assets/a6e6bd9a-3f5e-4383-b4f5-81dc87c5ccc4)
 
