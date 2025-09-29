@@ -28,4 +28,4 @@ jobs:
     - name: Deployment Status
       run: |
         echo "✅ Deployment initiated for tag: ${{ steps.version.outputs.VERSION }}"
-        echo "🚀 Check your Render dashboard for deployment progress - https://dashboard.render.com/web/srv-d34rbt15pdvs73b7hkeg/logs"
+        echo "🚀 Check your Render dashboard for deployment progress"
