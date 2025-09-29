@@ -26,11 +26,8 @@ class Config:
         "FRONTEND_CALLBACK_URL", "http://localhost:3000/"
     )
     GOOGLE_SCOPES: List[str] = [
-        "https://www.googleapis.com/auth/calendar.readonly",
         "https://www.googleapis.com/auth/calendar.events",
-        "https://www.googleapis.com/auth/contacts",
         "https://www.googleapis.com/auth/contacts.readonly",
-        "https://www.googleapis.com/auth/user.emails.read",
     ]
 
     # Security Configuration
