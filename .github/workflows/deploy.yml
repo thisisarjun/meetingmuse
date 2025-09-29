@@ -1,0 +1,31 @@
+name: Deploy on Version Tag
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v2.1.3, etc.
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Extract version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Deploy to Render
+      run: |
+        echo "Deploying version ${{ steps.version.outputs.VERSION }} to Render..."
+        curl -X GET "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
+          -H "User-Agent: GitHub-Actions-Deploy" \
+          --fail --silent --show-error
+        echo "Deployment triggered successfully!"
+
+    - name: Deployment Status
+      run: |
+        echo "✅ Deployment initiated for tag: ${{ steps.version.outputs.VERSION }}"
+        echo "🚀 Check your Render dashboard for deployment progress"
