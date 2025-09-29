@@ -28,7 +28,7 @@ class ConversationRouter:
         next_step: NodeName = NodeName.GREETING
         if intent == UserIntent.GENERAL_CHAT:
             next_step = NodeName.GREETING
-        if intent == UserIntent.SCHEDULE_MEETING:
+        if intent in [UserIntent.SCHEDULE_MEETING, UserIntent.REMINDER]:
             next_step = NodeName.COLLECTING_INFO
         if intent == UserIntent.UNKNOWN or intent is None:
             next_step = NodeName.CLARIFY_REQUEST

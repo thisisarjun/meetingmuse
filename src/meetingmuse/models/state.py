@@ -12,8 +12,7 @@ from meetingmuse.models.meeting import MeetingFindings
 class UserIntent(StrEnum):
     GENERAL_CHAT = "general"
     SCHEDULE_MEETING = "schedule"
-    CANCEL_MEETING = "cancel"
-    CHECK_AVAILABILITY = "check_availability"
+    REMINDER = "reminder"
     UNKNOWN = "unknown"
 
 
@@ -39,7 +38,7 @@ class MeetingMuseBotState(BaseModel):
     # What does the user want? (schedule, cancel, check availability, etc.)
     user_intent: Optional[UserIntent] = None
 
-    # Information about the meeting being scheduled
+    # Information about the meeting being scheduled (also used for reminders)
     meeting_details: MeetingFindings = Field(default_factory=MeetingFindings)
 
     operation_status: OperationStatus = Field(default_factory=OperationStatus)

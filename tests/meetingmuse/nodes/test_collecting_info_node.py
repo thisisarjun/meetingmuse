@@ -2,16 +2,17 @@ import pytest
 
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, UserIntent
+from meetingmuse.nodes.collecting_info_node import CollectingInfoNode
 
 
 class TestGetNextNodeName:
     """Test suite for CollectingInfoNode.get_next_node_name method."""
 
     @pytest.mark.parametrize(
-        "meeting_details,expected_result,test_description",
+        "meeting_details,user_intent,expected_result,test_description",
         [
-            # Complete meeting details should return END
+            # Complete meeting details should return SCHEDULE_MEETING
             (
                 MeetingFindings(
                     title="Team Standup",
@@ -19,8 +20,9 @@ class TestGetNextNodeName:
                     participants=["john@example.com", "jane@example.com"],
                     duration=30,
                 ),
+                UserIntent.SCHEDULE_MEETING,
                 NodeName.SCHEDULE_MEETING,
-                "all required fields present",
+                "all required fields present for meeting",
             ),
             # Missing individual required fields should return PROMPT_MISSING_MEETING_DETAILS
             (
@@ -30,8 +32,9 @@ class TestGetNextNodeName:
                     participants=["john@example.com", "jane@example.com"],
                     duration=30,
                 ),
+                UserIntent.SCHEDULE_MEETING,
                 NodeName.PROMPT_MISSING_MEETING_DETAILS,
-                "missing date_time",
+                "missing date_time for meeting",
             ),
             (
                 MeetingFindings(
@@ -40,22 +43,60 @@ class TestGetNextNodeName:
                     participants=[],  # Empty participants list
                     duration=30,
                 ),
+                UserIntent.SCHEDULE_MEETING,
                 NodeName.PROMPT_MISSING_MEETING_DETAILS,
-                "empty participants list",
+                "empty participants list for meeting",
             ),
             (
                 MeetingFindings(),
+                UserIntent.SCHEDULE_MEETING,
                 NodeName.PROMPT_MISSING_MEETING_DETAILS,
-                "empty meeting details",
+                "empty meeting details for meeting",
+            ),
+            # Complete reminder details should return SCHEDULE_MEETING
+            (
+                MeetingFindings(
+                    title="Doctor Appointment",
+                    date_time="2024-01-15 10:00 AM",
+                ),
+                UserIntent.REMINDER,
+                NodeName.SCHEDULE_MEETING,
+                "all required fields present for reminder",
+            ),
+            # Missing individual required fields for reminder should return PROMPT_MISSING_MEETING_DETAILS
+            (
+                MeetingFindings(
+                    title="Doctor Appointment",
+                    date_time=None,  # Missing date_time
+                ),
+                UserIntent.REMINDER,
+                NodeName.PROMPT_MISSING_MEETING_DETAILS,
+                "missing date_time for reminder",
+            ),
+            (
+                MeetingFindings(
+                    title=None,  # Missing title
+                    date_time="2024-01-15 10:00 AM",
+                ),
+                UserIntent.REMINDER,
+                NodeName.PROMPT_MISSING_MEETING_DETAILS,
+                "missing title for reminder",
+            ),
+            (
+                MeetingFindings(),
+                UserIntent.REMINDER,
+                NodeName.PROMPT_MISSING_MEETING_DETAILS,
+                "empty reminder details",
             ),
         ],
     )
     def test_get_next_node_name_with_meeting_details(
         self,
-        node,
-        meeting_details,
-        expected_result,
-        test_description,
+        collecting_info_node: CollectingInfoNode,
+        meeting_details: MeetingFindings,
+        user_intent: UserIntent,
+        expected_result: NodeName,
+        test_description: str,
     ):
         """
         Test get_next_node_name returns correct NodeName based on meeting details completeness.
@@ -63,20 +104,24 @@ class TestGetNextNodeName:
         This parameterized test covers various scenarios of complete and incomplete meeting details.
         """
         # Arrange
-        state = MeetingMuseBotState(messages=[], meeting_details=meeting_details)
+        state = MeetingMuseBotState(
+            messages=[],
+            meeting_details=meeting_details,
+            user_intent=user_intent,
+        )
 
         # Act
-        result = node.get_next_node_name(state)
+        result = collecting_info_node.get_next_node_name(state)
 
         # Assert
         assert result == expected_result, f"Failed for case: {test_description}"
 
 
 class TestIsMeetingDetailsComplete:
-    """Test suite for CollectingInfoNode.meeting_service.is_meeting_details_complete method."""
+    """Test suite for CollectingInfoNode service.is_details_complete method."""
 
     @pytest.mark.parametrize(
-        "meeting_details,expected_result,test_description",
+        "meeting_details,user_intent,expected_result,test_description",
         [
             # Complete meeting details should return True
             (
@@ -86,8 +131,9 @@ class TestIsMeetingDetailsComplete:
                     participants=["john@example.com", "jane@example.com"],
                     duration=30,
                 ),
+                UserIntent.SCHEDULE_MEETING,
                 True,
-                "all required fields present",
+                "all required fields present for meeting",
             ),
             # Missing individual required fields should return False
             (
@@ -97,8 +143,9 @@ class TestIsMeetingDetailsComplete:
                     participants=["john@example.com", "jane@example.com"],
                     duration=30,
                 ),
+                UserIntent.SCHEDULE_MEETING,
                 False,
-                "missing title",
+                "missing title for meeting",
             ),
             (
                 MeetingFindings(
@@ -107,8 +154,9 @@ class TestIsMeetingDetailsComplete:
                     participants=[],  # Empty participants list
                     duration=30,
                 ),
+                UserIntent.SCHEDULE_MEETING,
                 False,
-                "empty participants list",
+                "empty participants list for meeting",
             ),
             (
                 MeetingFindings(
@@ -117,26 +165,66 @@ class TestIsMeetingDetailsComplete:
                     participants=["john@example.com", "jane@example.com"],
                     duration=None,  # Missing duration
                 ),
+                UserIntent.SCHEDULE_MEETING,
                 False,
-                "missing duration",
+                "missing duration for meeting",
             ),
-            (MeetingFindings(), False, "empty meeting details"),
+            (
+                MeetingFindings(),
+                UserIntent.SCHEDULE_MEETING,
+                False,
+                "empty meeting details for meeting",
+            ),
+            # Complete reminder details should return True
+            (
+                MeetingFindings(
+                    title="Doctor Appointment",
+                    date_time="2024-01-15 10:00 AM",
+                ),
+                UserIntent.REMINDER,
+                True,
+                "all required fields present for reminder",
+            ),
+            # Reminder with extra fields should still return True if required fields are present
+            (
+                MeetingFindings(
+                    title="Doctor Appointment",
+                    date_time="2024-01-15 10:00 AM",
+                    participants=["john@example.com"],  # Extra field
+                    duration=30,  # Extra field
+                ),
+                UserIntent.REMINDER,
+                True,
+                "reminder with extra fields but required fields present",
+            ),
         ],
     )
-    def test_is_meeting_details_complete(
+    def test_is_details_complete(
         self,
-        node,
+        collecting_info_node,
         meeting_details,
+        user_intent,
         expected_result,
         test_description,
     ):
         """
-        Test is_meeting_details_complete returns correct boolean based on meeting details completeness.
+        Test is_details_complete returns correct boolean based on meeting details completeness.
 
-        This parameterized test covers various scenarios of complete and incomplete meeting details.
+        This parameterized test covers various scenarios of complete and incomplete meeting details
+        for both meeting scheduling and reminder intents.
         """
+        # Arrange - Mock the state to set user intent
+        state = MeetingMuseBotState(
+            messages=[],
+            meeting_details=meeting_details,
+            user_intent=user_intent,
+        )
+
+        # Get the appropriate service based on user intent
+        service = collecting_info_node.get_schedule_service(state)
+
         # Act
-        result = node.meeting_service.is_meeting_details_complete(meeting_details)
+        result = service.is_details_complete(meeting_details)
 
         # Assert
         assert result == expected_result, f"Failed for case: {test_description}"
@@ -218,7 +306,7 @@ class TestUpdateStateMeetingDetails:
     )
     def test_update_state_meeting_details(
         self,
-        node,
+        collecting_info_node,
         initial_state_details,
         new_meeting_details,
         expected_state_details,
@@ -233,8 +321,10 @@ class TestUpdateStateMeetingDetails:
         state = MeetingMuseBotState(messages=[], meeting_details=initial_state_details)
 
         # Act
-        result_state = node.meeting_service.update_state_meeting_details(
-            new_meeting_details, state
+        result_state = (
+            collecting_info_node.meeting_service.update_state_meeting_details(
+                new_meeting_details, state
+            )
         )
 
         # Assert - result_state is actually a MeetingFindings object, not a state
@@ -255,83 +345,3 @@ class TestUpdateStateMeetingDetails:
         ), f"Location mismatch for case: {test_description}"
 
         # Note: The method now returns a MeetingFindings object, not the state object
-
-
-class TestInvokeExtractionPrompt:
-    """Test suite for CollectingInfoNode.invoke_extraction_prompt method."""
-
-    @pytest.mark.skip(reason="live call to LLM")
-    @pytest.mark.parametrize(
-        "meeting_details,missing_required,user_input,expected_result,test_description",
-        [
-            (
-                MeetingFindings(
-                    participants=["john@example.com"],
-                ),
-                ["title", "date_time", "duration"],
-                "Team Standup meeting on 2024-01-15 at 10:00 AM for 30 minutes",
-                MeetingFindings(
-                    title="Team Standup meeting",
-                    date_time="2024-01-15 10:00 AM",
-                    participants=["john@example.com"],
-                    duration=30,
-                ),
-                "extraction prompt returns correct meeting details",
-            ),
-        ],
-    )
-    def test_invoke_extraction_prompt(
-        self,
-        node,
-        meeting_details,
-        missing_required,
-        user_input,
-        expected_result,
-        test_description,
-    ):
-        """
-        Test invoke_extraction_prompt returns correct meeting details based on user input.
-        """
-        # Act
-        result = node.invoke_extraction_prompt(
-            meeting_details, missing_required, user_input
-        )
-
-        # Assert
-        assert result == expected_result, f"Failed for case: {test_description}"
-
-
-class TestInvokeMissingFieldsPrompt:
-    """Test suite for CollectingInfoNode.meeting_service.invoke_missing_fields_prompt method."""
-
-    @pytest.mark.skip(reason="live call to LLM")
-    @pytest.mark.parametrize(
-        "state,expected_result,test_description",
-        [
-            (
-                MeetingMuseBotState(
-                    messages=[],
-                    meeting_details=MeetingFindings(
-                        # title="Team Standup",
-                        date_time="2024-01-15 10:00 AM",
-                        participants=["john@example.com"],
-                        duration=30,
-                    ),
-                ),
-                "I need some more information to schedule your meeting. Could you provide the missing details?",
-                "invoke missing fields prompt returns correct response",
-            ),
-        ],
-    )
-    def test_invoke_missing_fields_prompt(
-        self, state, expected_result, test_description, node
-    ):
-        """
-        Test invoke_missing_fields_prompt returns correct response based on state.
-        """
-        # Act
-        result = node.meeting_service.invoke_missing_fields_prompt(state)
-        print(result)
-
-        # Assert
-        assert result == expected_result, f"Failed for case: {test_description}"

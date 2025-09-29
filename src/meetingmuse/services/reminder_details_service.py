@@ -1,0 +1,34 @@
+from typing import List
+
+from meetingmuse.models.meeting import MeetingFindings
+from meetingmuse.services.base_schedule_service import BaseScheduleService
+
+
+class ReminderDetailsService(BaseScheduleService):
+    """Service for handling reminder details validation and prompts"""
+
+    def is_details_complete(self, details: MeetingFindings) -> bool:
+        """Check if all required fields are present for reminder (title as topic, date_time)"""
+        return all(
+            [
+                details.title is not None,
+                details.date_time is not None,
+            ]
+        )
+
+    def get_missing_required_fields(self, details: MeetingFindings) -> List[str]:
+        """Get missing required fields for reminder (title as topic, date_time)"""
+        missing: List[str] = []
+        if not details.title:
+            missing.append("title")  # Using title field as topic for reminders
+        if not details.date_time:
+            missing.append("date_time")
+        return missing
+
+    def generate_completion_message(self, details: MeetingFindings) -> str:
+        """Generate a completion message when all reminder details are collected"""
+        response: str = (
+            f"Perfect! I'll set a reminder for '{details.title}' "
+            f"on {details.date_time}."
+        )
+        return response

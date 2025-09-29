@@ -3,14 +3,12 @@ from unittest.mock import Mock
 import pytest
 
 from common.logger import Logger
-from meetingmuse.llm_models.hugging_face import HuggingFaceModel
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
-from meetingmuse.models.state import MeetingMuseBotState, OperationStatus
+from meetingmuse.models.state import MeetingMuseBotState, OperationStatus, UserIntent
 from meetingmuse.nodes.prompt_missing_meeting_details_node import (
     PromptMissingMeetingDetailsNode,
 )
-from meetingmuse.services.meeting_details_service import MeetingDetailsService
 
 
 class TestPromptMissingMeetingDetailsNode:
@@ -22,15 +20,11 @@ class TestPromptMissingMeetingDetailsNode:
         return Mock(spec=Logger)
 
     @pytest.fixture
-    def meeting_service(self, mock_logger):
-        """Create a real MeetingDetailsService instance for testing."""
-        model = HuggingFaceModel("meta-llama/Meta-Llama-3-8B-Instruct")
-        return MeetingDetailsService(model, mock_logger)
-
-    @pytest.fixture
-    def node(self, mock_logger, meeting_service):
+    def node(self, mock_logger, meeting_service, reminder_service):
         """Create a PromptMissingMeetingDetailsNode instance with real meeting service."""
-        return PromptMissingMeetingDetailsNode(meeting_service, mock_logger)
+        return PromptMissingMeetingDetailsNode(
+            meeting_service, reminder_service, mock_logger
+        )
 
     @pytest.fixture
     def complete_meeting_state(self):
@@ -48,6 +42,7 @@ class TestPromptMissingMeetingDetailsNode:
                 error_message=None,
                 ai_prompt_input=None,
             ),
+            user_intent=UserIntent.SCHEDULE_MEETING,
         )
 
     @pytest.fixture
@@ -66,6 +61,7 @@ class TestPromptMissingMeetingDetailsNode:
                 error_message=None,
                 ai_prompt_input=None,
             ),
+            user_intent=UserIntent.SCHEDULE_MEETING,
         )
 
 

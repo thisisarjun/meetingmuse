@@ -22,14 +22,11 @@ class TestGoogleContactsClient:
         return Mock(spec=Logger)
 
     @pytest.fixture
-    def client(self, mock_oauth_service, mock_logger):
+    def client(
+        self, mock_oauth_service: OAuthService, mock_logger: Logger
+    ) -> GoogleContactsClient:
         """Create a GoogleContactsClient instance with mocked dependencies."""
         return GoogleContactsClient(mock_oauth_service, mock_logger)
-
-    @pytest.fixture
-    def mock_credentials(self):
-        """Create mock OAuth credentials."""
-        return Mock()
 
     @pytest.fixture
     def sample_people_response(self):
@@ -96,14 +93,14 @@ class TestGoogleContactsClient:
         return {"results": []}
 
     async def test_get_contacts_success_with_emails(
-        self, client, mock_oauth_service, mock_credentials, sample_people_response
+        self, client, mock_oauth_service, sample_people_response
     ):
         """Test successful contact retrieval filtering contacts with emails."""
         # Arrange
         session_id = "test-session-123"
         query = "test"
 
-        mock_oauth_service.get_credentials = AsyncMock(return_value=mock_credentials)
+        mock_oauth_service.get_credentials = AsyncMock(return_value=Mock())
 
         with patch("meetingmuse.clients.google_contacts.build") as mock_build:
             mock_service = Mock()
@@ -133,14 +130,14 @@ class TestGoogleContactsClient:
             mock_oauth_service.get_credentials.assert_called_once_with(session_id)
 
     async def test_get_contacts_empty_response(
-        self, client, mock_oauth_service, mock_credentials, empty_people_response
+        self, client, mock_oauth_service, empty_people_response
     ):
         """Test contact retrieval with empty response."""
         # Arrange
         session_id = "test-session-123"
         query = "nonexistent"
 
-        mock_oauth_service.get_credentials = AsyncMock(return_value=mock_credentials)
+        mock_oauth_service.get_credentials = AsyncMock(return_value=Mock())
 
         with patch("meetingmuse.clients.google_contacts.build") as mock_build:
             mock_service = Mock()
@@ -159,7 +156,7 @@ class TestGoogleContactsClient:
             assert isinstance(result, list)
             assert len(result) == 0
 
-    async def test_get_contacts_no_session_id(self, client):
+    async def test_get_contacts_no_session_id(self, client: GoogleContactsClient):
         """Test get_contacts raises ValueError when session_id is missing."""
         # Act & Assert
         with pytest.raises(
@@ -167,7 +164,9 @@ class TestGoogleContactsClient:
         ):
             await client.get_contacts(query="test", session_id="")
 
-    async def test_get_contacts_oauth_error(self, client, mock_oauth_service):
+    async def test_get_contacts_oauth_error(
+        self, client: GoogleContactsClient, mock_oauth_service: OAuthService
+    ):
         """Test get_contacts raises ValueError when credentials are not available."""
         # Arrange
         mock_oauth_service.get_credentials = AsyncMock(return_value=None)
@@ -179,12 +178,15 @@ class TestGoogleContactsClient:
             await client.get_contacts(query="test", session_id="test-session")
 
     async def test_get_contacts_http_error(
-        self, client, mock_oauth_service, mock_credentials, mock_logger
+        self,
+        client: GoogleContactsClient,
+        mock_oauth_service: OAuthService,
+        mock_logger: Logger,
     ):
         """Test get_contacts handles Google People API errors."""
         # Arrange
         session_id = "test-session-123"
-        mock_oauth_service.get_credentials = AsyncMock(return_value=mock_credentials)
+        mock_oauth_service.get_credentials = AsyncMock(return_value=Mock())
 
         http_error = HttpError(
             resp=Mock(status=403),
@@ -207,7 +209,9 @@ class TestGoogleContactsClient:
 
             mock_logger.error.assert_called_once()
 
-    def test_extract_email_addresses_success(self, client, sample_people_response):
+    def test_extract_email_addresses_success(
+        self, client: GoogleContactsClient, sample_people_response
+    ):
         """Test _extract_email_addresses method with valid response."""
         # Act
         result = client._extract_email_addresses(sample_people_response)
@@ -218,7 +222,7 @@ class TestGoogleContactsClient:
         assert "user1@example.com" in result
         assert "user2@work.com" in result
 
-    def test_extract_email_addresses_empty_response(self, client):
+    def test_extract_email_addresses_empty_response(self, client: GoogleContactsClient):
         """Test _extract_email_addresses with empty response."""
         # Arrange
         empty_response = {"results": []}
@@ -230,7 +234,7 @@ class TestGoogleContactsClient:
         assert isinstance(result, list)
         assert len(result) == 0
 
-    def test_extract_email_addresses_no_emails(self, client):
+    def test_extract_email_addresses_no_emails(self, client: GoogleContactsClient):
         """Test _extract_email_addresses with contacts having no emails."""
         # Arrange
         response_no_emails = {
