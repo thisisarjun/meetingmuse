@@ -6,6 +6,7 @@ A smart meeting scheduling assistant built with LangGraph and LangChain, designe
 
 ![compressed](https://github.com/user-attachments/assets/a6e6bd9a-3f5e-4383-b4f5-81dc87c5ccc4)
 
+[See Demo 🫣](https://www.youtube.com/watch?v=4w7MvE1J2a8)
 
 
 ## Requirements
