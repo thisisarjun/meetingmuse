@@ -10,11 +10,11 @@ from common.logger import Logger
 from meetingmuse.llm_models.hugging_face import BaseLlmModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.nodes.base_node import SyncNode
 from meetingmuse.prompts.greeting_prompt import GREETING_PROMPT
 
 
-class GreetingNode(BaseNode):
+class GreetingNode(SyncNode):
     model: BaseLlmModel
     parser: StrOutputParser
     prompt: ChatPromptTemplate

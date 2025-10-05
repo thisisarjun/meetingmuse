@@ -7,10 +7,10 @@ from common.decorators import log_node_entry
 from meetingmuse.models.interrupts import InterruptOperationApproval
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.nodes.base_node import SyncNode
 
 
-class HumanInterruptRetryNode(BaseNode):
+class HumanInterruptRetryNode(SyncNode):
     """
     Dedicated node for handling human interruption and retry decisions using LangGraph's native interrupt pattern.
     This node uses interrupt() and Command() for proper human-in-the-loop workflow.

@@ -105,7 +105,6 @@ class TestHumanInterruptRetryNode:
 
         # Execute node action
         self.node.node_action(state_with_history)
-
         self.node.node_action(state_with_history)
 
         # Verify existing messages are preserved and new retry message is added (called twice)

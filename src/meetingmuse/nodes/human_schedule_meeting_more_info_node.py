@@ -5,10 +5,10 @@ from common.decorators import log_node_entry
 from meetingmuse.models.interrupts import InterruptInfo, InterruptType
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.nodes.base_node import SyncNode
 
 
-class HumanScheduleMeetingMoreInfoNode(BaseNode):
+class HumanScheduleMeetingMoreInfoNode(SyncNode):
     @log_node_entry(NodeName.HUMAN_SCHEDULE_MEETING_MORE_INFO)
     def node_action(self, state: MeetingMuseBotState) -> MeetingMuseBotState:
         interrupt_info = InterruptInfo(

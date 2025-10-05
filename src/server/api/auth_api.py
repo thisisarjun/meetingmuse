@@ -179,7 +179,7 @@ async def logout(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Logout failed: {str(e)}")
+        logger.exception(f"Logout failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Logout failed")
 
 

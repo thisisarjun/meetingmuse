@@ -4,11 +4,11 @@ from common.decorators import log_node_entry
 from common.logger import Logger
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
-from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.nodes.base_node import SyncNode
 from meetingmuse.services.intent_classifier import IntentClassifier
 
 
-class ClassifyIntentNode(BaseNode):
+class ClassifyIntentNode(SyncNode):
     intent_classifier: IntentClassifier
 
     def __init__(self, intent_classifier: IntentClassifier, logger: Logger) -> None:
