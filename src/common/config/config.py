@@ -20,7 +20,7 @@ class Config:
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "123")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "123")
     GOOGLE_REDIRECT_URI: str = os.getenv(
-        "GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/callback"
+        "GOOGLE_REDIRECT_URI", "http://localhost:8000/api/v1/auth/callback"
     )
     FRONTEND_CALLBACK_URL: str = os.getenv(
         "FRONTEND_CALLBACK_URL", "http://localhost:3000/"
