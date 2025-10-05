@@ -45,7 +45,7 @@ def log_node_entry(prefix: NodeName) -> Callable:
             self: Any, state: MeetingMuseBotState, *args: Any, **kwargs: Any
         ) -> Any:
             # Try to get logger from the instance, fall back to creating one
-            self.logger_helper(state)
+            logger_helper(self, state)
 
             # Call the original method (await if it's async)
             return await func(self, state, *args, **kwargs)

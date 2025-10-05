@@ -11,7 +11,6 @@ from meetingmuse.models.state import MeetingMuseBotState
 class BaseNode(ABC):
     def __init__(self, logger: Logger):
         self.logger = logger
-        self.logger.set_prefix(self.node_name.value)
 
     @property
     @abstractmethod
