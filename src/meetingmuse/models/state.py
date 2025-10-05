@@ -45,7 +45,3 @@ class MeetingMuseBotState(BaseModel):
 
     # OAuth session information for Google Calendar API access
     session_id: Optional[str] = None
-
-    # TODO: revisit this
-    # Whether the human input has been processed
-    setup_human_input: Optional[bool] = False

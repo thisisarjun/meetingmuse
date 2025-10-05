@@ -16,7 +16,6 @@ class EndNode(SyncNode):
         state.meeting_details = MeetingFindings()
         state.user_intent = None
         state.operation_status = OperationStatus()
-        state.setup_human_input = False
         return state
 
     @property
