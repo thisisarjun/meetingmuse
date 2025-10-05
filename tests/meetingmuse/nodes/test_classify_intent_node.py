@@ -28,7 +28,8 @@ class TestClassifyIntentNode:
         """Create a ClassifyIntentNode instance with mocked classifier."""
         return ClassifyIntentNode(mock_intent_classifier, mock_logger)
 
-    def test_call_updates_state_with_classified_intent_and_step(
+    @pytest.mark.asyncio
+    async def test_call_updates_state_with_classified_intent_and_step(
         self, node, mock_intent_classifier
     ):
         """
@@ -61,7 +62,7 @@ class TestClassifyIntentNode:
         assert len(result.messages) == 2
         assert result.meeting_details == MeetingFindings()
 
-    def test_call_handles_conversation_with_multiple_human_messages(
+    async def test_call_handles_conversation_with_multiple_human_messages(
         self, node, mock_intent_classifier
     ):
         """

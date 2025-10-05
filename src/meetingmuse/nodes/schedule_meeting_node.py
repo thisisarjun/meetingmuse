@@ -1,4 +1,3 @@
-import asyncio
 from typing import Any
 
 from langchain_core.messages import AIMessage
@@ -10,10 +9,10 @@ from meetingmuse.clients.google_calendar import GoogleCalendarClient
 from meetingmuse.llm_models.hugging_face import BaseLlmModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
-from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.nodes.base_node import AsyncNode
 
 
-class ScheduleMeetingNode(BaseNode):
+class ScheduleMeetingNode(AsyncNode):
     """
     Node that handles API calls for scheduling meetings.
     If the user intent is 'schedule', this node will attempt to schedule the meeting.
@@ -35,7 +34,7 @@ class ScheduleMeetingNode(BaseNode):
         self.google_calendar_client = google_calendar_client
 
     @log_node_entry(NodeName.SCHEDULE_MEETING)
-    def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
+    async def node_action(self, state: MeetingMuseBotState) -> Command[Any]:
         # Check if user intent is schedule
         if state.user_intent not in [UserIntent.SCHEDULE_MEETING, UserIntent.REMINDER]:
             self.logger.error(
@@ -61,15 +60,13 @@ class ScheduleMeetingNode(BaseNode):
 
             # Create calendar event
             self.logger.info("Creating Google Calendar event...")
-            event_details = asyncio.run(
-                self.google_calendar_client.create_calendar_event(
-                    session_id=state.session_id,
-                    title=state.meeting_details.title,
-                    date_time=state.meeting_details.date_time,
-                    duration_minutes=state.meeting_details.duration,
-                    location=state.meeting_details.location,
-                    participants=state.meeting_details.participants,
-                )
+            event_details = await self.google_calendar_client.create_calendar_event(
+                session_id=state.session_id,
+                title=state.meeting_details.title,
+                date_time=state.meeting_details.date_time,
+                duration_minutes=state.meeting_details.duration,
+                location=state.meeting_details.location,
+                participants=state.meeting_details.participants,
             )
 
             # Success message

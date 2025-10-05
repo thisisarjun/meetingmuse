@@ -4,12 +4,12 @@ from common.decorators import log_node_entry
 from common.logger import Logger
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
-from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.nodes.base_node import SyncNode
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.reminder_details_service import ReminderDetailsService
 
 
-class PromptMissingMeetingDetailsNode(BaseNode):
+class PromptMissingMeetingDetailsNode(SyncNode):
     schedule_service: MeetingDetailsService | ReminderDetailsService
 
     def __init__(

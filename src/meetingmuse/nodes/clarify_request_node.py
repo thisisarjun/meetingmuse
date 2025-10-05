@@ -10,11 +10,11 @@ from common.logger import Logger
 from meetingmuse.llm_models.hugging_face import BaseLlmModel
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState
-from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.nodes.base_node import SyncNode
 from meetingmuse.prompts.clarify_request_prompt import CLARIFY_REQUEST_PROMPT
 
 
-class ClarifyRequestNode(BaseNode):
+class ClarifyRequestNode(SyncNode):
     model: BaseLlmModel
     prompt: ChatPromptTemplate
     parser: StrOutputParser

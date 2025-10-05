@@ -2,10 +2,10 @@ from common.decorators import log_node_entry
 from meetingmuse.models.meeting import MeetingFindings
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, OperationStatus
-from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.nodes.base_node import SyncNode
 
 
-class EndNode(BaseNode):
+class EndNode(SyncNode):
     """
     This node will be the final node before reaching END
     """

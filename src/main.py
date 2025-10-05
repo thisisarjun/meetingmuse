@@ -29,7 +29,7 @@ def main() -> None:
     except KeyboardInterrupt:
         logger.info("KeyboardInterrupt received during startup")
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
+        logger.exception(f"Unexpected error: {str(e)}")
         sys.exit(1)
 
 

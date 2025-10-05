@@ -11,13 +11,13 @@ from meetingmuse.models.graph import MessageType
 from meetingmuse.models.meeting import InteractiveMeetingResponse, MeetingFindings
 from meetingmuse.models.node import NodeName
 from meetingmuse.models.state import MeetingMuseBotState, UserIntent
-from meetingmuse.nodes.base_node import BaseNode
+from meetingmuse.nodes.base_node import SyncNode
 from meetingmuse.services.base_schedule_service import BaseScheduleService
 from meetingmuse.services.meeting_details_service import MeetingDetailsService
 from meetingmuse.services.reminder_details_service import ReminderDetailsService
 
 
-class CollectingInfoNode(BaseNode):
+class CollectingInfoNode(SyncNode):
     """
     Collecting Info node specific for scheduling a meeting.
     This node is responsible for collecting information from the user.
