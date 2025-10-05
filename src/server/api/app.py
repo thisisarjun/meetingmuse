@@ -116,10 +116,16 @@ def create_app() -> FastAPI:
     )
 
     # Include API routers
-    app.include_router(create_websocket_router(websocket_connection_service, logger))
-    app.include_router(create_auth_router())
-    app.include_router(create_health_router(health_service, logger))
-    app.include_router(create_people_router())
+    prefix = "/api/v1"
+    app.include_router(
+        prefix=prefix,
+        router=create_websocket_router(websocket_connection_service, logger),
+    )
+    app.include_router(prefix=prefix, router=create_auth_router())
+    app.include_router(
+        prefix=prefix, router=create_health_router(health_service, logger)
+    )
+    app.include_router(prefix=prefix, router=create_people_router())
 
     logger.info("FastAPI server initialized with routers")
     return app
