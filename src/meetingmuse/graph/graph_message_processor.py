@@ -3,7 +3,6 @@ Message Processor for graph Integration
 Handles message processing through the graph workflow
 """
 
-from typing import Any, Dict
 
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
@@ -14,7 +13,7 @@ from common.logger import Logger
 from meetingmuse.graph.graph_utils import Utils
 from meetingmuse.models.graph import MessageType
 from meetingmuse.models.graph_response import GraphResponse
-from meetingmuse.models.state import MeetingMuseBotState
+from meetingmuse.models.state import MeetingMuseBotState, UserDetails
 
 
 class GraphMessageProcessor:
@@ -40,8 +39,10 @@ class GraphMessageProcessor:
             GraphResponse with content and optional interrupt info
         """
         try:
-            input_data: Dict[str, Any] = {"messages": [HumanMessage(content=content)]}
-            input_data["session_id"] = session_id
+            input_data: MeetingMuseBotState = MeetingMuseBotState(
+                messages=[HumanMessage(content=content)],
+                user_details=UserDetails(session_id=session_id),
+            )
 
             config = RunnableConfig(configurable={"thread_id": client_id})
 
@@ -50,7 +51,7 @@ class GraphMessageProcessor:
             )
 
             # Process through graph workflow
-            result = await self.graph.ainvoke(input_data, config=config)
+            result = await self.graph.ainvoke(input_data.model_dump(), config=config)
 
             interrupt_info = Utils.get_interrupt_info_from_events(result)
             if interrupt_info:

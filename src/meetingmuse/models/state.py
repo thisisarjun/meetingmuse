@@ -22,6 +22,11 @@ class OperationStatus(BaseModel):
     ai_prompt_input: Optional[str] = None
 
 
+class UserDetails(BaseModel):
+    session_id: Optional[str] = None
+    timezone: Optional[str] = None
+
+
 class MeetingMuseBotState(BaseModel):
     """
     This is the 'memory' of your bot - everything it remembers during a conversation.
@@ -43,5 +48,4 @@ class MeetingMuseBotState(BaseModel):
 
     operation_status: OperationStatus = Field(default_factory=OperationStatus)
 
-    # OAuth session information for Google Calendar API access
-    session_id: Optional[str] = None
+    user_details: Optional[UserDetails] = Field(default_factory=UserDetails)

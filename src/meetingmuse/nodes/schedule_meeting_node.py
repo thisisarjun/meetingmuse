@@ -43,11 +43,11 @@ class ScheduleMeetingNode(AsyncNode):
             message = "No scheduling action needed for this intent."
             state.messages.append(AIMessage(content=message))
             return Command(goto=NodeName.END, update={"messages": state.messages})
-
         # Create calendar event using Google Calendar API
         try:
             # Check if session_id is available for authentication
-            if not state.session_id:
+            # Create calendar event
+            if not state.user_details or not state.user_details.session_id:
                 error_msg = (
                     "Authentication required to schedule meetings. Please log in first."
                 )
@@ -57,11 +57,9 @@ class ScheduleMeetingNode(AsyncNode):
                     goto=NodeName.HUMAN_INTERRUPT_RETRY,
                     update={"messages": state.messages},
                 )
-
             # Create calendar event
-            self.logger.info("Creating Google Calendar event...")
             event_details = await self.google_calendar_client.create_calendar_event(
-                session_id=state.session_id,
+                session_id=state.user_details.session_id,
                 title=state.meeting_details.title,
                 date_time=state.meeting_details.date_time,
                 duration_minutes=state.meeting_details.duration,

@@ -5,7 +5,6 @@ Test suite for GraphMessageProcessor.process_user_message method.
 from types import SimpleNamespace
 
 import pytest
-from langchain_core.messages import HumanMessage
 
 from meetingmuse.graph.graph_message_processor import GraphMessageProcessor
 from meetingmuse.models.graph_response import GraphResponse
@@ -45,13 +44,21 @@ class TestGraphMessageProcessorProcessUserMessage:
         # Assert
         assert result == expected_response
         mock_graph.ainvoke.assert_called_once()
-        mock_graph.ainvoke.assert_called_with(
-            {
-                "messages": [HumanMessage(content=user_content)],
-                "session_id": session_id,
-            },
-            config={"configurable": {"thread_id": client_id}},
-        )
+
+        # Verify the call includes all required state fields
+        call_args = mock_graph.ainvoke.call_args
+        assert call_args[1]["config"] == {"configurable": {"thread_id": client_id}}
+
+        # Check the state data structure
+        state_data = call_args[0][0]
+        assert len(state_data["messages"]) == 1
+        assert state_data["messages"][0]["content"] == user_content
+        assert state_data["messages"][0]["type"] == "human"
+        assert state_data["user_details"]["session_id"] == session_id
+        assert state_data["user_details"]["timezone"] is None
+        assert state_data["user_intent"] is None
+        assert state_data["meeting_details"] is not None
+        assert state_data["operation_status"] is not None
 
     @pytest.mark.asyncio
     async def test_process_user_message_no_ai_message_in_state(
